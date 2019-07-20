@@ -1,4 +1,4 @@
-# JMWBot
+# ArmaRconDiscordBot
 
 ## Monetization
 This Bot (or code that I own inside) __cannot__ be used in a monetization process.

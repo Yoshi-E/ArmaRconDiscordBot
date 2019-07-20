@@ -1,6 +1,7 @@
 
 # Works with Python 3.6
 # Discord 1.2.2
+from packaging import version
 import asyncio
 from collections import Counter
 import concurrent.futures
@@ -14,6 +15,10 @@ from discord.ext.commands import has_permissions, CheckFailure
 import prettytable
 import geoip2.database
 from collections import deque
+import time
+import bec_rcon
+import inspect
+
 #Example Structure (used here):
 # discord_bot/
 # ├── bot.py       
@@ -23,8 +28,28 @@ from collections import deque
 # │          ├── module.py
 # │          └── rcon_cfg.json
 
-import bec_rcon
 
+assert version.parse(discord.__version__) >= version.parse("1.2.2"), "Module 'Discord' required to be >= 1.2.5"
+
+#combines items of the last X seconds into a list
+class RateBucket():
+    def __init__(self, function, limit = 5):
+        self.limit = limit
+        self.last = time.time()
+        self.list = []
+        self.function = function
+        
+    def add(self, value):
+        self.list.append(value)
+        if((time.time()-self.last) > self.limit):
+            if(inspect.iscoroutinefunction(self.function)): #is async
+                asyncio.ensure_future(self.function(self.list))
+            else:
+                self.function(self.list) 
+            self.list = []
+            self.last = time.time()
+            
+                    
 class CommandRcon(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -42,6 +67,8 @@ class CommandRcon(commands.Cog):
                                  {'timeoutSec' : self.rcon_settings["timeoutSec"]}
                                 )
 
+        self.RateBucket = RateBucket(self.streamMsg)
+        self.streamChat = None
         #Add Event Handlers
         self.arma_rcon.add_Event("received_ServerMessage", self.rcon_on_msg_received)
         self.arma_rcon.add_Event("on_disconnect", self.rcon_on_disconnect)
@@ -106,7 +133,11 @@ class CommandRcon(commands.Cog):
                (player_name in msg and " has been kicked by BattlEye" in msg)): #if player wrote something return True
                 return True
         return False
-
+    
+    async def streamMsg(self, message_list):
+        msg = "\n".join(message_list)
+        await self.streamChat.send(msg)
+        
 ###################################################################################################
 #####                                   Bot commands                                           ####
 ###################################################################################################   
@@ -137,7 +168,9 @@ class CommandRcon(commands.Cog):
                 #print(player_name)
                 #print(body)
             #else: is join or disconnect, or similaar
-        
+        if(self.streamChat != None):
+            self.RateBucket.add(message)
+    
         
     
     #event supports async functions
@@ -150,6 +183,23 @@ class CommandRcon(commands.Cog):
 ###################################################################################################
 #####                                BEC Rcon custom commands                                  ####
 ###################################################################################################  
+    @commands.check(canUseCmds)   
+    @commands.command(name='streamChat',
+        brief="Streams the arma 3 chat live into the current channel",
+        pass_context=True)
+    async def stream(self, ctx): 
+        self.streamChat = ctx
+        await ctx.send("Streaming chat...")
+    
+    @commands.check(canUseCmds)   
+    @commands.command(name='stopStream',
+        brief="Stops the stream",
+        pass_context=True)
+    async def streamStop(self, ctx): 
+        self.streamChat = None
+        await ctx.send("Stream stopped")
+            
+
     @commands.check(canUseCmds)   
     @commands.command(name='checkAFK',
         brief="Checks if a player is AFK (5min)",
