@@ -49,8 +49,17 @@ class RateBucket():
             self.list = []
             self.last = time.time()
             
-                    
+class CommandChecker():           
+    def check(func):
+        async def wrapped(*args, **kwargs):
+            super_self = args[0]
+            ctx = args[1]
+            await func(*args, **kwargs)
+        return wrapped
+
+ 
 class CommandRcon(commands.Cog):
+
     def __init__(self, bot):
         self.bot = bot
         self.path = os.path.dirname(os.path.realpath(__file__))
@@ -82,6 +91,7 @@ class CommandRcon(commands.Cog):
 ###################################################################################################
 #####                                  common functions                                        ####
 ###################################################################################################
+ 
     def check_dependencies(self):
                  #checking depencies 
         if("Commandconfig" in self.bot.cogs.keys()):
@@ -183,10 +193,11 @@ class CommandRcon(commands.Cog):
 ###################################################################################################
 #####                                BEC Rcon custom commands                                  ####
 ###################################################################################################  
-    @commands.check(canUseCmds)   
+     
     @commands.command(name='streamChat',
         brief="Streams the arma 3 chat live into the current channel",
         pass_context=True)
+    @CommandChecker.check
     async def stream(self, ctx): 
         self.streamChat = ctx
         await ctx.send("Streaming chat...")
