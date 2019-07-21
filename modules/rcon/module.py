@@ -202,7 +202,7 @@ class CommandRcon(commands.Cog):
         pass_context=True)
     async def streamStop(self, ctx): 
         self.streamChat = None
-        self.rcon_settings[streamChat] = None
+        self.rcon_settings["streamChat"] = None
         await ctx.send("Stream stopped")
             
 
