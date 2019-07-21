@@ -42,10 +42,11 @@ class CoreConfig():
         GlobalConfig.cfg.load() #reload cfg from file 
 
 class CommandChecker():
- 
+    
+    @staticmethod
     def check(func):
-        async def commandDenied(self):
-            pass
+        async def commandDenied(ctx):
+            await ctx.send("You cant use this command here.")
         
         async def wrapped(*args, **kwargs):
             if(len(args)>1):
@@ -53,7 +54,7 @@ class CommandChecker():
                 ctx = args[1]
                 if(type(ctx) == discord.ext.commands.context.Context):
                     if(len(CoreConfig.cfg["listChannels"])>0 and not ctx.message.channel.id in CoreConfig.cfg["listChannels"]):
-                        return await commandDenied()
+                        return await commandDenied(ctx)
                     
             return await func(*args, **kwargs)
         return wrapped

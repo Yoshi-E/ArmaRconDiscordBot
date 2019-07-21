@@ -115,6 +115,14 @@ class CommandRcon(commands.Cog):
         msg = "\n".join(message_list)
         await self.streamChat.send(msg)
         
+    def escapeMarkdown(self, msg):
+        #Markdown: *_`~#
+        msg = msg.replace("*", "\*")
+        msg = msg.replace("_", "\_")
+        msg = msg.replace("`", "\`")
+        msg = msg.replace("~", "\~")
+        msg = msg.replace("#", "\#")
+        return msg
 ###################################################################################################
 #####                                   Bot commands                                           ####
 ###################################################################################################   
@@ -136,7 +144,7 @@ class CommandRcon(commands.Cog):
 ###################################################################################################  
     #function called when a new message is received by rcon
     def rcon_on_msg_received(self, args):
-        message=args[0]
+        message=self.escapeMarkdown(args[0])
         #print(message) or post them into a discord channel
         if(":" in message):
             header, body = message.split(":", 1)
