@@ -21,9 +21,13 @@ class RateBucket():
         self.last = time.time()
         self.list = []
         self.function = function
-        
-    def add(self, value):
-        self.list.append(value)
+    
+    # ensures the msg is send
+    async def _add_check(self, value):
+        asyncio.sleep(self.limit+0.1)
+        self._add()
+    
+    def _add(self):
         if((time.time()-self.last) > self.limit):
             if(inspect.iscoroutinefunction(self.function)): #is async
                 asyncio.ensure_future(self.function(self.list))
@@ -31,6 +35,12 @@ class RateBucket():
                 self.function(self.list) 
             self.list = []
             self.last = time.time()
+        else:
+            asyncio.ensure_future(self._add_check(value))
+                
+    def add(self, value):
+        self.list.append(value)
+        self._add()
 
 
 class CoreConfig():

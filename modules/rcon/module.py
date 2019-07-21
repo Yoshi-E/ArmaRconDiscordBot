@@ -42,9 +42,16 @@ class CommandRcon(commands.Cog):
                                  self.rcon_settings["port"], 
                                  {'timeoutSec' : self.rcon_settings["timeoutSec"]}
                                 )
-
+        asyncio.ensure_future(self.on_ready())
+        
+    async def on_ready(self):
+        await self.bot.wait_until_ready()
         self.RateBucket = RateBucket(self.streamMsg)
-        self.streamChat = None
+        if("streamChat" in self.rcon_settings and self.rcon_settings["streamChat"] > 0):
+            self.streamChat = self.bot.get_channel(self.rcon_settings["streamChat"])
+            #self.streamChat.send("TEST")
+        else:
+            self.streamChat = None
         #Add Event Handlers
         self.arma_rcon.add_Event("received_ServerMessage", self.rcon_on_msg_received)
         self.arma_rcon.add_Event("on_disconnect", self.rcon_on_disconnect)
@@ -54,7 +61,6 @@ class CommandRcon(commands.Cog):
         data.reverse()
         for d in data:
             self.arma_rcon.serverMessage.append(d)
-        
 ###################################################################################################
 #####                                  common functions                                        ####
 ###################################################################################################
@@ -175,6 +181,8 @@ class CommandRcon(commands.Cog):
     @CommandChecker.check
     async def stream(self, ctx): 
         self.streamChat = ctx
+        self.rcon_settings["streamChat"] = ctx.message.channel.id
+        
         await ctx.send("Streaming chat...")
     
     @commands.check(canUseCmds)   
@@ -183,6 +191,7 @@ class CommandRcon(commands.Cog):
         pass_context=True)
     async def streamStop(self, ctx): 
         self.streamChat = None
+        self.rcon_settings[streamChat] = None
         await ctx.send("Stream stopped")
             
 
