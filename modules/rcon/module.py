@@ -1,7 +1,6 @@
 
 # Works with Python 3.6
 # Discord 1.2.2
-from packaging import version
 import asyncio
 from collections import Counter
 import concurrent.futures
@@ -16,46 +15,14 @@ import prettytable
 import geoip2.database
 from collections import deque
 import time
+
+
 import bec_rcon
-import inspect
 
-#Example Structure (used here):
-# discord_bot/
-# ├── bot.py       
-# ├── modules/
-# │     └── rcon/
-# │          ├── __init__.py
-# │          ├── module.py
-# │          └── rcon_cfg.json
-
-
-assert version.parse(discord.__version__) >= version.parse("1.2.2"), "Module 'Discord' required to be >= 1.2.5"
-
-#combines items of the last X seconds into a list
-class RateBucket():
-    def __init__(self, function, limit = 5):
-        self.limit = limit
-        self.last = time.time()
-        self.list = []
-        self.function = function
-        
-    def add(self, value):
-        self.list.append(value)
-        if((time.time()-self.last) > self.limit):
-            if(inspect.iscoroutinefunction(self.function)): #is async
-                asyncio.ensure_future(self.function(self.list))
-            else:
-                self.function(self.list) 
-            self.list = []
-            self.last = time.time()
-            
-class CommandChecker():           
-    def check(func):
-        async def wrapped(*args, **kwargs):
-            super_self = args[0]
-            ctx = args[1]
-            await func(*args, **kwargs)
-        return wrapped
+new_path = os.path.dirname(os.path.realpath(__file__))+'/../core/'
+if new_path not in sys.path:
+    sys.path.append(new_path)
+from utils import CommandChecker, RateBucket, CoreConfig
 
  
 class CommandRcon(commands.Cog):

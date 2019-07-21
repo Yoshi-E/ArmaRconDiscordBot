@@ -7,7 +7,7 @@ from discord.ext import commands
 # API Reference
 #https://discordpy.readthedocs.io/en/rewrite/ext/commands/api.html#event-reference
 
-modules = ["errorhandle","config", "rcon"]
+modules = ["errorhandle","core", "rcon"]
 bot = commands.Bot(command_prefix="!", pm_help=True)
  
 def load_modules():

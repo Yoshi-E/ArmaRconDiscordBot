@@ -1,18 +1,18 @@
 import traceback
 import sys
-from discord.ext import commands
-from discord.ext.commands import has_permissions, CheckFailure
-import discord
 import os
+import discord
+from packaging import version
+import time
+import inspect
 import json
-
 
 class Config():
     def __init__(self, cfg_path = None, default_cfg_path = None):
         self.cfg = {}
         self.cfg_path = cfg_path
         self.default_cfg_path = default_cfg_path
-        
+        self.save = True
         if(default_cfg_path):
             self.cfg_default = json.load(open(self.default_cfg_path,"r"))
        
@@ -41,7 +41,7 @@ class Config():
         return cfg
         
     def json_save(self):
-        if(self.cfg_path ):
+        if(self.cfg_path):
             with open(self.cfg_path, 'w') as outfile:
                 json.dump(self.cfg, outfile, indent=4, separators=(',', ': '), default=serialize)   
     
@@ -72,8 +72,9 @@ class Config():
     def __setitem__(self, key: str, value):
         #if(isinstance(value, Config)):
         self.cfg[key] = value
-        self.json_save()
-        
+        if(self.save):
+            self.json_save()
+
     def __getitem__(self, key: str):
         if(key in self.cfg):
             return self.cfg[key]
@@ -94,30 +95,7 @@ class Config():
 
   
 def serialize(obj):
-    """JSON serializer for objects not serializable by default json code"""
     if isinstance(obj, Config):
         return str(obj.cfg)
 
     return obj.__dict__
-
-     
-class Commandconfig(commands.Cog):
-    def __init__(self, bot):
-        self.bot = bot
-       
-        self.path = os.path.dirname(os.path.realpath(__file__))
-        cfg = Config(self.path+"/config.json", self.path+"/config.default_json")
-        self.cfg = cfg
-        self.bot.cfg = cfg
-        
-    @commands.command(  name='config_reload',
-                        brief="reloads the config",
-                        description="reloads the config from disk")
-    @has_permissions(administrator=True)
-    async def config_reload(self):
-        self.bot.cfg.load()
-        await ctx.send("Reloaded!")
-                
-
-def setup(bot):
-    bot.add_cog(Commandconfig(bot))
