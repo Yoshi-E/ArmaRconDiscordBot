@@ -29,6 +29,8 @@ class Config():
             if(self.default_cfg_path):
                 cfg = self.cfg_default.copy()
                 cfg.update(cfg_t)
+                with open(self.cfg_path, 'w') as outfile:
+                    json.dump(cfg, outfile, indent=4, separators=(',', ': '), default=serialize)  
             else:
                 cfg = cfg_t
         else:
