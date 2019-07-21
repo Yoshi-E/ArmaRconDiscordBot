@@ -1,5 +1,5 @@
 {  
     "TOKEN":"WRITE_TOKEN_HERE",
     "BOT_PREFIX":"!",
-	"listChannels": []
+    "listChannels": []
 }

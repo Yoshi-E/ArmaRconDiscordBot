@@ -128,7 +128,8 @@ class CommandRcon(commands.Cog):
     
     async def streamMsg(self, message_list):
         msg = "\n".join(message_list)
-        await self.streamChat.send(msg)
+        if(len(msg.strip())>0):
+            await self.streamChat.send(msg)
         
     def escapeMarkdown(self, msg):
         #Markdown: *_`~#
