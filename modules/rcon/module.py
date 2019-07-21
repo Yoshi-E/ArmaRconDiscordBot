@@ -185,7 +185,7 @@ class CommandRcon(commands.Cog):
 ###################################################################################################
 #####                                BEC Rcon custom commands                                  ####
 ###################################################################################################  
-     
+    @commands.check(canUseCmds)    
     @commands.command(name='streamChat',
         brief="Streams the arma 3 chat live into the current channel",
         pass_context=True)
@@ -200,6 +200,7 @@ class CommandRcon(commands.Cog):
     @commands.command(name='stopStream',
         brief="Stops the stream",
         pass_context=True)
+    @CommandChecker.check
     async def streamStop(self, ctx): 
         self.streamChat = None
         self.rcon_settings["streamChat"] = None
@@ -210,6 +211,7 @@ class CommandRcon(commands.Cog):
     @commands.command(name='checkAFK',
         brief="Checks if a player is AFK (5min)",
         pass_context=True)
+    @CommandChecker.check
     async def checkAFK(self, ctx, player_id: int): 
         players = await self.arma_rcon.getPlayersArray()
         player_name = None
@@ -264,6 +266,7 @@ class CommandRcon(commands.Cog):
     @commands.command(name='debug',
         brief="Toggles RCon debug mode",
         pass_context=True)
+    @CommandChecker.check
     async def cmd_debug(self, ctx, limit=20): 
         if(self.arma_rcon.options['debug']==True):
             self.arma_rcon.options['debug'] = False
@@ -277,6 +280,7 @@ class CommandRcon(commands.Cog):
     @commands.command(name='status',
         brief="Current connection status",
         pass_context=True)
+    @CommandChecker.check
     async def status(self, ctx, limit=20): 
         msg = ""
         if(self.arma_rcon.disconnected==False):
@@ -290,6 +294,7 @@ class CommandRcon(commands.Cog):
     @commands.command(name='getChat',
         brief="Get the last ingame chat messages",
         pass_context=True)
+    @CommandChecker.check
     async def getChat(self, ctx, limit=20): 
         msg = ""
         data = self.arma_rcon.serverMessage.copy()
@@ -310,6 +315,7 @@ class CommandRcon(commands.Cog):
     @commands.command(name='players+',
         brief="Lists current players on the server",
         pass_context=True)
+    @CommandChecker.check
     async def playersPlus(self, ctx):
         players = await self.arma_rcon.getPlayersArray()
 
@@ -338,6 +344,7 @@ class CommandRcon(commands.Cog):
     @commands.command(name='command',
         brief="Sends a custom command to the server",
         pass_context=True)
+    @CommandChecker.check
     async def command(self, ctx, *message): 
         message = " ".join(message)
         message = self.setEncoding(message)
@@ -352,6 +359,7 @@ class CommandRcon(commands.Cog):
     @commands.command(name='kickPlayer',
         brief="Kicks a player who is currently on the server",
         pass_context=True)
+    @CommandChecker.check
     async def kickPlayer(self, ctx, player_id: int, *message): 
         message = " ".join(message)
         message = self.setEncoding(message)
@@ -364,6 +372,7 @@ class CommandRcon(commands.Cog):
     @commands.command(name='say',
         brief="Sends a global message",
         pass_context=True)
+    @CommandChecker.check
     async def sayGlobal(self, ctx, *message): 
         name = ctx.message.author.name
         message = " ".join(message)
@@ -376,6 +385,7 @@ class CommandRcon(commands.Cog):
     @commands.command(name='sayPlayer',
         brief="Sends a message to a specific player",
         pass_context=True)
+    @CommandChecker.check
     async def sayPlayer(self, ctx, player_id: int, *message): 
         message = " ".join(message)
         message = self.setEncoding(message)
@@ -390,6 +400,7 @@ class CommandRcon(commands.Cog):
     @commands.command(name='loadScripts',
         brief="Loads the 'scripts.txt' file without the need to restart the server",
         pass_context=True)
+    @CommandChecker.check
     async def loadScripts(self, ctx): 
         await self.arma_rcon.loadScripts()
         msg = "Loaded Scripts!"
@@ -399,6 +410,7 @@ class CommandRcon(commands.Cog):
     @commands.command(name='loadEvents',
         brief="Loads Events",
         pass_context=True)
+    @CommandChecker.check
     async def loadEvents(self, ctx): 
         await self.arma_rcon.loadEvents()
         msg = "Loaded Events!"
@@ -408,6 +420,7 @@ class CommandRcon(commands.Cog):
     @commands.command(name='maxPing',
         brief="Changes the MaxPing value. If a player has a higher ping, he will be kicked from the server",
         pass_context=True)
+    @CommandChecker.check
     async def maxPing(self, ctx, ping: int): 
         await self.arma_rcon.maxPing(ping)
         msg = "Set maxPing to: "+ping
@@ -417,6 +430,7 @@ class CommandRcon(commands.Cog):
     @commands.command(name='changePassword',
         brief="Changes the RCon password",
         pass_context=True)
+    @CommandChecker.check
     async def changePassword(self, ctx, *password): 
         password = " ".join(password)
         await self.arma_rcon.changePassword(password)
@@ -427,6 +441,7 @@ class CommandRcon(commands.Cog):
     @commands.command(name='loadBans',
         brief="(Re)load the BE ban list from bans.txt",
         pass_context=True)
+    @CommandChecker.check
     async def loadBans(self, ctx): 
         await self.arma_rcon.loadBans()
         msg = "Loaded Bans!"
@@ -436,6 +451,7 @@ class CommandRcon(commands.Cog):
     @commands.command(name='players',
         brief="Lists current players on the server",
         pass_context=True)
+    @CommandChecker.check
     async def players(self, ctx):
         players = await self.arma_rcon.getPlayersArray()
         msgtable = prettytable.PrettyTable()
@@ -473,6 +489,7 @@ class CommandRcon(commands.Cog):
     @commands.command(name='admins',
         brief="Lists current admins on the server",
         pass_context=True)
+    @CommandChecker.check
     async def admins(self, ctx):
         admins = await self.arma_rcon.getAdminsArray()
         msgtable = prettytable.PrettyTable()
@@ -508,6 +525,7 @@ class CommandRcon(commands.Cog):
     @commands.command(name='getMissions',
         brief="Gets a list of all Missions",
         pass_context=True)
+    @CommandChecker.check
     async def getMissions(self, ctx):
         missions = await self.arma_rcon.getMissions()
         await self.sendLong(ctx, missions)
@@ -516,6 +534,7 @@ class CommandRcon(commands.Cog):
     @commands.command(name='loadMission',
         brief="Loads a mission",
         pass_context=True)
+    @CommandChecker.check
     async def loadMission(self, ctx, mission: str):
         if(mission.endswith(".pbo",-4)): #Strips PBO
             mission = mission[:-4]
@@ -527,6 +546,7 @@ class CommandRcon(commands.Cog):
     @commands.command(name='banPlayer',
         brief="Ban a player's BE GUID from the server. If time is not specified or 0, the ban will be permanent.",
         pass_context=True)
+    @CommandChecker.check
     async def banPlayer(self, ctx, player_id, time=0, *message): 
         message = " ".join(message)
         message = self.setEncoding(message)
@@ -542,6 +562,7 @@ class CommandRcon(commands.Cog):
     @commands.command(name='addBan',
         brief="Ban a player with GUID (even if they are offline)",
         pass_context=True)
+    @CommandChecker.check
     async def addBan(self, ctx, GUID: str, time=0, *message): 
         message = " ".join(message)
         message = self.setEncoding(message)
@@ -561,6 +582,7 @@ class CommandRcon(commands.Cog):
     @commands.command(name='removeBan',
         brief="Removes a ban",
         pass_context=True)
+    @CommandChecker.check
     async def removeBan(self, ctx, banID: int): 
         await self.arma_rcon.removeBan(banID)
             
@@ -571,6 +593,7 @@ class CommandRcon(commands.Cog):
     @commands.command(name='getBans',
         brief="Removes a ban",
         pass_context=True)
+    @CommandChecker.check
     async def getBans(self, ctx): 
         bans = await self.arma_rcon.getBansArray()
         bans.reverse() #news bans first
@@ -612,6 +635,7 @@ class CommandRcon(commands.Cog):
     @commands.command(name='getBEServerVersion',
         brief="Gets the current version of the BE server",
         pass_context=True)
+    @CommandChecker.check
     async def getBEServerVersion(self, ctx): 
         version = await self.arma_rcon.getBEServerVersion()
         msg = "BE version: ``"+str(version)+"``"
@@ -621,6 +645,7 @@ class CommandRcon(commands.Cog):
     @commands.command(name='lock',
         brief="Locks the server. No one will be able to join",
         pass_context=True)
+    @CommandChecker.check
     async def lock(self, ctx): 
         data = await self.arma_rcon.lock()
         msg = "Locked the Server"
@@ -630,6 +655,7 @@ class CommandRcon(commands.Cog):
     @commands.command(name='unlock',
         brief="Unlocks the Server",
         pass_context=True)
+    @CommandChecker.check
     async def unlock(self, ctx): 
         data = await self.arma_rcon.unlock()
         msg = "Unlocked the Server"
@@ -639,6 +665,7 @@ class CommandRcon(commands.Cog):
     @commands.command(name='shutdown',
         brief="Shutdowns the Server",
         pass_context=True)
+    @CommandChecker.check
     async def shutdown(self, ctx): 
         data = await self.arma_rcon.shutdown()
         msg = "Shutdown the Server"
@@ -648,6 +675,7 @@ class CommandRcon(commands.Cog):
     @commands.command(name='restart',
         brief="Restart mission with current player slot selection",
         pass_context=True)
+    @CommandChecker.check
     async def restart(self, ctx): 
         data = await self.arma_rcon.restart()
         msg = "Restarting the Mission"
@@ -657,6 +685,7 @@ class CommandRcon(commands.Cog):
     @commands.command(name='restartServer',
         brief="Shuts down and restarts the server immediately",
         pass_context=True)
+    @CommandChecker.check
     async def restartServer(self, ctx): 
         data = await self.arma_rcon.restartServer()
         msg = "Restarting the Server"
@@ -666,6 +695,7 @@ class CommandRcon(commands.Cog):
     @commands.command(name='restartM',
         brief="Shuts down and restarts the server after mission ends",
         pass_context=True)
+    @CommandChecker.check
     async def restartserveraftermission(self, ctx): 
         data = await self.arma_rcon.restartserveraftermission()
         msg = "Restarting the Server after mission ends"
@@ -675,6 +705,7 @@ class CommandRcon(commands.Cog):
     @commands.command(name='shutdownM',
         brief="Shuts down the server after mission ends",
         pass_context=True)
+    @CommandChecker.check
     async def shutdownserveraftermission(self, ctx): 
         data = await self.arma_rcon.shutdownserveraftermission()
         msg = "Restarting the Server after mission ends"
@@ -684,6 +715,7 @@ class CommandRcon(commands.Cog):
     @commands.command(name='reassign',
         brief="Shuts down the server after mission ends",
         pass_context=True)
+    @CommandChecker.check
     async def reassign(self, ctx): 
         data = await self.arma_rcon.reassign()
         msg = "Restart the mission with new player slot selection"
@@ -693,6 +725,7 @@ class CommandRcon(commands.Cog):
     @commands.command(name='monitords',
         brief="Shows performance information in the dedicated server console. Interval 0 means to stop monitoring.",
         pass_context=True)
+    @CommandChecker.check
     async def monitords(self, ctx, interval: int): 
         data = await self.arma_rcon.monitords(interval)
         msg = "Restart the mission with new player slot selection"
@@ -702,6 +735,7 @@ class CommandRcon(commands.Cog):
     @commands.command(name='goVote',
         brief="Users can vote for the mission selection.",
         pass_context=True)
+    @CommandChecker.check
     async def goVote(self, ctx): 
         data = await self.arma_rcon.goVote()
         msg = "Restart the mission with new player slot selection"
