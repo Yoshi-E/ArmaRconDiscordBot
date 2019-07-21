@@ -23,7 +23,7 @@ class RateBucket():
         self.function = function
     
     # ensures the msg is send
-    async def _add_check(self, value):
+    async def _add_check(self):
         asyncio.sleep(self.limit+0.1)
         self._add()
     
@@ -36,7 +36,7 @@ class RateBucket():
             self.list = []
             self.last = time.time()
         else:
-            asyncio.ensure_future(self._add_check(value))
+            asyncio.ensure_future(self._add_check())
                 
     def add(self, value):
         self.list.append(value)

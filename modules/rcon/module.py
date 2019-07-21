@@ -37,11 +37,7 @@ class CommandRcon(commands.Cog):
         self.rcon_settings = self.gobal_cfg.new(self.path+"/rcon_cfg.json", self.path+"/rcon_cfg.default_json")
         
         self.ipReader = geoip2.database.Reader(self.path+"/GeoLite2-Country.mmdb")
-        self.arma_rcon = bec_rcon.ARC(self.rcon_settings["ip"], 
-                                 self.rcon_settings["password"], 
-                                 self.rcon_settings["port"], 
-                                 {'timeoutSec' : self.rcon_settings["timeoutSec"]}
-                                )
+        
         asyncio.ensure_future(self.on_ready())
         
     async def on_ready(self):
@@ -52,19 +48,32 @@ class CommandRcon(commands.Cog):
             #self.streamChat.send("TEST")
         else:
             self.streamChat = None
+        
+        self.setupRcon()
+            
+    def setupRcon(self, serverMessage=None):
+        self.arma_rcon = bec_rcon.ARC(self.rcon_settings["ip"], 
+                                 self.rcon_settings["password"], 
+                                 self.rcon_settings["port"], 
+                                 {'timeoutSec' : self.rcon_settings["timeoutSec"]}
+                                )
+        
         #Add Event Handlers
         self.arma_rcon.add_Event("received_ServerMessage", self.rcon_on_msg_received)
         self.arma_rcon.add_Event("on_disconnect", self.rcon_on_disconnect)
-        #Extend the chat storage
-        data = self.arma_rcon.serverMessage.copy()
-        self.arma_rcon.serverMessage = deque(maxlen=500) #Default: 100
-        data.reverse()
-        for d in data:
-            self.arma_rcon.serverMessage.append(d)
+        if(serverMessage):
+            self.arma_rcon.serverMessage = serverMessage
+        else:   
+            #Extend the chat storage
+            data = self.arma_rcon.serverMessage.copy()
+            self.arma_rcon.serverMessage = deque(maxlen=500) #Default: 100
+            data.reverse()
+            for d in data:
+                self.arma_rcon.serverMessage.append(d)
 ###################################################################################################
 #####                                  common functions                                        ####
 ###################################################################################################
- 
+
     def check_dependencies(self):
                  #checking depencies 
         if("Commandconfig" in self.bot.cogs.keys()):
@@ -169,7 +178,8 @@ class CommandRcon(commands.Cog):
     async def rcon_on_disconnect(self):
         await asyncio.sleep(10)
         print("Reconnecting to BEC Rcon")
-        self.arma_rcon.reconnect()
+        self.setupRcon(self.arma_rcon.serverMessage) #restarts form scratch
+        #self.arma_rcon.reconnect()
         
 ###################################################################################################
 #####                                BEC Rcon custom commands                                  ####
