@@ -599,7 +599,7 @@ class CommandRcon(commands.Cog):
         
     @commands.command(name='loadMission',
         brief="Loads a mission",
-        aliases=['loadMission'],
+        aliases=['loadmission'],
         pass_context=True)
     @commands.check(CommandChecker.checkAdmin)
     async def loadMission(self, ctx, mission: str):
