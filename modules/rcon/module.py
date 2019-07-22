@@ -149,7 +149,7 @@ class CommandRcon(commands.Cog):
         for id, value in self.rcon_adminNotification.items():
             if(value["muted"] == False):
                 for keyword in value["keywords"]:
-                    if(keyword in message):
+                    if(keyword.lower() in message.lower()):
                         await self.sendPMNotification(id, keyword, message)
                     
 ###################################################################################################
