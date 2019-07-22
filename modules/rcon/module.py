@@ -452,7 +452,7 @@ class CommandRcon(commands.Cog):
 
     @commands.command(name='sayPlayer',
         brief="Sends a message to a specific player",
-        aliases=['sayplayer'],
+        aliases=['sayplayer', 'sayp'],
         pass_context=True)
     @commands.check(CommandChecker.checkAdmin)
     async def sayPlayer(self, ctx, player_id: int, *message): 
