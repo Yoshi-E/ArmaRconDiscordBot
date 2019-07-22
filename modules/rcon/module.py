@@ -22,7 +22,7 @@ import bec_rcon
 new_path = os.path.dirname(os.path.realpath(__file__))+'/../core/'
 if new_path not in sys.path:
     sys.path.append(new_path)
-from utils import CommandChecker, RateBucket
+from utils import CommandChecker, RateBucket, sendLong
 
  
 class CommandRcon(commands.Cog):
@@ -87,16 +87,6 @@ class CommandRcon(commands.Cog):
     def setEncoding(self, msg):
         return bytes(msg.encode()).decode("ascii","ignore") 
     
-    #sends a message thats longer than what discord can handel
-    async def sendLong(self, ctx, msg: str):
-        discord_limit = 1900 #discord limit is 2000
-        while(len(msg)>0): 
-            if(len(msg)>discord_limit): 
-                await ctx.send(msg[:discord_limit])
-                msg = msg[discord_limit:]
-            else:
-                await ctx.send(msg)
-                msg = ""
 
     def escapeMarkdown(self, msg):
         #Markdown: *_`~#
@@ -227,6 +217,7 @@ class CommandRcon(commands.Cog):
 
     @commands.command(name='addKeyWord',
         brief="Add Keyword to Admin notifications",
+        aliases=['addkeyword'],
         pass_context=True)
     @commands.check(CommandChecker.checkAdmin)
     async def addKeyWord(self, ctx, *keyword):
@@ -238,6 +229,7 @@ class CommandRcon(commands.Cog):
     
     @commands.command(name='removeKeyWord',
         brief="Remove Keyword to Admin notifications",
+        aliases=['removekeyword'],
         pass_context=True)
     @commands.check(CommandChecker.checkAdmin)
     async def removeKeyWord(self, ctx, *keyword):
@@ -252,6 +244,7 @@ class CommandRcon(commands.Cog):
 
     @commands.command(name='listKeyWords',
         brief="Lists all your Keywords for Admin notifications",
+        aliases=['listkeywords'],
         pass_context=True)
     @commands.check(CommandChecker.checkAdmin)
     async def listKeyWords(self, ctx):
@@ -265,9 +258,10 @@ class CommandRcon(commands.Cog):
 
     @commands.command(name='setNotification',
         brief="Args = [mute, unmute, online, always]",
+        aliases=['setnotification'],
         pass_context=True)
     @commands.check(CommandChecker.checkAdmin)
-    async def listKeyWords(self, ctx, status):
+    async def setNotification(self, ctx, status):
         args = ["mute", "unmute", "online", "always"]
         await ctx.send("mute = Will never send you a message. \n unmute = allows me to send you a message. \n online = Sending a message only when you are online or AFK. \n always = Will always send you a message.")
         if(status in args):
@@ -292,6 +286,7 @@ class CommandRcon(commands.Cog):
 
     @commands.command(name='streamChat',
         brief="Streams the arma 3 chat live into the current channel",
+        aliases=['streamchat'],
         pass_context=True)
     @commands.check(CommandChecker.checkAdmin)
     async def stream(self, ctx): 
@@ -302,6 +297,7 @@ class CommandRcon(commands.Cog):
     
     @commands.command(name='stopStream',
         brief="Stops the stream",
+        aliases=['stopstream'],
         pass_context=True)
     @commands.check(CommandChecker.checkAdmin)
     async def streamStop(self, ctx): 
@@ -311,6 +307,7 @@ class CommandRcon(commands.Cog):
             
     @commands.command(name='checkAFK',
         brief="Checks if a player is AFK (5min)",
+        aliases=['checkafk'],
         pass_context=True)
     @commands.check(CommandChecker.checkAdmin)
     async def checkAFK(self, ctx, player_id: int): 
@@ -378,6 +375,7 @@ class CommandRcon(commands.Cog):
             
     @commands.command(name='getChat',
         brief="Get the last ingame chat messages",
+        aliases=['getchat'],
         pass_context=True)
     @commands.check(CommandChecker.checkAdmin)
     async def getChat(self, ctx, limit=20): 
@@ -429,6 +427,7 @@ class CommandRcon(commands.Cog):
 
     @commands.command(name='kickPlayer',
         brief="Kicks a player who is currently on the server",
+        aliases=['kickplayer'],
         pass_context=True)
     @commands.check(CommandChecker.checkAdmin)
     async def kickPlayer(self, ctx, player_id: int, *message): 
@@ -453,6 +452,7 @@ class CommandRcon(commands.Cog):
 
     @commands.command(name='sayPlayer',
         brief="Sends a message to a specific player",
+        aliases=['sayplayer'],
         pass_context=True)
     @commands.check(CommandChecker.checkAdmin)
     async def sayPlayer(self, ctx, player_id: int, *message): 
@@ -467,6 +467,7 @@ class CommandRcon(commands.Cog):
 
     @commands.command(name='loadScripts',
         brief="Loads the 'scripts.txt' file without the need to restart the server",
+        aliases=['loadscripts'],
         pass_context=True)
     @commands.check(CommandChecker.checkAdmin)
     async def loadScripts(self, ctx): 
@@ -475,6 +476,7 @@ class CommandRcon(commands.Cog):
         await ctx.send(msg)        
 
     @commands.command(name='loadEvents',
+        aliases=['loadevents'],
         brief="Loads Events",
         pass_context=True)
     @commands.check(CommandChecker.checkAdmin)
@@ -485,6 +487,7 @@ class CommandRcon(commands.Cog):
 
     @commands.command(name='maxPing',
         brief="Changes the MaxPing value. If a player has a higher ping, he will be kicked from the server",
+        aliases=['maxping'],
         pass_context=True)
     @commands.check(CommandChecker.checkAdmin)
     async def maxPing(self, ctx, ping: int): 
@@ -494,6 +497,7 @@ class CommandRcon(commands.Cog):
 
     @commands.command(name='changePassword',
         brief="Changes the RCon password",
+        aliases=['changepassword'],
         pass_context=True)
     @commands.check(CommandChecker.checkAdmin)
     async def changePassword(self, ctx, *password): 
@@ -504,6 +508,7 @@ class CommandRcon(commands.Cog):
 
     @commands.command(name='loadBans',
         brief="(Re)load the BE ban list from bans.txt",
+        aliases=['loadbans'],
         pass_context=True)
     @commands.check(CommandChecker.checkAdmin)
     async def loadBans(self, ctx): 
@@ -585,6 +590,7 @@ class CommandRcon(commands.Cog):
             
     @commands.command(name='getMissions',
         brief="Gets a list of all Missions",
+        aliases=['getmissions'],
         pass_context=True)
     @commands.check(CommandChecker.checkAdmin)
     async def getMissions(self, ctx):
@@ -593,6 +599,7 @@ class CommandRcon(commands.Cog):
         
     @commands.command(name='loadMission',
         brief="Loads a mission",
+        aliases=['loadMission'],
         pass_context=True)
     @commands.check(CommandChecker.checkAdmin)
     async def loadMission(self, ctx, mission: str):
@@ -604,6 +611,7 @@ class CommandRcon(commands.Cog):
     
     @commands.command(name='banPlayer',
         brief="Ban a player's BE GUID from the server. If time is not specified or 0, the ban will be permanent.",
+        aliases=['banplayer'],
         pass_context=True)
     @commands.check(CommandChecker.checkAdmin)
     async def banPlayer(self, ctx, player_id, time=0, *message): 
@@ -619,6 +627,7 @@ class CommandRcon(commands.Cog):
         
     @commands.command(name='addBan',
         brief="Ban a player with GUID (even if they are offline)",
+        aliases=['addban'],
         pass_context=True)
     @commands.check(CommandChecker.checkAdmin)
     async def addBan(self, ctx, GUID: str, time=0, *message): 
@@ -638,6 +647,7 @@ class CommandRcon(commands.Cog):
 
     @commands.command(name='removeBan',
         brief="Removes a ban",
+        aliases=['removeban'],
         pass_context=True)
     @commands.check(CommandChecker.checkAdmin)
     async def removeBan(self, ctx, banID: int): 
@@ -648,6 +658,7 @@ class CommandRcon(commands.Cog):
         
     @commands.command(name='getBans',
         brief="Removes a ban",
+        aliases=['getbans'],
         pass_context=True)
     @commands.check(CommandChecker.checkAdmin)
     async def getBans(self, ctx): 
@@ -689,6 +700,7 @@ class CommandRcon(commands.Cog):
             
     @commands.command(name='getBEServerVersion',
         brief="Gets the current version of the BE server",
+        aliases=['beversion', 'BEversion', 'BEVersion'],
         pass_context=True)
     @commands.check(CommandChecker.checkAdmin)
     async def getBEServerVersion(self, ctx): 
@@ -779,6 +791,7 @@ class CommandRcon(commands.Cog):
 
     @commands.command(name='goVote',
         brief="Users can vote for the mission selection.",
+        aliases=['govote'],
         pass_context=True)
     @commands.check(CommandChecker.checkAdmin)
     async def goVote(self, ctx): 

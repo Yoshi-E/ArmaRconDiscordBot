@@ -14,6 +14,18 @@ if new_path not in sys.path:
     sys.path.append(new_path)
 from config import Config
 
+
+async def sendLong(ctx, msg: str):
+    discord_limit = 1900 #discord limit is 2000
+    while(len(msg)>0): 
+        if(len(msg)>discord_limit): 
+            await ctx.send(msg[:discord_limit])
+            msg = msg[discord_limit:]
+        else:
+            await ctx.send(msg)
+            msg = ""
+
+
 #combines items of the last X seconds into a list
 class RateBucket():
     def __init__(self, function, limit = 5):
