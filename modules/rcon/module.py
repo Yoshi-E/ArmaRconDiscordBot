@@ -159,13 +159,12 @@ class CommandRcon(commands.Cog):
     def rcon_on_msg_received(self, args):
         message=self.escapeMarkdown(args[0])
 
-        #check for admin notification keywords
-        asyncio.ensure_future(self.checkKeyWords(message))
-        
         #example: getting player name
         if(":" in message):
             header, body = message.split(":", 1)
             if(self.isChannel(header)): #was written in a channel
+                #check for admin notification keywords
+                asyncio.ensure_future(self.checkKeyWords(message))
                 player_name = header.split(") ")[1]
                 #print(player_name)
                 #print(body)
