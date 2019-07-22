@@ -22,115 +22,24 @@ import bec_rcon
 new_path = os.path.dirname(os.path.realpath(__file__))+'/../core/'
 if new_path not in sys.path:
     sys.path.append(new_path)
-from utils import CommandChecker, RateBucket, sendLong
+from utils import CommandChecker, RateBucket, sendLong, CoreConfig
 
- 
-class CommandRcon(commands.Cog):
 
+class CommandRconSettings(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.path = os.path.dirname(os.path.realpath(__file__))
-        self.check_dependencies()
-
-        self.arma_chat_channels = ["Side", "Global", "Vehicle", "Direct", "Group", "Command"]
-        
-        self.rcon_settings = self.gobal_cfg.new(self.path+"/rcon_cfg.json", self.path+"/rcon_cfg.default_json")
-        self.rcon_adminNotification = self.gobal_cfg.new(self.path+"/rcon_notifications.json")
-        
-        self.ipReader = geoip2.database.Reader(self.path+"/GeoLite2-Country.mmdb")
-        
+        self.rcon_adminNotification = CoreConfig.cfg.new(self.path+"/rcon_notifications.json")
+    
         asyncio.ensure_future(self.on_ready())
         
     async def on_ready(self):
         await self.bot.wait_until_ready()
-        self.RateBucket = RateBucket(self.streamMsg)
+        self.CommandRcon = self.bot.cogs["CommandRcon"]
         
-        if("streamChat" in self.rcon_settings and self.rcon_settings["streamChat"] != None):
-            self.streamChat = self.bot.get_channel(self.rcon_settings["streamChat"])
-            #self.streamChat.send("TEST")
-        else:
-            self.streamChat = None
-        
-        self.setupRcon()
-            
-    def setupRcon(self, serverMessage=None):
-        self.arma_rcon = bec_rcon.ARC(self.rcon_settings["ip"], 
-                                 self.rcon_settings["password"], 
-                                 self.rcon_settings["port"], 
-                                 {'timeoutSec' : self.rcon_settings["timeoutSec"]}
-                                )
-        
-        #Add Event Handlers
-        self.arma_rcon.add_Event("received_ServerMessage", self.rcon_on_msg_received)
-        self.arma_rcon.add_Event("on_disconnect", self.rcon_on_disconnect)
-        if(serverMessage):
-            self.arma_rcon.serverMessage = serverMessage
-        else:   
-            #Extend the chat storage
-            data = self.arma_rcon.serverMessage.copy()
-            self.arma_rcon.serverMessage = deque(maxlen=500) #Default: 100
-            data.reverse()
-            for d in data:
-                self.arma_rcon.serverMessage.append(d)
 ###################################################################################################
-#####                                  common functions                                        ####
-###################################################################################################
-
-    def check_dependencies(self):
-                 #checking depencies 
-        if("Commandconfig" in self.bot.cogs.keys()):
-            self.gobal_cfg = self.bot.cogs["Commandconfig"].cfg
-        else: 
-            sys.exit("Module 'Commandconfig' not loaded, but required")
-    
-    #converts unicode to ascii, until utf-8 is supported by rcon
-    def setEncoding(self, msg):
-        return bytes(msg.encode()).decode("ascii","ignore") 
-    
-
-    def escapeMarkdown(self, msg):
-        #Markdown: *_`~#
-        msg = msg.replace("*", "\*")
-        msg = msg.replace("_", "\_")
-        msg = msg.replace("`", "\`")
-        msg = msg.replace("~", "\~")
-        msg = msg.replace("#", "\#")
-        return msg    
-        
-    def getPlayerFromMessage(self, message: str):
-        if(":" in message):
-            header, body = message.split(":", 1)
-            if(self.isChannel(header)): #was written in a channel
-                player_name = header.split(") ")[1]
-                return player_name
-        return False
-        
-    def isChannel(self, msg):
-        for channel in self.arma_chat_channels:
-            if(channel in msg):
-                return True
-        return False
-        
-    def playerTypesMessage(self, player_name):
-        data = self.arma_rcon.serverMessage.copy()
-        data.reverse()
-        for pair in data: #checks all recent chat messages
-            msg = pair[1]
-            diff = datetime.datetime.now() - pair[0]
-            #cancel search if chat is older than 25min
-            if(diff.total_seconds() > 0 and diff.total_seconds()/60 >= 25): 
-                break
-            msg_player = self.getPlayerFromMessage(msg)
-            if(msg_player != False and player_name == msg_player or 
-               (" "+player_name+" disconnected") in msg or
-               (player_name in msg and " has been kicked by BattlEye" in msg)): #if player wrote something return True
-                return True
-        return False
-    
-    async def streamMsg(self, message_list):
-        msg = "\n".join(message_list)
-        if(len(msg.strip())>0):
-            await self.streamChat.send(msg)    
+#####                                   General functions                                      ####
+###################################################################################################         
         
     async def sendPMNotification(self, id, keyword, msg):
         ctx = self.bot.get_user(int(id))
@@ -151,39 +60,7 @@ class CommandRcon(commands.Cog):
                 for keyword in value["keywords"]:
                     if(keyword.lower() in message.lower()):
                         await self.sendPMNotification(id, keyword, message)
-                    
-###################################################################################################
-#####                                BEC Rcon Event handler                                    ####
-###################################################################################################  
-    #function called when a new message is received by rcon
-    def rcon_on_msg_received(self, args):
-        message=self.escapeMarkdown(args[0])
-
-        #example: getting player name
-        if(":" in message):
-            header, body = message.split(":", 1)
-            if(self.isChannel(header)): #was written in a channel
-                #check for admin notification keywords
-                asyncio.ensure_future(self.checkKeyWords(message))
-                player_name = header.split(") ")[1]
-                #print(player_name)
-                #print(body)
-            #else: is join or disconnect, or similaar
-            
-        #check if the chat is streamed or not
-        if(self.streamChat != None):
-            self.RateBucket.add(message)
-    
-        
-    
-    #event supports async functions
-    #function is called when rcon disconnects
-    async def rcon_on_disconnect(self):
-        await asyncio.sleep(10)
-        print("Reconnecting to BEC Rcon")
-        self.setupRcon(self.arma_rcon.serverMessage) #restarts form scratch
-        #self.arma_rcon.reconnect()
-    
+                        
     def getAdminSettings(self, id): 
         if(str(id) not in  self.rcon_adminNotification):
              self.rcon_adminNotification[str(id)] = {}
@@ -194,22 +71,6 @@ class CommandRcon(commands.Cog):
             userEle["muted"] = False
             userEle["sendAlways"] = True
         return userEle
-    
-    def generateChat(self, limit):
-        msg = ""
-        data = self.arma_rcon.serverMessage.copy()
-        start = len(data)-1
-        if(start > limit):
-            end = start-limit
-        else:
-            end = 0
-        i = end
-        while(i<=start):
-            pair = data[i]
-            time = pair[0]
-            msg += time.strftime("%H:%M:%S")+" | "+ pair[1]+"\n"
-            i+=1
-        return msg
 ###################################################################################################
 #####                              Admin notification commands                                 ####
 ###################################################################################################  
@@ -277,7 +138,176 @@ class CommandRcon(commands.Cog):
         else:
             await ctx.send("Invalid argument. Valid arguments are: [{}]".format(", ".join(args)))
 
-        self.rcon_adminNotification.json_save()
+        self.rcon_adminNotification.json_save() 
+        
+        
+###################################################################################################
+#####                                    Other commands                                        ####
+###################################################################################################  
+
+    @commands.command(name='debug',
+        brief="Toggles RCon debug mode",
+        pass_context=True)
+    @commands.check(CommandChecker.checkAdmin)
+    async def cmd_debug(self, ctx, limit=20): 
+        if(self.CommandRcon.arma_rcon.options['debug']==True):
+            self.CommandRcon.arma_rcon.options['debug'] = False
+        else:
+            self.CommandRcon.arma_rcon.options['debug'] = True
+        msg= "Set debug mode to:"+str(self.CommandRcon.arma_rcon.options['debug'])
+        await ctx.send(msg)     
+
+
+        
+class CommandRcon(commands.Cog):
+
+    def __init__(self, bot):
+        self.bot = bot
+        self.path = os.path.dirname(os.path.realpath(__file__))
+
+        self.arma_chat_channels = ["Side", "Global", "Vehicle", "Direct", "Group", "Command"]
+        
+        self.rcon_settings = CoreConfig.cfg.new(self.path+"/rcon_cfg.json", self.path+"/rcon_cfg.default_json")
+        
+        self.ipReader = geoip2.database.Reader(self.path+"/GeoLite2-Country.mmdb")
+        
+        asyncio.ensure_future(self.on_ready())
+        
+    async def on_ready(self):
+        await self.bot.wait_until_ready()
+        self.CommandRcon = self.bot.cogs["CommandRconSettings"]
+        
+        self.RateBucket = RateBucket(self.streamMsg)
+        
+        if("streamChat" in self.rcon_settings and self.rcon_settings["streamChat"] != None):
+            self.streamChat = self.bot.get_channel(self.rcon_settings["streamChat"])
+            #self.streamChat.send("TEST")
+        else:
+            self.streamChat = None
+        
+        self.setupRcon()
+            
+    def setupRcon(self, serverMessage=None):
+        self.arma_rcon = bec_rcon.ARC(self.rcon_settings["ip"], 
+                                 self.rcon_settings["password"], 
+                                 self.rcon_settings["port"], 
+                                 {'timeoutSec' : self.rcon_settings["timeoutSec"]}
+                                )
+        
+        #Add Event Handlers
+        self.arma_rcon.add_Event("received_ServerMessage", self.rcon_on_msg_received)
+        self.arma_rcon.add_Event("on_disconnect", self.rcon_on_disconnect)
+        if(serverMessage):
+            self.arma_rcon.serverMessage = serverMessage
+        else:   
+            #Extend the chat storage
+            data = self.arma_rcon.serverMessage.copy()
+            self.arma_rcon.serverMessage = deque(maxlen=500) #Default: 100
+            data.reverse()
+            for d in data:
+                self.arma_rcon.serverMessage.append(d)
+###################################################################################################
+#####                                  common functions                                        ####
+###################################################################################################
+    
+    #converts unicode to ascii, until utf-8 is supported by rcon
+    def setEncoding(self, msg):
+        return bytes(msg.encode()).decode("ascii","ignore") 
+    
+
+    def escapeMarkdown(self, msg):
+        #Markdown: *_`~#
+        msg = msg.replace("*", "\*")
+        msg = msg.replace("_", "\_")
+        msg = msg.replace("`", "\`")
+        msg = msg.replace("~", "\~")
+        msg = msg.replace("#", "\#")
+        return msg    
+        
+    def getPlayerFromMessage(self, message: str):
+        if(":" in message):
+            header, body = message.split(":", 1)
+            if(self.isChannel(header)): #was written in a channel
+                player_name = header.split(") ")[1]
+                return player_name
+        return False
+        
+    def isChannel(self, msg):
+        for channel in self.arma_chat_channels:
+            if(channel in msg):
+                return True
+        return False
+        
+    def playerTypesMessage(self, player_name):
+        data = self.arma_rcon.serverMessage.copy()
+        data.reverse()
+        for pair in data: #checks all recent chat messages
+            msg = pair[1]
+            diff = datetime.datetime.now() - pair[0]
+            #cancel search if chat is older than 25min
+            if(diff.total_seconds() > 0 and diff.total_seconds()/60 >= 25): 
+                break
+            msg_player = self.getPlayerFromMessage(msg)
+            if(msg_player != False and player_name == msg_player or 
+               (" "+player_name+" disconnected") in msg or
+               (player_name in msg and " has been kicked by BattlEye" in msg)): #if player wrote something return True
+                return True
+        return False
+    
+    async def streamMsg(self, message_list):
+        msg = "\n".join(message_list)
+        if(len(msg.strip())>0):
+            await self.streamChat.send(msg)    
+        
+                    
+###################################################################################################
+#####                                BEC Rcon Event handler                                    ####
+###################################################################################################  
+    #function called when a new message is received by rcon
+    def rcon_on_msg_received(self, args):
+        message=self.escapeMarkdown(args[0])
+
+        #example: getting player name
+        if(":" in message):
+            header, body = message.split(":", 1)
+            if(self.isChannel(header)): #was written in a channel
+                #check for admin notification keywords
+                asyncio.ensure_future(self.checkKeyWords(message))
+                player_name = header.split(") ")[1]
+                #print(player_name)
+                #print(body)
+            #else: is join or disconnect, or similaar
+            
+        #check if the chat is streamed or not
+        if(self.streamChat != None):
+            self.RateBucket.add(message)
+    
+        
+    
+    #event supports async functions
+    #function is called when rcon disconnects
+    async def rcon_on_disconnect(self):
+        await asyncio.sleep(10)
+        print("Reconnecting to BEC Rcon")
+        self.setupRcon(self.arma_rcon.serverMessage) #restarts form scratch
+        #self.arma_rcon.reconnect()
+    
+    
+    def generateChat(self, limit):
+        msg = ""
+        data = self.arma_rcon.serverMessage.copy()
+        start = len(data)-1
+        if(start > limit):
+            end = start-limit
+        else:
+            end = 0
+        i = end
+        while(i<=start):
+            pair = data[i]
+            time = pair[0]
+            msg += time.strftime("%H:%M:%S")+" | "+ pair[1]+"\n"
+            i+=1
+        return msg
 
 ###################################################################################################
 #####                                BEC Rcon custom commands                                  ####
@@ -345,19 +375,6 @@ class CommandRcon(commands.Cog):
         else:
             await self.arma_rcon.kickPlayer(player_id, "AFK too long")
             await ctx.send("``"+str(player_name)+"`` did not respond and was kicked for being AFK") 
-
-    @commands.command(name='debug',
-        brief="Toggles RCon debug mode",
-        pass_context=True)
-    @commands.check(CommandChecker.checkAdmin)
-    async def cmd_debug(self, ctx, limit=20): 
-        if(self.arma_rcon.options['debug']==True):
-            self.arma_rcon.options['debug'] = False
-        else:
-            self.arma_rcon.options['debug'] = True
-       
-        msg= "Set debug mode to:"+str(self.arma_rcon.options['debug'])
-        await ctx.send(msg)     
 
     @commands.command(name='status',
         brief="Current connection status",
@@ -805,8 +822,16 @@ class CommandRconTaskScheduler(commands.Cog):
         self.bot = bot
         self.path = os.path.dirname(os.path.realpath(__file__))
         
+        self.rcon_adminNotification = CoreConfig.cfg.new(self.path+"/rcon_scheduler.json")
+    
+        asyncio.ensure_future(self.on_ready())
         
+    async def on_ready(self):
+        await self.bot.wait_until_ready()
+        self.CommandRcon = self.bot.cogs["CommandRcon"]
+         
         
 def setup(bot):
     bot.add_cog(CommandRcon(bot))    
+    bot.add_cog(CommandRconSettings(bot))    
     
