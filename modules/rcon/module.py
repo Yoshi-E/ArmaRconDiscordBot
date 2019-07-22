@@ -143,7 +143,7 @@ class CommandRcon(commands.Cog):
             #msg = "\n".join(message_list)
             msg = self.generateChat(10)
             if(len(msg)>0 and len(msg.strip())>0):
-                await self.sendLong(ctx, "The Keyword '{}' was triggered: \n {}".format(keyword, msg))
+                await sendLong(ctx, "The Keyword '{}' was triggered: \n {}".format(keyword, msg))
         
     async def checkKeyWords(self, message):
         for id, value in self.rcon_adminNotification.items():
@@ -251,7 +251,7 @@ class CommandRcon(commands.Cog):
         id = ctx.message.author.id
         if(str(id) in  self.rcon_adminNotification and len(self.rcon_adminNotification[str(id)]["keywords"])>0 ):
             keywords = "\n".join(self.rcon_adminNotification[str(id)]["keywords"])
-            await self.sendLong(ctx, "```{}```".format(keywords))
+            await sendLong(ctx, "```{}```".format(keywords))
         else:
             await ctx.send("You dont have any keywords.")
         self.rcon_adminNotification.json_save()  
@@ -380,7 +380,7 @@ class CommandRcon(commands.Cog):
     @commands.check(CommandChecker.checkAdmin)
     async def getChat(self, ctx, limit=20): 
         msg = self.generateChat(limit)
-        await self.sendLong(ctx, msg)
+        await sendLong(ctx, msg)
 
     @commands.command(name='players+',
         brief="Lists current players on the server",
@@ -405,7 +405,7 @@ class CommandRcon(commands.Cog):
                     flag = ":flag_{}:".format(region)
                 msg+= "#{} | {} {}".format(id, flag, name)+"\n"
 
-        await self.sendLong(ctx, msg)
+        await sendLong(ctx, msg)
         
 ###################################################################################################
 #####                                   BEC Rcon commands                                      ####
@@ -423,7 +423,7 @@ class CommandRcon(commands.Cog):
             msg = "Executed command: ``"+str(message)+"`` and returned nothing (confirmed its execution)"
         else:
             msg = "Executed command: ``"+str(message)+"`` wich returned: "+str(data)
-        await self.sendLong(ctx,msg)
+        await sendLong(ctx,msg)
 
     @commands.command(name='kickPlayer',
         brief="Kicks a player who is currently on the server",
@@ -595,7 +595,7 @@ class CommandRcon(commands.Cog):
     @commands.check(CommandChecker.checkAdmin)
     async def getMissions(self, ctx):
         missions = await self.arma_rcon.getMissions()
-        await self.sendLong(ctx, missions)
+        await sendLong(ctx, missions)
         
     @commands.command(name='loadMission',
         brief="Loads a mission",
