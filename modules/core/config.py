@@ -76,12 +76,28 @@ class Config():
         self.cfg[key] = value
         if(self.save):
             self.json_save()
+            
+    def __iter__(self):
+        return self.cfg
+    
+    def items(self):
+        return self.cfg.items()   
 
+    def keys(self):
+        return self.cfg.keys()
+        
+        
     def __getitem__(self, key: str):
         if(key in self.cfg):
             return self.cfg[key]
         raise KeyError("No value found for key '{}'".format(key))
     
+    def __delitem__(self, key: str):
+        if(key in self.cfg):
+            del self.cfg[key]
+            return True
+        raise KeyError("No value found for key '{}'".format(key))
+        
     def __str__(self):
         return str(self.cfg)
     

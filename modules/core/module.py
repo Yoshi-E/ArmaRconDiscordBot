@@ -8,7 +8,7 @@ import os
 new_path = os.path.dirname(os.path.realpath(__file__))
 if new_path not in sys.path:
     sys.path.append(new_path)
-from utils import CoreConfig
+from utils import CoreConfig, CommandChecker
      
 class Commandconfig(commands.Cog):
     def __init__(self, bot):
@@ -20,7 +20,7 @@ class Commandconfig(commands.Cog):
     @commands.command(  name='config_reload',
                         brief="reloads the config",
                         description="reloads the config from disk")
-    @has_permissions(administrator=True)
+    @commands.check(CommandChecker.checkAdmin)
     async def config_reload(self):
         self.bot.cfg.load()
         await ctx.send("Reloaded!")
