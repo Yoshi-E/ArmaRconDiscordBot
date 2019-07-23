@@ -297,7 +297,7 @@ class CommandRcon(commands.Cog):
             header, body = message.split(":", 1)
             if(self.isChannel(header)): #was written in a channel
                 #check for admin notification keywords
-                asyncio.ensure_future(self.CommandRconSettings.checkKeyWords(message))
+                asyncio.ensure_future(self.CommandRconSettings.checkKeyWords(body))
                 player_name = header.split(") ")[1]
                 #print(player_name)
                 #print(body)
