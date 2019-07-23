@@ -60,6 +60,7 @@ class CommandRconSettings(commands.Cog):
                 for keyword in value["keywords"]:
                     if(keyword.lower() in message.lower()):
                         await self.sendPMNotification(id, keyword, message)
+                        break
                         
     def getAdminSettings(self, id): 
         if(str(id) not in  self.rcon_adminNotification):
@@ -98,24 +99,26 @@ class CommandRconSettings(commands.Cog):
 ###################################################################################################  
 
     @commands.command(name='addKeyWord',
-        brief="Add Keyword to Admin notifications",
+        brief="Add Keyword to Admin notifications (use '\_' as a space)",
         aliases=['addkeyword'],
         pass_context=True)
     @commands.check(CommandChecker.checkAdmin)
     async def addKeyWord(self, ctx, *keyword):
         keyword = " ".join(keyword)
+        keyword = keyword.replace("\_", " ")
         userEle = self.getAdminSettings(ctx.message.author.id)
         userEle["keywords"].append(keyword)  
         self.rcon_adminNotification.json_save()
         await ctx.send("Added Keyword.")
     
     @commands.command(name='removeKeyWord',
-        brief="Remove Keyword to Admin notifications",
+        brief="Remove Keyword to Admin notifications  (use '\_' as a space)",
         aliases=['removekeyword'],
         pass_context=True)
     @commands.check(CommandChecker.checkAdmin)
     async def removeKeyWord(self, ctx, *keyword):
         keyword = " ".join(keyword)
+        keyword = keyword.replace("\_", " ")
         id = ctx.message.author.id
         if(str(id) in  self.rcon_adminNotification and keyword in self.rcon_adminNotification[str(id)]["keywords"] ):
             self.rcon_adminNotification[str(id)]["keywords"].remove(keyword)
@@ -197,7 +200,7 @@ class CommandRcon(commands.Cog):
         
     async def on_ready(self):
         await self.bot.wait_until_ready()
-        self.CommandRcon = self.bot.cogs["CommandRconSettings"]
+        self.CommandRconSettings = self.bot.cogs["CommandRconSettings"]
         
         self.RateBucket = RateBucket(self.streamMsg)
         
@@ -294,7 +297,7 @@ class CommandRcon(commands.Cog):
             header, body = message.split(":", 1)
             if(self.isChannel(header)): #was written in a channel
                 #check for admin notification keywords
-                asyncio.ensure_future(self.checkKeyWords(message))
+                asyncio.ensure_future(self.CommandRconSettings.checkKeyWords(message))
                 player_name = header.split(") ")[1]
                 #print(player_name)
                 #print(body)
