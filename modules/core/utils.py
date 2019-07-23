@@ -65,6 +65,10 @@ class CoreConfig():
 
 class CommandChecker():
     @staticmethod
+    def disabled(ctx):
+        return False
+
+    @staticmethod
     def check(ctx):
         if(type(ctx) == discord.ext.commands.context.Context):
             if(len(CoreConfig.cfg["listChannels"])>0 and not ctx.message.channel.id in CoreConfig.cfg["listChannels"]):

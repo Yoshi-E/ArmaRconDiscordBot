@@ -15,7 +15,7 @@ import prettytable
 import geoip2.database
 from collections import deque
 import time
-
+import shlex, subprocess
 
 import bec_rcon
 
@@ -71,6 +71,28 @@ class CommandRconSettings(commands.Cog):
             userEle["muted"] = False
             userEle["sendAlways"] = True
         return userEle
+        
+###################################################################################################
+#####                              Arma 3 Server start - stop                                  ####
+###################################################################################################         
+        
+    @commands.command(name='start',
+            brief="Starts the arma server",
+            pass_context=True)
+    @commands.check(CommandChecker.disabled) #disabled until properly configured
+    async def start(self, ctx):
+        server_startcall = '"D:\Server\Program Files (x86)\arma3server_x64.exe" -port=2302 "-config=D:\Server\arma3\TADST\default\TADST_config.cfg" "-cfg=D:\Server\arma3\TADST\default\TADST_basic.cfg" "-profiles=D:\Server\arma3\TADST\default" -name=default -filePatching'
+        await ctx.send("Starting Server...")  
+        subprocess.call(shlex.split(server_startcall))  
+   
+    @commands.command(name='stop',
+            brief="Stop the arma server",
+            pass_context=True)
+    @commands.check(CommandChecker.disabled) #disabled until properly configured
+    async def stop(self, ctx):
+        os.system('taskkill /f /im "arma3server_x64.exe"') #only works on Windows atm
+        await ctx.send("Stop the Server.")  
+        
 ###################################################################################################
 #####                              Admin notification commands                                 ####
 ###################################################################################################  
