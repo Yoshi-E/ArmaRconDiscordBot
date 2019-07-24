@@ -17,7 +17,7 @@ This project is not affiliated or authorized by Discord or Bohemia Interactive a
 <dl>
   <dt>I want to bot to do this or that, what can I do?</dt>
   <dd>You open an issue here with detailed infromation on what you want. You can also directly contact me on discord: Yoshi_E#0405 (I am on all Bohemia discord servers).</dd>
-  <dd>You can also ask in the [Forum Thread](https://forums.bohemia.net/forums/topic/223835-api-bec-rcon-api-for-python-and-discord/)</dd>
+  <dd>You can also ask in the <a href="https://forums.bohemia.net/forums/topic/223835-api-bec-rcon-api-for-python-and-discord/">Forum Thread</a></dd>
 
   <dt>Can I use this bot with multiple servers?</dt>
   <dd>Yes and no, currently each instance of the bot can only handel one Arma server. However you can just setup multiple instances of the bot.</dd>
@@ -37,7 +37,6 @@ This project is not affiliated or authorized by Discord or Bohemia Interactive a
 6. Now you should be good to go! Just start the `bot.py`!
 
 
-##Donate
-
+## Donate
 
 [![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://paypal.me/YoshiEU)
