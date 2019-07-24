@@ -37,4 +37,5 @@ This project is not affiliated or authorized by Discord or Bohemia Interactive a
 6. Now you should be good to go! Just start the `bot.py`!
 
 ##Donate
-[![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](ericberg147@yahoo.de)
+
+[![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](CMTRVZC9CHWPG)
