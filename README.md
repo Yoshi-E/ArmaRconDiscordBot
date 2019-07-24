@@ -36,6 +36,8 @@ This project is not affiliated or authorized by Discord or Bohemia Interactive a
 5.2. In `/modules/rcon/rcon_cfg.json` you have to enter your Battleye RCon details. Read more about it here: [Battleye Rcon](https://community.bistudio.com/wiki/BattlEye#RCon).
 6. Now you should be good to go! Just start the `bot.py`!
 
+
 ##Donate
 
-[![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](CMTRVZC9CHWPG)
+
+[![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://paypal.me/YoshiEU)
