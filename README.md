@@ -2,6 +2,7 @@
 
 ## Monetization
 This Bot (or code that I own inside) __cannot__ be used in a monetization process.
+However you can ask for permission.
 
 ## Licence
 
@@ -10,10 +11,30 @@ This Bot (or code that I own inside) __cannot__ be used in a monetization proces
 This project is not affiliated or authorized by Discord or Bohemia Interactive a.s. Bohemia Interactive, ARMA, DAYZ and all associated logos and designs are trademarks or registered trademarks of Bohemia Interactive a.s. 
 
 ## Credits:
-- 
+- I thank those many, that tested my early versions and gave feedback on it.
 
+## Questions:
+<dl>
+  <dt>I want to bot to do this or that, what can I do?</dt>
+  <dd>You open an issue here with detailed infromation on what you want. You can also directly contact me on discord: Yoshi_E#0405 (I am on all Bohemia discord servers).</dd>
+  <dd>You can also ask in the [Forum Thread](https://forums.bohemia.net/forums/topic/223835-api-bec-rcon-api-for-python-and-discord/)</dd>
 
-## Examples
+  <dt>Can I use this bot with multiple servers?</dt>
+  <dd>Yes and no, currently each instance of the bot can only handel one Arma server. However you can just setup multiple instances of the bot.</dd>
 
+  <dt>How does this bot help to administate my server?</dt>
+  <dd>You can receive push notifications directly on your phone. You can manage your server on the go.</dd>
+</dl>
 
-## Usage
+## Setup:
+1. Install Python3.6+
+2. Clone the git `https://github.com/Yoshi-E/ArmaRconDiscordBot.git`
+3. Run the `bot.py` and install any missing packages with pip
+4. The package "bec_rcon" needs to be installed manually: `pip install git+https://github.com/Yoshi-E/Python-BEC-RCon.git`
+5. Configure the bot: The files are created upon the first launch.
+5.1. In `/modules/core/config.json` you have to enter a Discord Bot Token
+5.2. In `/modules/rcon/rcon_cfg.json` you have to enter your Battleye RCon details. Read more about it here: [Battleye Rcon](https://community.bistudio.com/wiki/BattlEye#RCon).
+6. Now you should be good to go! Just start the `bot.py`!
+
+##Donate
+[![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](ericberg147@yahoo.de)
