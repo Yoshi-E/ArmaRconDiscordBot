@@ -851,16 +851,111 @@ class CommandRconTaskScheduler(commands.Cog):
         self.bot = bot
         self.path = os.path.dirname(os.path.realpath(__file__))
         
-        self.rcon_adminNotification = CoreConfig.cfg.new(self.path+"/rcon_scheduler.json")
+        #self.rcon_adminNotification = CoreConfig.cfg.new(self.path+"/rcon_scheduler.json")
     
         asyncio.ensure_future(self.on_ready())
         
     async def on_ready(self):
         await self.bot.wait_until_ready()
         self.CommandRcon = self.bot.cogs["CommandRcon"]
+
+
+class RconCommandEngine(object):
+    commands = []
+    channels = ["Side", "Global", "Vehicle", "Direct", "Group", "Command"]
+    command_prefix = "!"
+    cogs = None
+    
+    def column(matrix, i):
+        return [row[i] for row in matrix]
+    
+    @staticmethod
+    def isChannel(msg):
+        for channel in RconCommandEngine.channels:
+            if(channel in msg):
+                return channel
+        return False
+    
+    @staticmethod
+    async def parseCommand(message: str):
+        if(": " in message):
+            header, body = message.split(": ", 1)
+            channel = RconCommandEngine.isChannel(header)
+            if(channel): #was written in a channel
+                user = header.split(") ")[1]
+                msg = body.split(" ")
+                com = msg[0]
+                if(RconCommandEngine.command_prefix==com[0]):
+                    com = com[1:]
+                    if(len(msg)>0):
+                        args = msg[1:]
+                    else:
+                        args = None
+                    for name, func, parameters in RconCommandEngine.commands:
+                        if(name==com):
+                            if(len(parameters) > 2):
+                                await func(channel, user, *args)
+                            else:
+                                await func(channel, user)
+                                
+                            return True
+        return False
+            
+    @staticmethod
+    def command(*args, **kwargs):
+        def arguments(function):
+            if("name" in kwargs):
+                name = kwargs["name"]
+            else:
+                name =  function.__name__
+
+            if(name in RconCommandEngine.column(RconCommandEngine.commands, 0)):
+                raise Exception("Command '{}' already exists".format(name))
+            #init
+            async def wrapper(*args, **kwargs):
+                return await function(RconCommandEngine.cogs, *args, **kwargs)
+            t = wrapper
+            RconCommandEngine.commands.append([name, t, function.__code__.co_varnames])
+            return t
+        return arguments
+
+
+# Registering functions, and interacting with the discord bot.
+class CommandRconCore(commands.Cog):
+
+    def __init__(self, bot):
+        self.bot = bot
+        self.path = os.path.dirname(os.path.realpath(__file__))
+        self.playerList = None
+        
+        asyncio.ensure_future(self.on_ready())
+        RconCommandEngine.cogs = self
+        
+    async def on_ready(self):
+        await self.bot.wait_until_ready()
+        self.CommandRcon = self.bot.cogs["CommandRcon"]
+        self.playerList = await self.CommandRcon.arma_rcon.getPlayersArray()
+    
+    async def getPlayerBEID(self, player: str):
+        print("fetch")
+        if(not player in RconCommandEngine.column(self.playerList,4)):    #get updated player list, only if player not found
+            self.playerList = await self.CommandRcon.arma_rcon.getPlayersArray()
+        for id, ip, guid, name, ping in self.playerList:
+            if(player == name):
+                print(id)
+                
+    @RconCommandEngine.command(name="cake")  
+    async def testcommand(self, channel, user, *args):
+        print("SELF:", self)
+        print("Test command:", channel, user, args)
+        print(await self.getPlayerBEID(user))
          
+
         
 def setup(bot):
     bot.add_cog(CommandRcon(bot))    
+    bot.add_cog(CommandRconTaskScheduler(bot))    
+    bot.add_cog(CommandRconCore(bot))    
     bot.add_cog(CommandRconSettings(bot))    
+    
     
