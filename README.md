@@ -29,8 +29,8 @@ This project is not affiliated or authorized by Discord or Bohemia Interactive a
 ## Setup:
 1. Install Python3.6+
 2. Clone the git `https://github.com/Yoshi-E/ArmaRconDiscordBot.git`
-3. Run the `bot.py` and install any missing packages with pip
-4. The package "bec_rcon" needs to be installed manually: `pip install git+https://github.com/Yoshi-E/Python-BEC-RCon.git`
+3. Run `pip install -r requirements.txt` to install required modules
+4. Run the `bot.py` once, it will quickly terminate itself, as you still have to configure some settings:
 5. Configure the bot: The files are created upon the first launch.
 5.1. In `/modules/core/config.json` you have to enter a Discord Bot Token
 5.2. In `/modules/rcon/rcon_cfg.json` you have to enter your Battleye RCon details. Read more about it here: [Battleye Rcon](https://community.bistudio.com/wiki/BattlEye#RCon).
