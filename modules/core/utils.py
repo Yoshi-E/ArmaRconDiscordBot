@@ -25,6 +25,11 @@ async def sendLong(ctx, msg: str):
             await ctx.send(msg)
             msg = ""
 
+class Tools():
+    @staticmethod
+    def column(matrix, i):
+        return [row[i] for row in matrix]
+        
 
 #combines items of the last X seconds into a list
 class RateBucket():
