@@ -296,6 +296,7 @@ class CommandRcon(commands.Cog):
     def rcon_on_msg_received(self, args):
         message=self.escapeMarkdown(args[0])
 
+        asyncio.ensure_future(RconCommandEngine.parseCommand(message))
         #example: getting player name
         if(":" in message):
             header, body = message.split(":", 1)
@@ -863,7 +864,7 @@ class CommandRconTaskScheduler(commands.Cog):
 class RconCommandEngine(object):
     commands = []
     channels = ["Side", "Global", "Vehicle", "Direct", "Group", "Command"]
-    command_prefix = "!"
+    command_prefix = "?"
     cogs = None
     
     def column(matrix, i):
@@ -921,7 +922,7 @@ class RconCommandEngine(object):
 
 
 # Registering functions, and interacting with the discord bot.
-class CommandRconCore(commands.Cog):
+class CommandRconIngameComs(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
@@ -944,18 +945,14 @@ class CommandRconCore(commands.Cog):
             if(player == name):
                 print(id)
                 
-    @RconCommandEngine.command(name="cake")  
-    async def testcommand(self, channel, user, *args):
-        print("SELF:", self)
-        print("Test command:", channel, user, args)
-        print(await self.getPlayerBEID(user))
-         
+    @RconCommandEngine.command(name="ping")  
+    async def ping(self, channel, user):
+        beid = await self.getPlayerBEID(user))
+        print("Ping command:", channel, user)
+        self.CommandRcon.arma_rcon.sayPlayer(beid, "Pong!")
 
-        
 def setup(bot):
-    bot.add_cog(CommandRcon(bot))    
-    bot.add_cog(CommandRconTaskScheduler(bot))    
-    bot.add_cog(CommandRconCore(bot))    
-    bot.add_cog(CommandRconSettings(bot))    
-    
-    
+    bot.add_cog(CommandRcon(bot))
+    bot.add_cog(CommandRconTaskScheduler(bot))
+    bot.add_cog(CommandRconIngameComs(bot))
+    bot.add_cog(CommandRconSettings(bot))
