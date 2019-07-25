@@ -76,7 +76,7 @@ class CommandRconSettings(commands.Cog):
 ###################################################################################################
 #####                              Arma 3 Server start - stop                                  ####
 ###################################################################################################         
-   def start_server(self):
+    def start_server(self):
         server_startcall = '"D:\Server\Program Files (x86)\arma3server_x64.exe" -port=2302 "-config=D:\Server\arma3\TADST\default\TADST_config.cfg" "-cfg=D:\Server\arma3\TADST\default\TADST_basic.cfg" "-profiles=D:\Server\arma3\TADST\default" -name=default -filePatching'
         subprocess.call(shlex.split(server_startcall))  
         
@@ -188,7 +188,6 @@ class CommandRconSettings(commands.Cog):
         await ctx.send(msg)     
 
 
-        
 class CommandRcon(commands.Cog):
 
     def __init__(self, bot):

@@ -22,7 +22,7 @@ This project is not affiliated or authorized by Discord or Bohemia Interactive a
   <dt>Can I use this bot with multiple servers?</dt>
   <dd>Yes and no, currently each instance of the bot can only handel one Arma server. However you can just setup multiple instances of the bot.</dd>
 
-  <dt>How does this bot help to administate my server?</dt>
+  <dt>How does this bot help to administrate my server?</dt>
   <dd>You can receive push notifications directly on your phone. You can manage your server on the go.</dd>
 </dl>
 
@@ -36,6 +36,9 @@ This project is not affiliated or authorized by Discord or Bohemia Interactive a
 5.2. In `/modules/rcon/rcon_cfg.json` you have to enter your Battleye RCon details. Read more about it here: [Battleye Rcon](https://community.bistudio.com/wiki/BattlEye#RCon).
 6. Now you should be good to go! Just start the `bot.py`!
 
+## Related:
+This Bot directly works with my RCon API:
+https://github.com/Yoshi-E/Python-BEC-RCon
 
 ## Donate
 
