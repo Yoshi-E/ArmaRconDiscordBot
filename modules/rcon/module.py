@@ -50,10 +50,10 @@ class CommandRconSettings(commands.Cog):
         #online idle dnd offline
         if(userEle["sendAlways"] == True or str(ctx.message.author.status) in ["online", "idle"]):
             #msg = "\n".join(message_list)
-            msg = self.generateChat(10)
+            msg = self.CommandRcon.generateChat(10)
             if(len(msg)>0 and len(msg.strip())>0):
                 await sendLong(ctx, "The Keyword '{}' was triggered: \n {}".format(keyword, msg))
-        
+
     async def checkKeyWords(self, message):
         for id, value in self.rcon_adminNotification.items():
             if(value["muted"] == False):
