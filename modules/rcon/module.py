@@ -22,7 +22,7 @@ import bec_rcon
 new_path = os.path.dirname(os.path.realpath(__file__))+'/../core/'
 if new_path not in sys.path:
     sys.path.append(new_path)
-from utils import CommandChecker, RateBucket, sendLong, CoreConfig
+from utils import CommandChecker, RateBucket, sendLong, CoreConfig, Tools
 
 
 class CommandRconSettings(commands.Cog):
@@ -868,9 +868,6 @@ class RconCommandEngine(object):
     command_prefix = "?"
     cogs = None
     
-    def column(matrix, i):
-        return [row[i] for row in matrix]
-    
     @staticmethod
     def isChannel(msg):
         for channel in RconCommandEngine.channels:
@@ -911,7 +908,7 @@ class RconCommandEngine(object):
             else:
                 name =  function.__name__
 
-            if(name in RconCommandEngine.column(RconCommandEngine.commands, 0)):
+            if(name in Tools.column(RconCommandEngine.commands, 0)):
                 raise Exception("Command '{}' already exists".format(name))
             #init
             async def wrapper(*args, **kwargs):
@@ -940,7 +937,7 @@ class CommandRconIngameComs(commands.Cog):
     
     async def getPlayerBEID(self, player: str):
         print("fetch")
-        if(not player in RconCommandEngine.column(self.playerList,4)):    #get updated player list, only if player not found
+        if(not player in Tools.column(self.playerList,4)):    #get updated player list, only if player not found
             self.playerList = await self.CommandRcon.arma_rcon.getPlayersArray()
         for id, ip, guid, name, ping in self.playerList:
             if(player == name):
