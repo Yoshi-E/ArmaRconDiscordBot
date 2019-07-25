@@ -1,6 +1,6 @@
 git+git://github.com/Yoshi-E/Python-BEC-RCon@master#bec_rcon
 discord==1.0.1
-  - discord.py [required: >=1.0.1, installed: 1.2.2]
+  - discord.py [required: >=1.2.2, installed: 1.2.2]
     - aiohttp [required: >=3.3.0,<3.6.0, installed: 3.5.4]
       - async-timeout [required: >=3.0,<4.0, installed: 3.0.1]
       - attrs [required: >=17.3.0, installed: 19.1.0]
