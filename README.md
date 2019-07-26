@@ -33,8 +33,18 @@ This project is not affiliated or authorized by Discord or Bohemia Interactive a
 4. Run the `bot.py` once, it will quickly terminate itself, as you still have to configure some settings:
 5. Configure the bot: The files are created upon the first launch
 6. In `/modules/core/config.json` you have to enter a Discord Bot Token
+6. In `/modules/core/permissions.json` you can setup the permissions for the bot. (WIP)
 7. In `/modules/rcon/rcon_cfg.json` you have to enter your Battleye RCon details. Read more about it here: [Battleye Rcon](https://community.bistudio.com/wiki/BattlEye#RCon).
 8. Now you should be good to go! Just start the `bot.py`!
+
+## Configs:
+
+### permissions.json:`
+
+* `log_commands` Everytime a command is used, it will be logged into the console
+* `needs_admin_rights` All users without admin rights on the discord server will be unable to use the commands.
+* `roles` if needs_admin_rights = False, roles that can use the commands can be defined here.
+* `can_use_dm` List of User Ids that use the Bot over direct messages.
 
 ## Related:
 This Bot directly works with my RCon API:

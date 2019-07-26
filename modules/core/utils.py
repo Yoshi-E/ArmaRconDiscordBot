@@ -69,6 +69,7 @@ class CoreConfig():
         GlobalConfig.cfg.load() #reload cfg from file 
 
 class CommandChecker():
+    permssion = CoreConfig.cfg.new(CoreConfig.path+"/permissions.json", CoreConfig.path+"/permissions.default_json")
     @staticmethod
     def disabled(ctx):
         return False
@@ -83,25 +84,31 @@ class CommandChecker():
     @staticmethod
     def checkAdmin(ctx):
         if(type(ctx) == discord.ext.commands.context.Context):
-            if(len(CoreConfig.cfg["listChannels"])>0 
-                and not ctx.message.channel.id in CoreConfig.cfg["listChannels"] 
-                and CommandChecker.checkPermission(ctx)==False):
-                return False
-        return True
+            return CommandChecker.checkPermission(ctx)
+        return False
     
     @staticmethod    
     def checkPermission(ctx):
-        roles = ["Admin", "Developer"] #Does not work in PMs for now
-        admin_ids = [165810842972061697,  #can be used in PMS
-                     218606481094737920, 
-                     105981087590649856]
-        print(ctx.message.author.name+"#"+str(ctx.message.author.id)+": "+ctx.message.content)
-        if(ctx.author.id in admin_ids):
+        if(len(CoreConfig.cfg["listChannels"])>0 
+            and not ctx.message.channel.id in CoreConfig.cfg["listChannels"]):
+            return False
+
+        if(CommandChecker.permssion["log_commands"]==True):
+            print(ctx.message.author.name+"#"+str(ctx.message.author.id)+": "+ctx.message.content)
+        
+        if(ctx.author.id in CommandChecker.permssion["can_use_dm"]):
             return True
-        if(hasattr(ctx.author, 'roles')):
+        
+        if(hasattr(ctx.message.author, 'guild_permissions') and ctx.message.author.guild_permissions.administrator==True):
+                return True
+        elif(CommandChecker.permssion["needs_admin_rights"]==True):
+            return False
+            
+        if(len(CommandChecker.permssion["roles"])>0 and hasattr(ctx.author, 'roles')):
             for role in ctx.author.roles:
-                if(role in roles):
-                    return True        
+                if(role in CommandChecker.permssion["roles"]):
+                    return True
+
         return False
 
 
