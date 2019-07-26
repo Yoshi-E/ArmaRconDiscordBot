@@ -25,3 +25,4 @@ packaging==19.0
   - six [required: Any, installed: 1.11.0]
 prettytable==0.7.2
 pygeoip==0.3.2
+psutil==5.3.3
