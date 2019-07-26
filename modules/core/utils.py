@@ -96,7 +96,10 @@ class CommandChecker():
         if(CommandChecker.permssion["log_commands"]==True):
             print(ctx.message.author.name+"#"+str(ctx.message.author.id)+": "+ctx.message.content)
         
-        if(ctx.message.author.guild_permissions.administrator==True):
+        if(ctx.author.id in CommandChecker.permssion["can_use_dm"]):
+            return True
+        
+        if(hasattr(ctx.message.author, 'guild_permissions') and ctx.message.author.guild_permissions.administrator==True):
                 return True
         elif(CommandChecker.permssion["needs_admin_rights"]==True):
             return False
@@ -105,9 +108,6 @@ class CommandChecker():
             for role in ctx.author.roles:
                 if(role in CommandChecker.permssion["roles"]):
                     return True
-
-        if(ctx.author.id in CommandChecker.permssion["can_use_dm"]):
-            return True
 
         return False
 
