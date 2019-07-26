@@ -3,6 +3,7 @@
 # Discord 1.2.2
 import asyncio
 from collections import Counter
+from collections import deque
 import concurrent.futures
 import json
 import os
@@ -13,9 +14,9 @@ from discord.ext import commands
 from discord.ext.commands import has_permissions, CheckFailure
 import prettytable
 import geoip2.database
-from collections import deque
-import time
+import datetime
 import shlex, subprocess
+import psutil
 
 import bec_rcon
 
@@ -30,7 +31,7 @@ class CommandRconSettings(commands.Cog):
         self.bot = bot
         self.path = os.path.dirname(os.path.realpath(__file__))
         self.rcon_adminNotification = CoreConfig.cfg.new(self.path+"/rcon_notifications.json")
-    
+        self.server_pid = None
         asyncio.ensure_future(self.on_ready())
         
     async def on_ready(self):
@@ -77,27 +78,51 @@ class CommandRconSettings(commands.Cog):
 #####                              Arma 3 Server start - stop                                  ####
 ###################################################################################################         
     def start_server(self):
-        server_startcall = '"D:\Server\Program Files (x86)\arma3server_x64.exe" -port=2302 "-config=D:\Server\arma3\TADST\default\TADST_config.cfg" "-cfg=D:\Server\arma3\TADST\default\TADST_basic.cfg" "-profiles=D:\Server\arma3\TADST\default" -name=default -filePatching'
-        subprocess.call(shlex.split(server_startcall))  
+        
+        #subprocess.call(shlex.split(self.CommandRcon.rcon_settings["start_server"]))  
+        self.server_pid = subprocess.Popen(shlex.split(self.CommandRcon.rcon_settings["start_server"]))  
         
     def stop_server(self):
-        os.system('taskkill /f /im "arma3server_x64.exe"') #only works on Windows atm
+        if(self.server_pid != None):
+            self.server_pid.kill()
+            self.server_pid = None
+        else:
+            return False
+            
+    def stop_all_server(self):
+        for proc in psutil.process_iter():
+            if(proc.name()==self.CommandRcon.rcon_settings["stop_server"]):
+                proc.kill()
+        #os.system('taskkill /f /im {}'.format(self.CommandRcon.rcon_settings["stop_server"])) 
         
     @commands.command(name='start',
             brief="Starts the arma server",
             pass_context=True)
-    @commands.check(CommandChecker.disabled) #disabled until properly configured
+    @commands.check(CommandChecker.checkAdmin) #disabled until properly configured
     async def start(self, ctx):
         await ctx.send("Starting Server...")  
         self.start_server()
+        self.CommandRcon.autoReconnect = True
    
     @commands.command(name='stop',
-            brief="Stop the arma server",
+            brief="Stops the arma server (If server was started with !start)",
             pass_context=True)
-    @commands.check(CommandChecker.disabled) #disabled until properly configured
+    @commands.check(CommandChecker.checkAdmin) #disabled until properly configured
     async def stop(self, ctx):
-        
-        await ctx.send("Stop the Server.")  
+        self.CommandRcon.autoReconnect = False
+        if(self.stop_server()==False):
+            await ctx.send("Failed to stop server. You might want to try '!stop_all' to stop all arma 3 instances")
+        else:
+            await ctx.send("Stopped the Server.")      
+
+    @commands.command(name='stopall',
+            brief="Stop all configured arma servers",
+            pass_context=True)
+    @commands.check(CommandChecker.checkAdmin) #disabled until properly configured
+    async def stop_all(self, ctx):
+        self.CommandRcon.autoReconnect = False
+        self.stop_all_server()
+        await ctx.send("Stop all Servers.")  
         
 ###################################################################################################
 #####                              Admin notification commands                                 ####
@@ -197,7 +222,7 @@ class CommandRcon(commands.Cog):
         self.arma_chat_channels = ["Side", "Global", "Vehicle", "Direct", "Group", "Command"]
         
         self.rcon_settings = CoreConfig.cfg.new(self.path+"/rcon_cfg.json", self.path+"/rcon_cfg.default_json")
-        
+        self.lastReconnect = deque()
         self.ipReader = geoip2.database.Reader(self.path+"/GeoLite2-Country.mmdb")
         
         asyncio.ensure_future(self.on_ready())
@@ -319,11 +344,23 @@ class CommandRcon(commands.Cog):
     #function is called when rcon disconnects
     async def rcon_on_disconnect(self):
         await asyncio.sleep(10)
-        print("Reconnecting to BEC Rcon")
-        self.setupRcon(self.arma_rcon.serverMessage) #restarts form scratch
-        #self.arma_rcon.reconnect()
-    
-    
+
+        # cleanup old records
+        try:
+            while self.lastReconnect[0] < datetime.datetime.now() - datetime.timedelta(seconds=60):
+                self.lastReconnect.popleft()
+        except IndexError:
+            pass # there are no records in the queue.
+        if len(self.lastReconnect) > self.rcon_settings["max_reconnects_per_minute"]:
+            print("Stopped Reconnecting - Too many reconnects!")
+            if(self.streamChat):
+                await self.streamChat.send(":warning: Stopped Reconnecting - Too many reconnects!\n Reconnect with '!reconnect'")
+        else:
+            self.lastReconnect.append(datetime.datetime.now())
+            print("Reconnecting to BEC Rcon")
+            self.setupRcon(self.arma_rcon.serverMessage) #restarts form scratch (due to weird behaviour on reconnect)
+
+
     def generateChat(self, limit):
         msg = ""
         data = self.arma_rcon.serverMessage.copy()
@@ -344,6 +381,15 @@ class CommandRcon(commands.Cog):
 #####                                BEC Rcon custom commands                                  ####
 ###################################################################################################  
 
+    @commands.command(name='reconnect',
+        brief="Streams the arma 3 chat live into the current channel",
+        aliases=['reconnectrcon'],
+        pass_context=True)
+    @commands.check(CommandChecker.checkAdmin)
+    async def stream(self, ctx): 
+        self.setupRcon(self.arma_rcon.serverMessage)
+        await ctx.send("Reconnected Rcon")    
+     
     @commands.command(name='streamChat',
         brief="Streams the arma 3 chat live into the current channel",
         aliases=['streamchat'],
