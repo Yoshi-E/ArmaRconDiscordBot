@@ -322,7 +322,7 @@ class CommandRcon(commands.Cog):
         message=self.escapeMarkdown(args[0])
 
         if("CommandRconIngameComs" in self.bot.cogs):
-            asyncio.ensure_future(RconCommandEngine.parseCommand(message))
+            asyncio.ensure_future(RconCommandEngine.parseCommand(args[0]))
         #example: getting player name
         if(":" in message):
             header, body = message.split(":", 1)
@@ -382,11 +382,11 @@ class CommandRcon(commands.Cog):
 ###################################################################################################  
 
     @commands.command(name='reconnect',
-        brief="Streams the arma 3 chat live into the current channel",
+        brief="Reconnects to the Rcon Server",
         aliases=['reconnectrcon'],
         pass_context=True)
     @commands.check(CommandChecker.checkAdmin)
-    async def stream(self, ctx): 
+    async def reconnectrcon(self, ctx): 
         self.setupRcon(self.arma_rcon.serverMessage)
         await ctx.send("Reconnected Rcon")    
      
@@ -439,15 +439,21 @@ class CommandRcon(commands.Cog):
                     await self.arma_rcon.sayPlayer(player_id,  "Thank you for responding in chat.")
                 return
             if((i % 30) == 0):
-                for k in range(0, 3):
-                    await self.arma_rcon.sayPlayer(player_id, "Type something in chat or you will be kicked for being AFK. ("+str(round(i/30)+1)+"/10)")
+                try:
+                    for k in range(0, 3):
+                        await self.arma_rcon.sayPlayer(player_id, "Type something in chat or you will be kicked for being AFK. ("+str(round(i/30)+1)+"/10)")
+                except: 
+                    print("Failed to send command sayPlayer (checkAFK)")
             await asyncio.sleep(1)
         if(self.playerTypesMessage(player_name)):
             if(i==0):
                 already_active = True
             await ctx.send("Player responded in chat. Canceling AFK check.")  
             if(already_active == False):
-                await self.arma_rcon.sayPlayer(player_id, "Thank you for responding in chat.")
+                try:
+                    await self.arma_rcon.sayPlayer(player_id, "Thank you for responding in chat.")
+                except:
+                    print("Failed to send command sayPlayer")
             return
         else:
             await self.arma_rcon.kickPlayer(player_id, "AFK too long")
@@ -982,18 +988,19 @@ class CommandRconIngameComs(commands.Cog):
         self.playerList = await self.CommandRcon.arma_rcon.getPlayersArray()
     
     async def getPlayerBEID(self, player: str):
-        print("fetch")
-        if(not player in Tools.column(self.playerList,4)):    #get updated player list, only if player not found
+         #get updated player list, only if player not found
+        if(not player in Tools.column(self.playerList,4)):   
             self.playerList = await self.CommandRcon.arma_rcon.getPlayersArray()
-        for id, ip, guid, name, ping in self.playerList:
+        for id, ip, ping, guid, name  in self.playerList:
+            if(name.endswith(" (Lobby)")): #Strip lobby from name
+                name = name[:-8]
             if(player == name):
-                print(id)
+                return id
                 
     @RconCommandEngine.command(name="ping")  
     async def ping(self, channel, user):
         beid = await self.getPlayerBEID(user)
-        print("Ping command:", channel, user)
-        self.CommandRcon.arma_rcon.sayPlayer(beid, "Pong!")
+        await self.CommandRcon.arma_rcon.sayPlayer(beid, "Pong!")
 
 def setup(bot):
     bot.add_cog(CommandRcon(bot))
