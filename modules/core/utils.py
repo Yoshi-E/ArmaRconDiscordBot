@@ -15,14 +15,30 @@ if new_path not in sys.path:
 from config import Config
 
 
-async def sendLong(ctx, msg: str):
+async def sendLong(ctx, msg: str, enclosed=False):
     discord_limit = 1900 #discord limit is 2000
     while(len(msg)>0): 
         if(len(msg)>discord_limit): 
-            await ctx.send(msg[:discord_limit])
-            msg = msg[discord_limit:]
+            t = msg[discord_limit::-1]
+            pos = t.find("\n", 0, 1000)
+            if(pos > 0):
+                pos = len(t)-pos
+                if(enclosed==True):
+                    await ctx.send("```"+msg[:pos]+"```")
+                else:
+                    await ctx.send(msg[:pos])
+                msg = msg[pos:]
+            else:
+                if(enclosed==True):
+                    await ctx.send("```"+msg[:discord_limit]+"```")
+                else:
+                    await ctx.send(msg[:discord_limit])
+                msg = msg[discord_limit:]
         else:
-            await ctx.send(msg)
+            if(enclosed==True):
+                await ctx.send("```"+msg+"```")
+            else:
+                await ctx.send(msg)
             msg = ""
 
 class Tools():
@@ -84,6 +100,14 @@ class CommandChecker():
     @staticmethod
     def checkAdmin(ctx):
         if(type(ctx) == discord.ext.commands.context.Context):
+            if(ctx.author.id in CommandChecker.permssion["can_use_dm"]):
+                return True
+            return hasattr(ctx.message.author, 'guild_permissions') and ctx.message.author.guild_permissions.administrator
+        return False    
+    
+    @staticmethod
+    def checkMember(ctx):
+        if(type(ctx) == discord.ext.commands.context.Context):
             return CommandChecker.checkPermission(ctx)
         return False
     
@@ -106,7 +130,7 @@ class CommandChecker():
             
         if(len(CommandChecker.permssion["roles"])>0 and hasattr(ctx.author, 'roles')):
             for role in ctx.author.roles:
-                if(role in CommandChecker.permssion["roles"]):
+                if(str(role) in CommandChecker.permssion["roles"]):
                     return True
 
         return False

@@ -387,8 +387,24 @@ class CommandRcon(commands.Cog):
         pass_context=True)
     @commands.check(CommandChecker.checkAdmin)
     async def reconnectrcon(self, ctx): 
-        self.setupRcon(self.arma_rcon.serverMessage)
-        await ctx.send("Reconnected Rcon")    
+        if(self.arma_rcon.disconnected==True):
+            self.setupRcon(self.arma_rcon.serverMessage)
+            await ctx.send("Reconnected Rcon")   
+        else:
+            await ctx.send("Disconnecting and waiting for 45s before reconnecting...")
+            await asyncio.sleep(46)
+            self.setupRcon(self.arma_rcon.serverMessage)
+            await ctx.send("Reconnected.")    
+            
+    @commands.command(name='disconnect',
+        brief="Terminates the connection to Rcon",
+        aliases=['disconnectrcon'],
+        pass_context=True)
+    @commands.check(CommandChecker.checkAdmin)
+    async def disconnectrcon(self, ctx): 
+        self.arma_rcon.disconnect()
+        await ctx.send("Disconnect Rcon")   
+       
      
     @commands.command(name='streamChat',
         brief="Streams the arma 3 chat live into the current channel",
@@ -766,7 +782,6 @@ class CommandRcon(commands.Cog):
         msgtable = prettytable.PrettyTable()
         msgtable.field_names = ["ID", "GUID", "Time", "Reason"]
         msgtable.align["ID"] = "r"
-        msgtable.align["Name"] = "l"
         msgtable.align["IP"] = "l"
         msgtable.align["GUID"] = "l"
 
