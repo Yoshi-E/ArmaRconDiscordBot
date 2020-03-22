@@ -4,4 +4,4 @@ geoip2>=2.9.0
 packaging>=19.0
 prettytable>=0.7.2
 pygeoip>=0.3.2
-psutil>=5.3.3
+psutil>=5.6.6
