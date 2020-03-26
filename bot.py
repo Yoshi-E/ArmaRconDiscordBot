@@ -1,13 +1,13 @@
 import discord
 import traceback
 from discord.ext import commands
-
+    
 # Make bot join server:
 # https://discordapp.com/oauth2/authorize?client_id=xxxxxx&scope=bot
 # API Reference
 #https://discordpy.readthedocs.io/en/rewrite/ext/commands/api.html#event-reference
 
-modules = ["errorhandle","core", "rcon"]
+modules = ["errorhandle","core", "rcon"] #, "rcon_custom"
 bot = commands.Bot(command_prefix="!", pm_help=True)
  
 def load_modules():

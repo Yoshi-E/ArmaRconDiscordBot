@@ -204,12 +204,9 @@ class CommandRconSettings(commands.Cog):
         brief="Toggles RCon debug mode",
         pass_context=True)
     @commands.check(CommandChecker.checkAdmin)
-    async def cmd_debug(self, ctx, limit=20): 
-        if(self.CommandRcon.arma_rcon.options['debug']==True):
-            self.CommandRcon.arma_rcon.options['debug'] = False
-        else:
-            self.CommandRcon.arma_rcon.options['debug'] = True
-        msg= "Set debug mode to:"+str(self.CommandRcon.arma_rcon.options['debug'])
+    async def cmd_debug(self, ctx, value): 
+        self.CommandRcon.arma_rcon.setlogging(value)
+        msg= "Set debug mode to:"+str(value)
         await ctx.send(msg)     
 
 
@@ -266,7 +263,7 @@ class CommandRcon(commands.Cog):
     
     #converts unicode to ascii, until utf-8 is supported by rcon
     def setEncoding(self, msg):
-        return bytes(msg.encode()).decode("ascii","ignore") 
+        return bytes(msg.encode()).decode("utf-8","replace") 
     
 
     def escapeMarkdown(self, msg):

@@ -2,7 +2,7 @@
     "ip": "192.168.0.1",
     "password": "Password",
     "port": 2302,
-    "timeoutSec": 5,
+    "timeoutSec": 25,
     "max_reconnects_per_minute": 2,
     "start_server": "'D:/Server/arma/Arma3server_x64.exe' -port=2303 '-config=D:/Server/Arma3/TADST/default/TADST_config.cfg' '-cfg=D:/Server/Arma3/TADST/default/TADST_basic.cfg' '-profiles=D:/Server/Arma3/TADST/default' -name=default -filePatching",
     "stop_server": "arma3server_x64.exe"
