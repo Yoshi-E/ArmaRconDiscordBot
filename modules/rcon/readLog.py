@@ -23,7 +23,7 @@ class readLog:
         #all data rows are stored in here, limited to prevent memory leaks
         self.dataRows=deque(maxlen=self.maxDataRows)
         #scan most recent log. Until enough data is collected
-        logs = self.getLogs()
+        #logs = self.getLogs()
         self.Events = []
         # tempdataRows = deque(maxlen=self.maxDataRows)
         # for log in reversed(logs):
@@ -62,7 +62,7 @@ class readLog:
     def processLogLine(self, line):
         if(" Server load: FPS " in line):
             data = line.split("Server load: ")
-            return data[1]
+            self.dataRows.append(data[1])
         return None
         
     #this function will continusly scan a log for data entries. They are stored in self.dataRows
@@ -74,7 +74,7 @@ class readLog:
             except:
                 line = None
             while line:
-                data = self.processLogLine(line)
+                self.processLogLine(line)
                 self.dataRows.append(data)
                 try:
                     line = fp.readline()
@@ -98,7 +98,7 @@ class readLog:
                         except:
                             line = None
                         if not line:
-                            await asyncio.sleep(10)
+                            await asyncio.sleep(1)
                             #file.seek(where)
                             if(current_log != self.getLogs()[-1]):
                                 old_log = current_log
@@ -108,7 +108,7 @@ class readLog:
                                 print("current log: "+current_log)
                                 self.on_newLog(old_log, current_log)
                         else:
-                            data = self.processLogLine(line)
+                            self.processLogLine(line)
                 except Exception as e:
                     print(e)
                     traceback.print_exc()

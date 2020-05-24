@@ -901,6 +901,7 @@ class CommandRcon(commands.Cog):
     async def monitords(self, ctx, interval = -1): 
         if(interval < 0):
             await self.arma_rcon.monitords(1)
+            await asyncio.sleep(2)
             for i in range(0,5):
                 if(len(self.log_reader.dataRows)==0):
                     await ctx.send("Failed to acquire data")
