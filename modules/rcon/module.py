@@ -20,6 +20,8 @@ import psutil
 
 import bec_rcon
 
+from modules.rcon import readLog
+
 new_path = os.path.dirname(os.path.realpath(__file__))+'/../core/'
 if new_path not in sys.path:
     sys.path.append(new_path)
@@ -222,6 +224,8 @@ class CommandRcon(commands.Cog):
         self.lastReconnect = deque()
         self.ipReader = geoip2.database.Reader(self.path+"/GeoLite2-Country.mmdb")
         
+        self.log_reader = readLog(CoreConfig.cfg)
+        
         asyncio.ensure_future(self.on_ready())
         
     async def on_ready(self):
@@ -377,7 +381,6 @@ class CommandRcon(commands.Cog):
 ###################################################################################################
 #####                                BEC Rcon custom commands                                  ####
 ###################################################################################################  
-
     @commands.command(name='reconnect',
         brief="Reconnects to the Rcon Server",
         aliases=['reconnectrcon'],
@@ -879,26 +882,36 @@ class CommandRcon(commands.Cog):
     @commands.check(CommandChecker.checkAdmin)
     async def shutdownserveraftermission(self, ctx): 
         data = await self.arma_rcon.shutdownserveraftermission()
-        msg = "Restarting the Server after mission ends"
+        msg = "Shuting down the Server after mission ends"
         await ctx.send(msg)       
 
     @commands.command(name='reassign',
-        brief="Shuts down the server after mission ends",
+        brief="Sends all players back to the lobby and unslots them",
         pass_context=True)
     @commands.check(CommandChecker.checkAdmin)
     async def reassign(self, ctx): 
         data = await self.arma_rcon.reassign()
-        msg = "Restart the mission with new player slot selection"
+        msg = "All users are send back to the lobby"
         await ctx.send(msg)          
 
     @commands.command(name='monitords',
         brief="Shows performance information in the dedicated server console. Interval 0 means to stop monitoring.",
         pass_context=True)
     @commands.check(CommandChecker.checkAdmin)
-    async def monitords(self, ctx, interval: int): 
-        data = await self.arma_rcon.monitords(interval)
-        msg = "Restart the mission with new player slot selection"
-        await ctx.send(msg)        
+    async def monitords(self, ctx, interval = -1): 
+        if(interval < 0):
+            await self.arma_rcon.monitords(1)
+            for i in range(0,5):
+                if(len(self.log_reader.dataRows)==0):
+                    await ctx.send("Failed to acquire data")
+                    break
+                await ctx.send(self.log_reader.dataRows[-1])
+                await asyncio.sleep(1.1)
+            await self.arma_rcon.monitords(0)
+        else:
+            await self.arma_rcon.monitords(interval)
+            msg = "Performance will be logged every {} seconds.".format(interval)
+            await ctx.send(msg)        
 
     @commands.command(name='goVote',
         brief="Users can vote for the mission selection.",
@@ -907,7 +920,7 @@ class CommandRcon(commands.Cog):
     @commands.check(CommandChecker.checkAdmin)
     async def goVote(self, ctx): 
         data = await self.arma_rcon.goVote()
-        msg = "Restart the mission with new player slot selection"
+        msg = "Sending users to vote for next mission"
         await ctx.send(msg)       
 
 
