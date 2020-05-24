@@ -24,20 +24,19 @@ class readLog:
         self.dataRows=deque(maxlen=self.maxDataRows)
         #scan most recent log. Until enough data is collected
         logs = self.getLogs()
-        tempdataRows = deque(maxlen=self.maxDataRows)
         self.Events = []
-        for log in reversed(logs):
-            print("Pre-scanning: "+log)
-            self.scanfile(log)
-            if(len(tempdataRows)+len(self.dataRows) <= self.maxDataRows):
-                tempdataRows.extendleft(reversed(self.dataRows))
-                self.dataRows = deque(maxlen=self.maxDataRows)
-            else:
-                #TODO only merge some parts (to fill complelty)
-                break
-            if(len(tempdataRows)>=self.maxDataRows):
-                break
-        self.dataRows = tempdataRows
+        # tempdataRows = deque(maxlen=self.maxDataRows)
+        # for log in reversed(logs):
+            # print("Pre-scanning: "+log)
+            # self.scanfile(log)
+            # if(len(tempdataRows)+len(self.dataRows) <= self.maxDataRows):
+                # tempdataRows.extendleft(reversed(self.dataRows))
+                # self.dataRows = deque(maxlen=self.maxDataRows)
+            # else:
+                # break
+            # if(len(tempdataRows)>=self.maxDataRows):
+                # break
+        # self.dataRows = tempdataRows
         
         #Start Watchlog
         asyncio.ensure_future(self.watch_log())
