@@ -1,7 +1,3 @@
-#pip install matplotlib
-
-import matplotlib.pyplot as plt
-import ast
 import os
 from datetime import datetime
 import json
@@ -11,7 +7,6 @@ from collections import deque
 import collections
 import traceback
 import sys
-import itertools
 import asyncio
 import inspect
 
@@ -25,6 +20,7 @@ class readLog:
         #scan most recent log. Until enough data is collected
         #logs = self.getLogs()
         self.Events = []
+        self.lastLogCheck = None
         # tempdataRows = deque(maxlen=self.maxDataRows)
         # for log in reversed(logs):
             # print("Pre-scanning: "+log)
@@ -43,14 +39,16 @@ class readLog:
 
     #get the log files from folder and sort them by oldest first
     def getLogs(self):
-        if(os.path.exists(self.cfg['logs_path'])):
-            files = []
-            for file in os.listdir(self.cfg['logs_path']):
-                if (file.endswith(".log") or file.endswith(".rpt")):
-                    files.append(file)
-            return sorted(files)
-        else:
-            return []
+        if(self.lastLogCheck == None or (datetime.now() - self.lastLogCheck).total_seconds() > 60):
+            self.lastLogCheck = datetime.now()
+            
+            if(os.path.exists(self.cfg['logs_path'])):
+                files = []
+                for file in os.listdir(self.cfg['logs_path']):
+                    if (file.endswith(".log") or file.endswith(".rpt")):
+                        files.append(file)
+                return sorted(files)
+        return []
 
     def splitTimestamp(self, pline):
         splitat = pline.find("[")
@@ -100,9 +98,10 @@ class readLog:
                         if not line:
                             await asyncio.sleep(1)
                             #file.seek(where)
-                            if(current_log != self.getLogs()[-1]):
+                            new_log = self.getLogs()
+                            if(len(new_log) > 0 and current_log != new_log[-1]):
                                 old_log = current_log
-                                current_log = self.getLogs()[-1] #update to new recent log
+                                current_log = new_log[-1] #update to new recent log
                                 #self.scanfile(current_log) #Log most likely empty, but a quick scan cant hurt.
                                 file = open(self.cfg["logs_path"]+current_log, "r")
                                 print("current log: "+current_log)
