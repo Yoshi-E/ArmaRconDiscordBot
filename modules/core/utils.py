@@ -57,7 +57,7 @@ class RateBucket():
     
     # ensures the msg is send
     async def _add_check(self):
-        asyncio.sleep(self.limit+0.1)
+        await asyncio.sleep(self.limit+0.1)
         self._add()
     
     def _add(self):

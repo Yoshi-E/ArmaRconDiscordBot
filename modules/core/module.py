@@ -21,7 +21,7 @@ class Commandconfig(commands.Cog):
                         brief="reloads the config",
                         description="reloads the config from disk")
     @commands.check(CommandChecker.checkAdmin)
-    async def config_reload(self):
+    async def config_reload(self, ctx):
         self.bot.cfg.load()
         await ctx.send("Reloaded!")
                 
