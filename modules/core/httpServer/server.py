@@ -39,7 +39,29 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
             body = "?"+body.decode('utf-8')
             print(body)
             parsed = urlparse(body)
-            WebServer.bot.CoreConfig.setCommandSetting(parse_qs(parsed.query))
+            WebServer.bot.CoreConfig.setCommandSetting(parse_qs(parsed.query))     
+        elif self.path == '/add_role.json':
+            content_length = int(self.headers['Content-Length'])
+            body = self.rfile.read(content_length)
+            self.send_response(301)
+            self.send_header('Location', "/")
+            self.end_headers()
+            
+            body = "?"+body.decode('utf-8')
+            print(body)
+            parsed = urlparse(body)
+            WebServer.bot.CoreConfig.add_role(parse_qs(parsed.query))      
+        elif self.path == '/delete_role.json':
+            content_length = int(self.headers['Content-Length'])
+            body = self.rfile.read(content_length)
+            self.send_response(301)
+            self.send_header('Location', "/")
+            self.end_headers()
+            
+            body = "?"+body.decode('utf-8')
+            print(body)
+            parsed = urlparse(body)
+            WebServer.bot.CoreConfig.delete_role(parse_qs(parsed.query))
         else:
             content_length = int(self.headers['Content-Length'])
             body = self.rfile.read(content_length)

@@ -93,7 +93,6 @@ class CoreConfig():
         
     def load_role_permissions(self):
         files = glob.glob(CoreConfig.path+"/permissions_*.json")
-        print(files)
         if(len(files)==0):
             CoreConfig.generate_default_settings()
         for file in files:
@@ -118,6 +117,21 @@ class CoreConfig():
         val = True if data["value"][0]=="true" else False
         self.cfgPermissions_Roles[data["role"][0]][data["name"][0]] = val
         
+        
+    def add_role(self, data):
+        role = data["add_role"][0]
+        print("Created new role: '{}'".format(role))
+        self.cfgPermissions_Roles[role] = CoreConfig.cfg.new(CoreConfig.path+"/permissions_{}.json".format(role))
+
+        for command in CoreConfig.bot.commands:
+            self.cfgPermissions_Roles[role]["command_"+str(command)] = False
+            
+    def delete_role(self, data):
+        role = data["delete_role"][0]
+        self.cfgPermissions_Roles[role].delete()
+        print("Deleted role '{}'".format(role))
+        self.cfgPermissions_Roles = {}
+        self.load_role_permissions()
         
 class CommandChecker():
     permssion = CoreConfig.cfgPermissions

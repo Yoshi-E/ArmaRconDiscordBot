@@ -23,6 +23,13 @@ tr:nth-child(even) {
 
 <h2>RCON Settings</h2>
 
+
+<form action="/add_role.json" method="post">
+  <label for="add_role">Add Role:</label><br>
+  <input type="text" id="add_role" name="add_role" value=""><br>
+  <input type="submit" value="Submit">
+</form> 
+
 <table id="permission_settings">
 
 </table>
@@ -44,8 +51,10 @@ function generateTableHead(table, data) {
 	for (let key of data) {
 		let th = document.createElement("th");
 		let text = document.createTextNode(key);
-			th.appendChild(text);
-			row.appendChild(th);
+		th.appendChild(text);
+		row.appendChild(th);
+		if(key != "Command") {
+		th.appendChild(generate_delete_role_button(key)); }
 		}
 }
 
@@ -66,6 +75,28 @@ function generateTable(table, data) {
 
 }
 
+function generate_delete_role_button(name) {
+	var button = document.createElement('input');
+	button.setAttribute('type', 'submit');
+	button.setAttribute('ID', name);
+	button.setAttribute('value', 'X');
+	button.setAttribute('onclick', 'delete_role(this)');
+	button.setAttribute('form', 'myform');
+	return button
+	
+}
+
+function delete_role(e) {
+	if(confirm("Are you sure you want to delete the role "+e.id+"?")) {
+		$.post('/delete_role.json', { 
+		delete_role: e.id
+		}, function(data) { 
+			//console.log(data);
+		});
+		window.location.reload(false);
+	}	
+};
+
 
 function createCheckbox(parent, command, value) {
 	var x = document.createElement("INPUT");
@@ -78,13 +109,12 @@ function createCheckbox(parent, command, value) {
 }; 
 
 function permission_changed(e) {
-	console.log(e)
 	$.post('/set_settings.json', { 
 	name: e.srcElement.id,
 	value: e.srcElement.checked,
 	role: e.srcElement.value
 	}, function(data) { 
-		console.log(data);
+		//console.log(data);
 	});
 };
 

@@ -53,7 +53,7 @@ class Config():
             json.dump(self.cfg, outfile, indent=4, separators=(',', ': '), default=serialize)
             
     # deletes config files      
-    def delete():
+    def delete(self):
         if(self.cfg_path):
             os.remove(self.cfg_path)
         if(self.default_cfg_path):
