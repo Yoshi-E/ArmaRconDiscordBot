@@ -22,7 +22,7 @@ class Commandconfig(commands.Cog):
     @commands.command(  name='config_reload',
                         brief="reloads the config",
                         description="reloads the config from disk")
-    @commands.check(CommandChecker.checkAdmin)
+    @commands.check(CommandChecker.checkPermission)
     async def config_reload(self, ctx):
         self.cfg.load()
         await ctx.send("Reloaded!")

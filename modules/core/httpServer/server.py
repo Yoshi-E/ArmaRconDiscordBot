@@ -30,14 +30,21 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
             self.end_headers()
             response = BytesIO()
             response.write(WebServer.generate_settings())
+            self.wfile.write(response.getvalue())       
+        elif self.path == '/get_general_settings.json':
+            self.send_response(200)
+            self.send_header('Content-type', 'text/json')
+            self.end_headers()
+            response = BytesIO()
+            response.write(WebServer.generate_general_settings())
             self.wfile.write(response.getvalue())
         elif self.path == '/set_settings.json':
             content_length = int(self.headers['Content-Length'])
             body = self.rfile.read(content_length)
             self.send_response(200)
             self.end_headers()
+            
             body = "?"+body.decode('utf-8')
-            print(body)
             parsed = urlparse(body)
             WebServer.bot.CoreConfig.setCommandSetting(parse_qs(parsed.query))     
         elif self.path == '/add_role.json':
@@ -48,7 +55,6 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
             self.end_headers()
             
             body = "?"+body.decode('utf-8')
-            print(body)
             parsed = urlparse(body)
             WebServer.bot.CoreConfig.add_role(parse_qs(parsed.query))      
         elif self.path == '/delete_role.json':
@@ -59,7 +65,6 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
             self.end_headers()
             
             body = "?"+body.decode('utf-8')
-            print(body)
             parsed = urlparse(body)
             WebServer.bot.CoreConfig.delete_role(parse_qs(parsed.query))
         else:
@@ -67,6 +72,7 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
             body = self.rfile.read(content_length)
             self.send_response(200)
             self.end_headers()
+            
             response = BytesIO()
             response.write(b'POST request. ')
             response.write(b'Received: ')
@@ -88,7 +94,7 @@ class WebServer():
 
         
     def _start_server(self, port=8000):
-        print("Start http server on port {}".format(port))
+        print("Settings page online on: http://localhost:{}/".format(port))
         self.httpd = HTTPServer(('localhost', port), SimpleHTTPRequestHandler)
         self.httpd.serve_forever()
     
@@ -103,4 +109,9 @@ class WebServer():
                 settings[str(command)][role] = WebServer.bot.CoreConfig.cfgPermissions_Roles[role]["command_"+str(command)]
         settings["head"] = list(roles)
         json_dump = json.dumps(settings)
+        return json_dump.encode()    
+        
+    def generate_general_settings():
+        WebServer.bot.CoreConfig.load_role_permissions() #Load permissions from file
+        json_dump = json.dumps( WebServer.bot.CoreConfig.cfg.cfg)
         return json_dump.encode()

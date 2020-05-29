@@ -78,7 +78,7 @@ class RateBucket():
 
 class CoreConfig():
     path = os.path.dirname(os.path.realpath(__file__))
-    cfg = Config(path+"/config.json", path+"/config.default_json")
+    cfg = Config(path+"/config.json")
     cfgPermissions = Config(path+"/permissions.json", path+"/permissions.default_json")
     bot = None
     
@@ -146,14 +146,7 @@ class CommandChecker():
         return False
 
     @staticmethod
-    def check(ctx):
-        if(type(ctx) == discord.ext.commands.context.Context):
-            if(len(ctx.bot.CoreConfig.cfg["listChannels"])>0 and not ctx.message.channel.id in ctx.bot.CoreConfig.cfg["listChannels"]):
-                return False
-        return True
-
-    @staticmethod
-    def checkAdmin(ctx):
+    def checkPermission(ctx):
         pr = ctx.bot.CoreConfig.cfgPermissions_Roles
         if(type(ctx) == discord.ext.commands.context.Context):
             
@@ -169,43 +162,4 @@ class CommandChecker():
                     if(cmd in pr[str(role)] and pr[str(role)][cmd]):
                         return True
         return False       
-        
-    @staticmethod
-    def checkAdmin_old(ctx):
-        if(type(ctx) == discord.ext.commands.context.Context):
-            if(ctx.author.id in CommandChecker.permssion["can_use_dm"]):
-                return True
-            return hasattr(ctx.message.author, 'guild_permissions') and ctx.message.author.guild_permissions.administrator
-        return False    
-    
-    @staticmethod
-    def checkMember(ctx):
-        if(type(ctx) == discord.ext.commands.context.Context):
-            return CommandChecker.checkPermission(ctx)
-        return False
-    
-    @staticmethod    
-    def checkPermission(ctx):
-        if(len(ctx.bot.CoreConfig.cfg["listChannels"])>0 
-            and not ctx.message.channel.id in ctx.bot.CoreConfig.cfg["listChannels"]):
-            return False
-
-        if(CommandChecker.permssion["log_commands"]==True):
-            print(ctx.message.author.name+"#"+str(ctx.message.author.id)+": "+ctx.message.content)
-        
-        if(ctx.author.id in CommandChecker.permssion["can_use_dm"]):
-            return True
-        
-        if(hasattr(ctx.message.author, 'guild_permissions') and ctx.message.author.guild_permissions.administrator==True):
-                return True
-        elif(CommandChecker.permssion["needs_admin_rights"]==True):
-            return False
-            
-        if(len(CommandChecker.permssion["roles"])>0 and hasattr(ctx.author, 'roles')):
-            for role in ctx.author.roles:
-                if(str(role) in CommandChecker.permssion["roles"]):
-                    return True
-
-        return False
-
 

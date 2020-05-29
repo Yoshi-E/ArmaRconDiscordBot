@@ -100,7 +100,7 @@ class CommandRconSettings(commands.Cog):
     @commands.command(name='start',
             brief="Starts the arma server",
             pass_context=True)
-    @commands.check(CommandChecker.checkAdmin) #disabled until properly configured
+    @commands.check(CommandChecker.checkPermission) #disabled until properly configured
     async def start(self, ctx):
         await ctx.send("Starting Server...")  
         self.start_server()
@@ -109,7 +109,7 @@ class CommandRconSettings(commands.Cog):
     @commands.command(name='stop',
             brief="Stops the arma server (If server was started with !start)",
             pass_context=True)
-    @commands.check(CommandChecker.checkAdmin) #disabled until properly configured
+    @commands.check(CommandChecker.checkPermission) #disabled until properly configured
     async def stop(self, ctx):
         self.CommandRcon.autoReconnect = False
         if(self.stop_server()==False):
@@ -120,7 +120,7 @@ class CommandRconSettings(commands.Cog):
     @commands.command(name='stopall',
             brief="Stop all configured arma servers",
             pass_context=True)
-    @commands.check(CommandChecker.checkAdmin) #disabled until properly configured
+    @commands.check(CommandChecker.checkPermission) #disabled until properly configured
     async def stop_all(self, ctx):
         self.CommandRcon.autoReconnect = False
         self.stop_all_server()
@@ -134,7 +134,7 @@ class CommandRconSettings(commands.Cog):
         brief="Add Keyword to Admin notifications (use '\_' as a space)",
         aliases=['addkeyword'],
         pass_context=True)
-    @commands.check(CommandChecker.checkAdmin)
+    @commands.check(CommandChecker.checkPermission)
     async def addKeyWord(self, ctx, *keyword):
         keyword = " ".join(keyword)
         keyword = keyword.replace("\_", " ")
@@ -147,7 +147,7 @@ class CommandRconSettings(commands.Cog):
         brief="Remove Keyword to Admin notifications  (use '\_' as a space)",
         aliases=['removekeyword'],
         pass_context=True)
-    @commands.check(CommandChecker.checkAdmin)
+    @commands.check(CommandChecker.checkPermission)
     async def removeKeyWord(self, ctx, *keyword):
         keyword = " ".join(keyword)
         keyword = keyword.replace("\_", " ")
@@ -163,7 +163,7 @@ class CommandRconSettings(commands.Cog):
         brief="Lists all your Keywords for Admin notifications",
         aliases=['listkeywords'],
         pass_context=True)
-    @commands.check(CommandChecker.checkAdmin)
+    @commands.check(CommandChecker.checkPermission)
     async def listKeyWords(self, ctx):
         id = ctx.message.author.id
         if(str(id) in  self.rcon_adminNotification and len(self.rcon_adminNotification[str(id)]["keywords"])>0 ):
@@ -177,7 +177,7 @@ class CommandRconSettings(commands.Cog):
         brief="Args = [mute, unmute, online, always]",
         aliases=['setnotification'],
         pass_context=True)
-    @commands.check(CommandChecker.checkAdmin)
+    @commands.check(CommandChecker.checkPermission)
     async def setNotification(self, ctx, status):
         args = ["mute", "unmute", "online", "always"]
         await ctx.send("mute = Will never send you a message. \n unmute = allows me to send you a message. \n online = Sending a message only when you are online or AFK. \n always = Will always send you a message.")
@@ -205,7 +205,7 @@ class CommandRconSettings(commands.Cog):
     @commands.command(name='debug',
         brief="Toggles RCon debug mode",
         pass_context=True)
-    @commands.check(CommandChecker.checkAdmin)
+    @commands.check(CommandChecker.checkPermission)
     async def cmd_debug(self, ctx, value): 
         self.CommandRcon.arma_rcon.setlogging(value)
         msg= "Set debug mode to:"+str(value)
@@ -385,7 +385,7 @@ class CommandRcon(commands.Cog):
         brief="Reconnects to the Rcon Server",
         aliases=['reconnectrcon'],
         pass_context=True)
-    @commands.check(CommandChecker.checkAdmin)
+    @commands.check(CommandChecker.checkPermission)
     async def reconnectrcon(self, ctx): 
         if(self.arma_rcon.disconnected==True):
             self.setupRcon(self.arma_rcon.serverMessage)
@@ -400,7 +400,7 @@ class CommandRcon(commands.Cog):
         brief="Terminates the connection to Rcon",
         aliases=['disconnectrcon'],
         pass_context=True)
-    @commands.check(CommandChecker.checkAdmin)
+    @commands.check(CommandChecker.checkPermission)
     async def disconnectrcon(self, ctx): 
         self.arma_rcon.disconnect()
         await ctx.send("Disconnect Rcon")   
@@ -410,7 +410,7 @@ class CommandRcon(commands.Cog):
         brief="Streams the arma 3 chat live into the current channel",
         aliases=['streamchat'],
         pass_context=True)
-    @commands.check(CommandChecker.checkAdmin)
+    @commands.check(CommandChecker.checkPermission)
     async def stream(self, ctx): 
         self.streamChat = ctx
         self.rcon_settings["streamChat"] = ctx.message.channel.id
@@ -421,7 +421,7 @@ class CommandRcon(commands.Cog):
         brief="Stops the stream",
         aliases=['stopstream'],
         pass_context=True)
-    @commands.check(CommandChecker.checkAdmin)
+    @commands.check(CommandChecker.checkPermission)
     async def streamStop(self, ctx): 
         self.streamChat = None
         self.rcon_settings["streamChat"] = None
@@ -431,7 +431,7 @@ class CommandRcon(commands.Cog):
         brief="Checks if a player is AFK (5min)",
         aliases=['checkafk'],
         pass_context=True)
-    @commands.check(CommandChecker.checkAdmin)
+    @commands.check(CommandChecker.checkPermission)
     async def checkAFK(self, ctx, player_id: int): 
         players = await self.arma_rcon.getPlayersArray()
         player_name = None
@@ -478,7 +478,7 @@ class CommandRcon(commands.Cog):
     @commands.command(name='status',
         brief="Current connection status",
         pass_context=True)
-    @commands.check(CommandChecker.checkAdmin)
+    @commands.check(CommandChecker.checkPermission)
     async def status(self, ctx, limit=20): 
         msg = ""
         if(self.arma_rcon.disconnected==False):
@@ -492,7 +492,7 @@ class CommandRcon(commands.Cog):
         brief="Get the last ingame chat messages",
         aliases=['getchat'],
         pass_context=True)
-    @commands.check(CommandChecker.checkAdmin)
+    @commands.check(CommandChecker.checkPermission)
     async def getChat(self, ctx, limit=20): 
         msg = self.generateChat(limit)
         await sendLong(ctx, msg)
@@ -500,7 +500,7 @@ class CommandRcon(commands.Cog):
     @commands.command(name='players+',
         brief="Lists current players on the server",
         pass_context=True)
-    @commands.check(CommandChecker.checkAdmin)
+    @commands.check(CommandChecker.checkPermission)
     async def playersPlus(self, ctx):
         players = await self.arma_rcon.getPlayersArray()
 
@@ -530,7 +530,7 @@ class CommandRcon(commands.Cog):
         brief="Sends a custom command to the server",
         help="Executes any command by directly sending the input to the server. Will return if the command was executed. For example '!command say -1 hello' will send a global message", 
         pass_context=True)
-    @commands.check(CommandChecker.checkAdmin)
+    @commands.check(CommandChecker.checkPermission)
     async def command(self, ctx, *message): 
         message = " ".join(message)
         message = self.setEncoding(message)
@@ -545,7 +545,7 @@ class CommandRcon(commands.Cog):
         brief="Kicks a player who is currently on the server",
         aliases=['kickplayer'],
         pass_context=True)
-    @commands.check(CommandChecker.checkAdmin)
+    @commands.check(CommandChecker.checkPermission)
     async def kickPlayer(self, ctx, player_id: int, *message): 
         message = " ".join(message)
         message = self.setEncoding(message)
@@ -557,7 +557,7 @@ class CommandRcon(commands.Cog):
     @commands.command(name='say',
         brief="Sends a global message",
         pass_context=True)
-    @commands.check(CommandChecker.checkAdmin)
+    @commands.check(CommandChecker.checkPermission)
     async def sayGlobal(self, ctx, *message): 
         name = ctx.message.author.name
         message = " ".join(message)
@@ -570,7 +570,7 @@ class CommandRcon(commands.Cog):
         brief="Sends a message to a specific player",
         aliases=['sayplayer', 'sayp'],
         pass_context=True)
-    @commands.check(CommandChecker.checkAdmin)
+    @commands.check(CommandChecker.checkPermission)
     async def sayPlayer(self, ctx, player_id: int, *message): 
         message = " ".join(message)
         message = self.setEncoding(message)
@@ -585,7 +585,7 @@ class CommandRcon(commands.Cog):
         brief="Loads the 'scripts.txt' file without the need to restart the server",
         aliases=['loadscripts'],
         pass_context=True)
-    @commands.check(CommandChecker.checkAdmin)
+    @commands.check(CommandChecker.checkPermission)
     async def loadScripts(self, ctx): 
         await self.arma_rcon.loadScripts()
         msg = "Loaded Scripts!"
@@ -595,7 +595,7 @@ class CommandRcon(commands.Cog):
         aliases=['loadevents'],
         brief="Loads Events",
         pass_context=True)
-    @commands.check(CommandChecker.checkAdmin)
+    @commands.check(CommandChecker.checkPermission)
     async def loadEvents(self, ctx): 
         await self.arma_rcon.loadEvents()
         msg = "Loaded Events!"
@@ -605,7 +605,7 @@ class CommandRcon(commands.Cog):
         brief="Changes the MaxPing value. If a player has a higher ping, he will be kicked from the server",
         aliases=['maxping'],
         pass_context=True)
-    @commands.check(CommandChecker.checkAdmin)
+    @commands.check(CommandChecker.checkPermission)
     async def maxPing(self, ctx, ping: int): 
         await self.arma_rcon.maxPing(ping)
         msg = "Set maxPing to: "+ping
@@ -615,7 +615,7 @@ class CommandRcon(commands.Cog):
         brief="Changes the RCon password",
         aliases=['changepassword'],
         pass_context=True)
-    @commands.check(CommandChecker.checkAdmin)
+    @commands.check(CommandChecker.checkPermission)
     async def changePassword(self, ctx, *password): 
         password = " ".join(password)
         await self.arma_rcon.changePassword(password)
@@ -626,7 +626,7 @@ class CommandRcon(commands.Cog):
         brief="(Re)load the BE ban list from bans.txt",
         aliases=['loadbans'],
         pass_context=True)
-    @commands.check(CommandChecker.checkAdmin)
+    @commands.check(CommandChecker.checkPermission)
     async def loadBans(self, ctx): 
         await self.arma_rcon.loadBans()
         msg = "Loaded Bans!"
@@ -635,7 +635,7 @@ class CommandRcon(commands.Cog):
     @commands.command(name='players',
         brief="Lists current players on the server",
         pass_context=True)
-    @commands.check(CommandChecker.checkAdmin)
+    @commands.check(CommandChecker.checkPermission)
     async def players(self, ctx):
         players = await self.arma_rcon.getPlayersArray()
         msgtable = prettytable.PrettyTable()
@@ -672,7 +672,7 @@ class CommandRcon(commands.Cog):
     @commands.command(name='admins',
         brief="Lists current admins on the server",
         pass_context=True)
-    @commands.check(CommandChecker.checkAdmin)
+    @commands.check(CommandChecker.checkPermission)
     async def admins(self, ctx):
         admins = await self.arma_rcon.getAdminsArray()
         msgtable = prettytable.PrettyTable()
@@ -708,7 +708,7 @@ class CommandRcon(commands.Cog):
         brief="Gets a list of all Missions",
         aliases=['getmissions'],
         pass_context=True)
-    @commands.check(CommandChecker.checkAdmin)
+    @commands.check(CommandChecker.checkPermission)
     async def getMissions(self, ctx):
         missions = await self.arma_rcon.getMissions()
         await sendLong(ctx, missions)
@@ -717,7 +717,7 @@ class CommandRcon(commands.Cog):
         brief="Loads a mission",
         aliases=['loadmission'],
         pass_context=True)
-    @commands.check(CommandChecker.checkAdmin)
+    @commands.check(CommandChecker.checkPermission)
     async def loadMission(self, ctx, mission: str):
         if(mission.endswith(".pbo",-4)): #Strips PBO
             mission = mission[:-4]
@@ -730,7 +730,7 @@ class CommandRcon(commands.Cog):
         help="Kicks and Bans a player with the specifed BE player id (usually 0-100)",
         aliases=['banplayer'],
         pass_context=True)
-    @commands.check(CommandChecker.checkAdmin)
+    @commands.check(CommandChecker.checkPermission)
     async def banPlayer(self, ctx, player_id, time=0, *message): 
         message = " ".join(message)
         message = self.setEncoding(message)
@@ -747,7 +747,7 @@ class CommandRcon(commands.Cog):
         aliases=['addban'],
         help="Adds a ban to the ban (GUID) list",
         pass_context=True)
-    @commands.check(CommandChecker.checkAdmin)
+    @commands.check(CommandChecker.checkPermission)
     async def addBan(self, ctx, GUID: str, time=0, *message): 
         message = " ".join(message)
         message = self.setEncoding(message)
@@ -767,7 +767,7 @@ class CommandRcon(commands.Cog):
         brief="Removes a ban",
         aliases=['removeban'],
         pass_context=True)
-    @commands.check(CommandChecker.checkAdmin)
+    @commands.check(CommandChecker.checkPermission)
     async def removeBan(self, ctx, banID: int): 
         await self.arma_rcon.removeBan(banID)
             
@@ -778,7 +778,7 @@ class CommandRcon(commands.Cog):
         brief="Removes a ban",
         aliases=['getbans'],
         pass_context=True)
-    @commands.check(CommandChecker.checkAdmin)
+    @commands.check(CommandChecker.checkPermission)
     async def getBans(self, ctx): 
         bans = await self.arma_rcon.getBansArray()
         bans.reverse() #news bans first
@@ -819,7 +819,7 @@ class CommandRcon(commands.Cog):
         brief="Gets the current version of the BE server",
         aliases=['beversion', 'BEversion', 'BEVersion'],
         pass_context=True)
-    @commands.check(CommandChecker.checkAdmin)
+    @commands.check(CommandChecker.checkPermission)
     async def getBEServerVersion(self, ctx): 
         version = await self.arma_rcon.getBEServerVersion()
         msg = "BE version: ``"+str(version)+"``"
@@ -828,7 +828,7 @@ class CommandRcon(commands.Cog):
     @commands.command(name='lock',
         brief="Locks the server. No one will be able to join",
         pass_context=True)
-    @commands.check(CommandChecker.checkAdmin)
+    @commands.check(CommandChecker.checkPermission)
     async def lock(self, ctx): 
         data = await self.arma_rcon.lock()
         msg = "Locked the Server"
@@ -837,7 +837,7 @@ class CommandRcon(commands.Cog):
     @commands.command(name='unlock',
         brief="Unlocks the Server",
         pass_context=True)
-    @commands.check(CommandChecker.checkAdmin)
+    @commands.check(CommandChecker.checkPermission)
     async def unlock(self, ctx): 
         data = await self.arma_rcon.unlock()
         msg = "Unlocked the Server"
@@ -846,7 +846,7 @@ class CommandRcon(commands.Cog):
     @commands.command(name='shutdown',
         brief="Shutdowns the Server",
         pass_context=True)
-    @commands.check(CommandChecker.checkAdmin)
+    @commands.check(CommandChecker.checkPermission)
     async def shutdown(self, ctx): 
         data = await self.arma_rcon.shutdown()
         msg = "Shutdown the Server"
@@ -855,7 +855,7 @@ class CommandRcon(commands.Cog):
     @commands.command(name='restart',
         brief="Restart mission with current player slot selection",
         pass_context=True)
-    @commands.check(CommandChecker.checkAdmin)
+    @commands.check(CommandChecker.checkPermission)
     async def restart(self, ctx): 
         data = await self.arma_rcon.restart()
         msg = "Restarting the Mission"
@@ -864,7 +864,7 @@ class CommandRcon(commands.Cog):
     @commands.command(name='restartServer',
         brief="Shuts down and restarts the server immediately",
         pass_context=True)
-    @commands.check(CommandChecker.checkAdmin)
+    @commands.check(CommandChecker.checkPermission)
     async def restartServer(self, ctx): 
         data = await self.arma_rcon.restartServer()
         msg = "Restarting the Server"
@@ -873,7 +873,7 @@ class CommandRcon(commands.Cog):
     @commands.command(name='restartM',
         brief="Shuts down and restarts the server after mission ends",
         pass_context=True)
-    @commands.check(CommandChecker.checkAdmin)
+    @commands.check(CommandChecker.checkPermission)
     async def restartserveraftermission(self, ctx): 
         data = await self.arma_rcon.restartserveraftermission()
         msg = "Restarting the Server after mission ends"
@@ -882,7 +882,7 @@ class CommandRcon(commands.Cog):
     @commands.command(name='shutdownM',
         brief="Shuts down the server after mission ends",
         pass_context=True)
-    @commands.check(CommandChecker.checkAdmin)
+    @commands.check(CommandChecker.checkPermission)
     async def shutdownserveraftermission(self, ctx): 
         data = await self.arma_rcon.shutdownserveraftermission()
         msg = "Shuting down the Server after mission ends"
@@ -891,7 +891,7 @@ class CommandRcon(commands.Cog):
     @commands.command(name='reassign',
         brief="Sends all players back to the lobby and unslots them",
         pass_context=True)
-    @commands.check(CommandChecker.checkAdmin)
+    @commands.check(CommandChecker.checkPermission)
     async def reassign(self, ctx): 
         data = await self.arma_rcon.reassign()
         msg = "All users are send back to the lobby"
@@ -900,7 +900,7 @@ class CommandRcon(commands.Cog):
     @commands.command(name='monitords',
         brief="Shows performance information in the dedicated server console. Interval 0 means to stop monitoring.",
         pass_context=True)
-    @commands.check(CommandChecker.checkAdmin)
+    @commands.check(CommandChecker.checkPermission)
     async def monitords(self, ctx, interval = -1): 
         if(interval < 0):
             await self.arma_rcon.monitords(1)
@@ -921,7 +921,7 @@ class CommandRcon(commands.Cog):
         brief="Users can vote for the mission selection.",
         aliases=['govote'],
         pass_context=True)
-    @commands.check(CommandChecker.checkAdmin)
+    @commands.check(CommandChecker.checkPermission)
     async def goVote(self, ctx): 
         data = await self.arma_rcon.goVote()
         msg = "Sending users to vote for next mission"

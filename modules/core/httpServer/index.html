@@ -23,6 +23,12 @@ tr:nth-child(even) {
 
 <h2>RCON Settings</h2>
 
+<form action="/action_page.php">
+  <label for="token">Discord Token:</label><input type="text" id="token" name="token" value="Enter your token here" size="70" ><br>
+  <label for="prefix">Command prefix:</label><input type="text" id="prefix" name="prefix" value="!"><br>
+  <input type="submit" value="Submit">
+</form>
+<br>
 
 <form action="/add_role.json" method="post">
   <label for="add_role">Add Role:</label><br>
@@ -124,6 +130,13 @@ $.post('/get_settings.json', {
 		generateTableHead(permission_settings, data["head"])
 		delete data["head"];
 		generateTable(permission_settings, data)
+});
+
+$.post('/get_general_settings.json', { 
+	}, function(data) { 
+		//console.log(data);
+		document.getElementById("token").value = data["TOKEN"]
+		document.getElementById("prefix").value = data["BOT_PREFIX"]
 });
 
 
