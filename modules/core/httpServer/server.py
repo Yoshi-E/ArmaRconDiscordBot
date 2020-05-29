@@ -6,6 +6,7 @@ import http
 import os
 import json
 import threading
+import sys
 
 from modules.core import utils
 
@@ -40,7 +41,7 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
             
             body = "?"+body.decode('utf-8')
             parsed = urlparse(body)
-            WebServer.bot.CoreConfig.setGeneralSetting(parse_qs(parsed.query))     
+            WebServer.bot.CoreConfig.setGeneralSetting(parse_qs(parsed.query))
         elif self.path == '/get_general_settings.json':
             self.send_response(200)
             self.send_header('Content-type', 'text/json')

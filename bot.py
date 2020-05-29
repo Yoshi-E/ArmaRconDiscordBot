@@ -43,7 +43,11 @@ def main():
         cfg = bot.cogs["Commandconfig"].cfg
     else: 
         sys.exit("Module 'Commandconfig' not loaded, but required")
-    bot.run(cfg["TOKEN"])
+    try:
+        bot.run(cfg["TOKEN"])
+    except KeyError:
+        print("")
+        input("Please configure the bot on the settings page. [ENTER to terminte the bot]")
      
 
      
