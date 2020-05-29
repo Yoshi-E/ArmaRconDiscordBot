@@ -43,12 +43,13 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
             content_length = int(self.headers['Content-Length'])
             body = self.rfile.read(content_length)
             self.send_response(301)
-            self.send_header('Location', "/")
+            self.send_header('Location', "/restart.html")
             self.end_headers()
-            
+
             body = "?"+body.decode('utf-8')
             parsed = urlparse(body)
             WebServer.bot.CoreConfig.setGeneralSetting(parse_qs(parsed.query))
+            _thread.start_new_thread(WebServer.restart, ())
         elif self.path == '/get_general_settings.json':
             self.send_response(200)
             self.send_header('Content-type', 'text/json')
