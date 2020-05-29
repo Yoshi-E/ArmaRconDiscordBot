@@ -116,6 +116,11 @@ class CoreConfig():
     def setCommandSetting(self, data):
         val = True if data["value"][0]=="true" else False
         self.cfgPermissions_Roles[data["role"][0]][data["name"][0]] = val
+    
+    def setGeneralSetting(self, data):
+       CoreConfig.cfg["TOKEN"] = data["token"][0]
+       CoreConfig.cfg["BOT_PREFIX"] = data["prefix"][0]
+        
         
         
     def add_role(self, data):

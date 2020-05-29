@@ -23,10 +23,10 @@ tr:nth-child(even) {
 
 <h2>RCON Settings</h2>
 
-<form action="/action_page.php">
+<form action="/set_general_settings.json" method="post">
   <label for="token">Discord Token:</label><input type="text" id="token" name="token" value="Enter your token here" size="70" ><br>
   <label for="prefix">Command prefix:</label><input type="text" id="prefix" name="prefix" value="!"><br>
-  <input type="submit" value="Submit">
+  <input type="submit" value="Submit" onclick="return confirm('You need to restart the bot to apply changes')">
 </form>
 <br>
 
@@ -85,6 +85,7 @@ function generate_delete_role_button(name) {
 	var button = document.createElement('input');
 	button.setAttribute('type', 'submit');
 	button.setAttribute('ID', name);
+	button.setAttribute('title', "Delete the role");
 	button.setAttribute('value', 'X');
 	button.setAttribute('onclick', 'delete_role(this)');
 	button.setAttribute('form', 'myform');

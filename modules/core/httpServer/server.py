@@ -30,7 +30,17 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
             self.end_headers()
             response = BytesIO()
             response.write(WebServer.generate_settings())
-            self.wfile.write(response.getvalue())       
+            self.wfile.write(response.getvalue())           
+        elif self.path == '/set_general_settings.json':
+            content_length = int(self.headers['Content-Length'])
+            body = self.rfile.read(content_length)
+            self.send_response(301)
+            self.send_header('Location', "/")
+            self.end_headers()
+            
+            body = "?"+body.decode('utf-8')
+            parsed = urlparse(body)
+            WebServer.bot.CoreConfig.setGeneralSetting(parse_qs(parsed.query))     
         elif self.path == '/get_general_settings.json':
             self.send_response(200)
             self.send_header('Content-type', 'text/json')
