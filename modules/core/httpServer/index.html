@@ -30,6 +30,14 @@ tr:nth-child(even) {
 </form>
 <br>
 
+<form action="/terminate_bot.json" method="post">
+  <input type="submit" value="Shutdown Bot" onclick="return confirm('Are you sure?')">
+</form>
+<form action="/restart_bot.json" method="post">
+  <input type="submit" value="Restart Bot" onclick="return confirm('Are you sure?')">
+</form>
+<br>
+
 <form action="/add_role.json" method="post">
   <label for="add_role">Add Role:</label><br>
   <input type="text" id="add_role" name="add_role" value=""><br>

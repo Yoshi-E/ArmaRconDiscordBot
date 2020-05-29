@@ -2,6 +2,9 @@ import discord
 import traceback
 from discord.ext import commands
 from modules.core import utils
+import time
+import subprocess
+
 # Make bot join server:
 # https://discordapp.com/oauth2/authorize?client_id=xxxxxx&scope=bot
 # API Reference
@@ -52,6 +55,12 @@ def main():
 
      
 if __name__ == '__main__':
-    main() 
-
+    while True:
+        main()
+        if(hasattr(bot, "restarting") and bot.restarting == True):
+            print("Restarting")
+            
+            time.sleep(1)
+            subprocess.Popen("python" + " bot.py", shell=True)
+        
             

@@ -7,6 +7,8 @@ import os
 import json
 import threading
 import sys
+import asyncio
+import _thread
 
 from modules.core import utils
 
@@ -16,12 +18,17 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
         super().__init__(*args, **kwargs)
 
     def do_GET(self):
-        with open(self.real_path+"/index.html") as fh:
+        if self.path in ["/restart.html"]:
+            file = "/restart.html"
+        else:
+            file = "/index.html"
+        
+        with open(self.real_path+file) as fh:
             self.send_response(200)
             self.send_header('Content-type', 'text/html')
             self.end_headers()
-            self.wfile.write(fh.read().encode())
-            
+            self.wfile.write(fh.read().encode())        
+       
             
     def do_POST(self):
 
@@ -57,7 +64,26 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
             
             body = "?"+body.decode('utf-8')
             parsed = urlparse(body)
-            WebServer.bot.CoreConfig.setCommandSetting(parse_qs(parsed.query))     
+            WebServer.bot.CoreConfig.setCommandSetting(parse_qs(parsed.query))            
+        elif self.path == '/terminate_bot.json':
+            content_length = int(self.headers['Content-Length'])
+            body = self.rfile.read(content_length)
+            self.send_response(301)
+            self.send_header('Location', "/")
+            self.end_headers()
+            
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            asyncio.ensure_future(WebServer.terminate())
+            loop.run_forever()      
+        elif self.path == '/restart_bot.json':
+            content_length = int(self.headers['Content-Length'])
+            body = self.rfile.read(content_length)
+            self.send_response(301)
+            self.send_header('Location', "/restart.html")
+            self.end_headers()
+            
+            _thread.start_new_thread(WebServer.restart, ())
         elif self.path == '/add_role.json':
             content_length = int(self.headers['Content-Length'])
             body = self.rfile.read(content_length)
@@ -126,3 +152,20 @@ class WebServer():
         WebServer.bot.CoreConfig.load_role_permissions() #Load permissions from file
         json_dump = json.dumps( WebServer.bot.CoreConfig.cfg.cfg)
         return json_dump.encode()
+        
+        
+    async def terminate():
+        
+        await WebServer.bot.logout()
+    
+    def restart():
+        WebServer.bot.restarting = True
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        asyncio.ensure_future(WebServer._restart())
+        loop.run_forever()   
+    
+    async def _restart():
+        await asyncio.sleep(2)
+        await WebServer.bot.logout()
+        
