@@ -68,7 +68,10 @@ function generateTableHead(table, data) {
 		th.appendChild(text);
 		row.appendChild(th);
 		if(key != "Command") {
-		th.appendChild(generate_delete_role_button(key)); }
+			th.appendChild(generate_delete_role_button(key)); 
+			th.appendChild(generate_role_all_button(key)); 
+			th.appendChild(generate_role_deall_button(key)); 
+		}
 		}
 }
 
@@ -97,8 +100,29 @@ function generate_delete_role_button(name) {
 	button.setAttribute('value', 'X');
 	button.setAttribute('onclick', 'delete_role(this)');
 	button.setAttribute('form', 'myform');
-	return button
-	
+	return button	
+}
+
+function generate_role_all_button(name) {
+	var button = document.createElement('input');
+	button.setAttribute('type', 'submit');
+	button.setAttribute('ID', name);
+	button.setAttribute('title', "Enable all permissions");
+	button.setAttribute('value', 'All');
+	button.setAttribute('onclick', 'active_all_role(this)');
+	button.setAttribute('form', 'myform');
+	return button	
+}
+
+function generate_role_deall_button(name) {
+	var button = document.createElement('input');
+	button.setAttribute('type', 'submit');
+	button.setAttribute('ID', name);
+	button.setAttribute('title', "Disable all permissions");
+	button.setAttribute('value', 'None');
+	button.setAttribute('onclick', 'active_deall_role(this)');
+	button.setAttribute('form', 'myform');
+	return button	
 }
 
 function delete_role(e) {
@@ -110,6 +134,24 @@ function delete_role(e) {
 		});
 		window.location.reload(false);
 	}	
+};
+
+function active_all_role(e) {
+	$.post('/active_all_role.json', { 
+	role: e.id
+	}, function(data) { 
+		//console.log(data);
+	});
+	window.location.reload(false);
+};
+	
+function active_deall_role(e) {
+	$.post('/active_deall_role.json', { 
+	role: e.id
+	}, function(data) { 
+		//console.log(data);
+	});
+	window.location.reload(false);
 };
 
 

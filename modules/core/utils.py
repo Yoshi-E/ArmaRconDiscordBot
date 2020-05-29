@@ -119,9 +119,17 @@ class CoreConfig():
     
     def setGeneralSetting(self, data):
        CoreConfig.cfg["TOKEN"] = data["token"][0]
-       CoreConfig.cfg["BOT_PREFIX"] = data["prefix"][0]
-        
-        
+       CoreConfig.cfg["BOT_PREFIX"] = data["prefix"][0]   
+
+    def deall_role(self, data):
+        role = data["role"][0]
+        for command in CoreConfig.bot.commands:
+            self.cfgPermissions_Roles[role]["command_"+str(command)] = False    
+    
+    def all_role(self, data):
+        role = data["role"][0]
+        for command in CoreConfig.bot.commands:
+            self.cfgPermissions_Roles[role]["command_"+str(command)] = True
         
     def add_role(self, data):
         role = data["add_role"][0]
