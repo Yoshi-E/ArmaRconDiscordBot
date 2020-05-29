@@ -1,7 +1,7 @@
 import discord
 import traceback
 from discord.ext import commands
-    
+from modules.core import utils
 # Make bot join server:
 # https://discordapp.com/oauth2/authorize?client_id=xxxxxx&scope=bot
 # API Reference
@@ -9,6 +9,7 @@ from discord.ext import commands
 
 modules = ["errorhandle","core", "rcon"] #, "rcon_custom"
 bot = commands.Bot(command_prefix="!", pm_help=True)
+bot.CoreConfig = utils.CoreConfig(bot)
  
 def load_modules():
     for extension in modules:
@@ -29,7 +30,10 @@ async def on_ready():
     print('Logged in as')
     print(bot.user.name)
     print(bot.user.id)
+    print(bot.guilds)
+    
     print('------------')
+    bot.CoreConfig.load_role_permissions()
 
 def main():
     load_modules()

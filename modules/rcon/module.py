@@ -528,6 +528,7 @@ class CommandRcon(commands.Cog):
 
     @commands.command(name='command',
         brief="Sends a custom command to the server",
+        help="Executes any command by directly sending the input to the server. Will return if the command was executed. For example '!command say -1 hello' will send a global message", 
         pass_context=True)
     @commands.check(CommandChecker.checkAdmin)
     async def command(self, ctx, *message): 
@@ -725,7 +726,8 @@ class CommandRcon(commands.Cog):
         await ctx.send(msg)  
     
     @commands.command(name='banPlayer',
-        brief="Ban a player's BE GUID from the server. If time is not specified or 0, the ban will be permanent.",
+        brief="Ban a player with his player id from the server.",
+        help="Kicks and Bans a player with the specifed BE player id (usually 0-100)",
         aliases=['banplayer'],
         pass_context=True)
     @commands.check(CommandChecker.checkAdmin)
@@ -743,6 +745,7 @@ class CommandRcon(commands.Cog):
     @commands.command(name='addBan',
         brief="Ban a player with GUID (even if they are offline)",
         aliases=['addban'],
+        help="Adds a ban to the ban (GUID) list",
         pass_context=True)
     @commands.check(CommandChecker.checkAdmin)
     async def addBan(self, ctx, GUID: str, time=0, *message): 
@@ -904,7 +907,7 @@ class CommandRcon(commands.Cog):
             await asyncio.sleep(2)
             for i in range(0,5):
                 if(len(self.log_reader.dataRows)==0):
-                    await ctx.send("Failed to acquire data")
+                    await ctx.send("Failed to acquire data. Current path: '{}', log: '{}'".format(CoreConfig.cfg['logs_path'], self.log_reader.current_log))
                     break
                 await ctx.send(self.log_reader.dataRows[-1])
                 await asyncio.sleep(1.1)

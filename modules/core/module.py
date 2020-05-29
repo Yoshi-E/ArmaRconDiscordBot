@@ -9,20 +9,22 @@ new_path = os.path.dirname(os.path.realpath(__file__))
 if new_path not in sys.path:
     sys.path.append(new_path)
 from utils import CoreConfig, CommandChecker
-     
+
+from modules.core.httpServer import server
+  
 class Commandconfig(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-        self.cfg = CoreConfig.cfg
-        self.bot.cfg = CoreConfig.cfg
+
+        self.cfg = self.bot.CoreConfig.cfg
         
     @commands.command(  name='config_reload',
                         brief="reloads the config",
                         description="reloads the config from disk")
     @commands.check(CommandChecker.checkAdmin)
     async def config_reload(self, ctx):
-        self.bot.cfg.load()
+        self.cfg.load()
         await ctx.send("Reloaded!")
                 
 

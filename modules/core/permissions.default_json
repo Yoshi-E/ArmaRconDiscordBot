@@ -1,6 +1,9 @@
 {
     "log_commands": true,
 	"needs_admin_rights": true,
-    "roles": ["Admin", "Developer"],
+    "roles": [
+        "@everyone",
+        "Admin"
+    ],
     "can_use_dm": [123456789]
 }

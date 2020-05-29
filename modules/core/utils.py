@@ -6,14 +6,14 @@ from packaging import version
 import time
 import inspect
 import asyncio
-
+import glob
 assert version.parse(discord.__version__) >= version.parse("1.2.2"), "Module 'Discord' required to be >= 1.2.5"
 
 new_path = os.path.dirname(os.path.realpath(__file__))
 if new_path not in sys.path:
     sys.path.append(new_path)
 from config import Config
-
+from modules.core.httpServer import server
 
 async def sendLong(ctx, msg: str, enclosed=False):
     discord_limit = 1900 #discord limit is 2000
@@ -79,26 +79,85 @@ class RateBucket():
 class CoreConfig():
     path = os.path.dirname(os.path.realpath(__file__))
     cfg = Config(path+"/config.json", path+"/config.default_json")
+    cfgPermissions = Config(path+"/permissions.json", path+"/permissions.default_json")
+    bot = None
     
+    def __init__(self, bot):
+        CoreConfig.bot = bot
+        self.cfgPermissions_Roles = {}
+        self.WebServer = server.WebServer(bot)
+        
     @staticmethod
     def update():
         GlobalConfig.cfg.load() #reload cfg from file 
+        
+    def load_role_permissions(self):
+        files = glob.glob(CoreConfig.path+"/permissions_*.json")
+        print(files)
+        if(len(files)==0):
+            CoreConfig.generate_default_settings()
+        for file in files:
+            role = os.path.basename(file).replace("permissions_", "").replace(".json", "")
+            self.cfgPermissions_Roles[role] = Config(CoreConfig.path+"/permissions_{}.json".format(role))
+            
+        
+    def generate_default_settings(self):
+        for role in CoreConfig.cfgPermissions["roles"]:
+            self.cfgPermissions_Roles[role] = CoreConfig.cfg.new(CoreConfig.path+"/permissions_{}.json".format(role))
+            
+            if(role in ["default"]):
+                val = False
+            else:
+                val = True
+                
+            for command in CoreConfig.bot.commands:
+                self.cfgPermissions_Roles[role]["command_"+str(command)] = val
 
+        
+    def setCommandSetting(self, data):
+        val = True if data["value"][0]=="true" else False
+        self.cfgPermissions_Roles[data["role"][0]][data["name"][0]] = val
+        
+        
 class CommandChecker():
-    permssion = CoreConfig.cfg.new(CoreConfig.path+"/permissions.json", CoreConfig.path+"/permissions.default_json")
+    permssion = CoreConfig.cfgPermissions
     @staticmethod
     def disabled(ctx):
+        return False
+    
+    @staticmethod
+    def get_roles(ctx, user_id):
+        server = ctx.bot.guilds[0]
+        return discord.utils.get(server.members, id=user_id)
         return False
 
     @staticmethod
     def check(ctx):
         if(type(ctx) == discord.ext.commands.context.Context):
-            if(len(CoreConfig.cfg["listChannels"])>0 and not ctx.message.channel.id in CoreConfig.cfg["listChannels"]):
+            if(len(ctx.bot.CoreConfig.cfg["listChannels"])>0 and not ctx.message.channel.id in ctx.bot.CoreConfig.cfg["listChannels"]):
                 return False
         return True
 
     @staticmethod
     def checkAdmin(ctx):
+        pr = ctx.bot.CoreConfig.cfgPermissions_Roles
+        if(type(ctx) == discord.ext.commands.context.Context):
+            
+            # if(ctx.author.id in CommandChecker.permssion["can_use_dm"]):
+                # return True
+            if(hasattr(ctx.author, 'roles')):
+                roles = ctx.author.roles
+            else:
+                roles = CommandChecker.get_roles(ctx, ctx.author.id).roles
+            for role in roles:
+                if str(role) in pr.keys():
+                    cmd = "command_{}".format(ctx.command.name)
+                    if(cmd in pr[str(role)] and pr[str(role)][cmd]):
+                        return True
+        return False       
+        
+    @staticmethod
+    def checkAdmin_old(ctx):
         if(type(ctx) == discord.ext.commands.context.Context):
             if(ctx.author.id in CommandChecker.permssion["can_use_dm"]):
                 return True
@@ -113,8 +172,8 @@ class CommandChecker():
     
     @staticmethod    
     def checkPermission(ctx):
-        if(len(CoreConfig.cfg["listChannels"])>0 
-            and not ctx.message.channel.id in CoreConfig.cfg["listChannels"]):
+        if(len(ctx.bot.CoreConfig.cfg["listChannels"])>0 
+            and not ctx.message.channel.id in ctx.bot.CoreConfig.cfg["listChannels"]):
             return False
 
         if(CommandChecker.permssion["log_commands"]==True):

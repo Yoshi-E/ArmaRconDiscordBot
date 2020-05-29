@@ -21,6 +21,7 @@ class readLog:
         #logs = self.getLogs()
         self.Events = []
         self.lastLogCheck = None
+        self.current_log = None
         # tempdataRows = deque(maxlen=self.maxDataRows)
         # for log in reversed(logs):
             # print("Pre-scanning: "+log)
@@ -84,9 +85,9 @@ class readLog:
         while(True): #Wait till a log file exsists
             logs = self.getLogs()
             if(len(logs) > 0):
-                current_log = logs[-1]
-                print("current log: "+current_log)
-                file = open(self.cfg["logs_path"]+current_log, "r")
+                self.current_log = logs[-1]
+                print("current log: "+self.current_log)
+                file = open(self.cfg["logs_path"]+self.current_log, "r")
                 file.seek(0, 2) #jump to the end of the file
                 try:
                     while (True):
@@ -99,13 +100,13 @@ class readLog:
                             await asyncio.sleep(1)
                             #file.seek(where)
                             new_log = self.getLogs()
-                            if(len(new_log) > 0 and current_log != new_log[-1]):
-                                old_log = current_log
-                                current_log = new_log[-1] #update to new recent log
-                                #self.scanfile(current_log) #Log most likely empty, but a quick scan cant hurt.
-                                file = open(self.cfg["logs_path"]+current_log, "r")
-                                print("current log: "+current_log)
-                                self.on_newLog(old_log, current_log)
+                            if(len(new_log) > 0 and self.current_log != new_log[-1]):
+                                old_log = self.current_log
+                                self.current_log = new_log[-1] #update to new recent log
+                                #self.scanfile(self.current_log) #Log most likely empty, but a quick scan cant hurt.
+                                file = open(self.cfg["logs_path"]+self.current_log, "r")
+                                print("current log: "+self.current_log)
+                                self.on_newLog(old_log, self.current_log)
                         else:
                             self.processLogLine(line)
                 except Exception as e:

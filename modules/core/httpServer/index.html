@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+table {
+  font-family: arial, sans-serif;
+  border-collapse: collapse;
+  width: 100%;
+}
+
+td, th {
+  border: 1px solid #dddddd;
+  text-align: left;
+  padding: 8px;
+}
+
+tr:nth-child(even) {
+  background-color: #dddddd;
+}
+</style>
+</head>
+<body>
+
+<h2>RCON Settings</h2>
+
+<table id="permission_settings">
+
+</table>
+</body>
+
+</html>
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script type="text/javascript">
+
+permission_settings = document.getElementById("permission_settings");
+
+
+function generateTableHead(table, data) {
+	data.unshift("Command");
+	let thead = table.createTHead();
+	let row = thead.insertRow();
+	for (let key of data) {
+		let th = document.createElement("th");
+		let text = document.createTextNode(key);
+			th.appendChild(text);
+			row.appendChild(th);
+		}
+}
+
+function generateTable(table, data) {
+	jQuery.each(data, function(i, val) {
+		let row = table.insertRow(); 
+		let cell = row.insertCell();
+		let text = document.createTextNode(i);
+		cell.appendChild(text);
+		var name = i;
+		jQuery.each(data[i], function(i, val) {
+			let cell = row.insertCell();
+			//let text = document.createTextNode(val);
+			cell.appendChild(createCheckbox(i, name, val));
+
+		});
+	});
+
+}
+
+
+function createCheckbox(parent, command, value) {
+	var x = document.createElement("INPUT");
+	x.setAttribute("type", "checkbox");
+	x.checked = value;
+	x.id = "command_"+command;
+	x.value = parent;
+	x.onchange = permission_changed;
+	return x;
+}; 
+
+function permission_changed(e) {
+	console.log(e)
+	$.post('/set_settings.json', { 
+	name: e.srcElement.id,
+	value: e.srcElement.checked,
+	role: e.srcElement.value
+	}, function(data) { 
+		console.log(data);
+	});
+};
+
+$.post('/get_settings.json', { 
+	}, function(data) { 
+		//console.log(data);
+		generateTableHead(permission_settings, data["head"])
+		delete data["head"];
+		generateTable(permission_settings, data)
+});
+
+
+</script>
