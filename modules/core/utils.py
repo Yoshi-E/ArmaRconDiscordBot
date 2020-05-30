@@ -84,7 +84,7 @@ class CoreConfig():
     def __init__(self, bot):
         CoreConfig.bot = bot
         self.cfgPermissions_Roles = {}
-        self.WebServer = server.WebServer(bot)
+        self.WebServer = server.WebServer(bot, CommandChecker)
         
     @staticmethod
     def update():
@@ -97,6 +97,13 @@ class CoreConfig():
         for file in files:
             role = os.path.basename(file).replace("permissions_", "").replace(".json", "")
             self.cfgPermissions_Roles[role] = Config(CoreConfig.path+"/permissions_{}.json".format(role))
+        
+        #add new commands (for new modules)
+        for role, data in self.cfgPermissions_Roles.items():
+            for command in CoreConfig.bot.commands:
+                cmd = "command_"+str(command)
+                if(cmd not in self.cfgPermissions_Roles[role]):
+                    self.cfgPermissions_Roles[role][cmd] = False
             
         
     def generate_default_settings(self):
@@ -148,11 +155,12 @@ class CoreConfig():
 class CommandChecker():
     permssion = CoreConfig.cfgPermissions
     registered = []
+    registered_func = []
     @staticmethod
     def command(*d_args,**d_kwargs):
         def decorator(func):  
-            #print(d_args,d_kwargs)
-            CommandChecker.registered.append(func.__name__)
+            CommandChecker.registered_func.append(func)
+            CommandChecker.registered.append(d_kwargs["name"])
             @commands.command(*d_args,**d_kwargs)
             @commands.check(CommandChecker.checkPermission)
             async def wrapper(*args,**kwargs):

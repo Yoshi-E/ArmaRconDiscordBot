@@ -76,7 +76,8 @@ function generateTableHead(table, data) {
 }
 
 function generateTable(table, data) {
-	var disabled = ["help"] //TODO: get only commands with decorator
+	var enabled =  data["registered"]; //TODO: get only commands with decorator
+	delete data["registered"];
 	jQuery.each(data, function(i, val) {
 		let row = table.insertRow(); 
 		let cell = row.insertCell();
@@ -84,9 +85,9 @@ function generateTable(table, data) {
 		cell.appendChild(text);
 		var name = i;
 		jQuery.each(data[i], function(i, val) {
-			let cell = row.insertCell();
-			//let text = document.createTextNode(val);
-			if(!disabled.includes(name)) {
+			if(enabled.includes(name)) {
+				let cell = row.insertCell();
+				//let text = document.createTextNode(val);
 				cell.appendChild(createCheckbox(i, name, val));
 			}
 

@@ -10,7 +10,6 @@ import sys
 import asyncio
 import _thread
 
-from modules.core import utils
 
 class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
@@ -140,10 +139,13 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
 
 class WebServer():
     bot = None
-    def __init__(self, bot):
+    CommandChecker = None
+    def __init__(self, bot, CommandChecker):
         self.bot = bot
         WebServer.bot = bot
+        WebServer.CommandChecker = CommandChecker
         port = 8000
+        
         daemon = threading.Thread(name='web_server',
                                   target=self._start_server,
                                   args=[port])
@@ -157,17 +159,19 @@ class WebServer():
         self.httpd.serve_forever()
     
     def generate_settings():
-        WebServer.bot.CoreConfig.load_role_permissions() #Load permissions from file
+        if(WebServer.CommandChecker):
+            WebServer.bot.CoreConfig.load_role_permissions() #Load permissions from file
 
-        settings = {}
-        roles = WebServer.bot.CoreConfig.cfgPermissions_Roles.keys()
-        for command in WebServer.bot.CoreConfig.bot.commands:
-            settings[str(command)] = {}
-            for role in roles:
-                settings[str(command)][role] = WebServer.bot.CoreConfig.cfgPermissions_Roles[role]["command_"+str(command)]
-        settings["head"] = list(roles)
-        json_dump = json.dumps(settings)
-        return json_dump.encode()    
+            settings = {}
+            roles = WebServer.bot.CoreConfig.cfgPermissions_Roles.keys()
+            for command in WebServer.bot.CoreConfig.bot.commands:
+                settings[str(command)] = {}
+                for role in roles:
+                    settings[str(command)][role] = WebServer.bot.CoreConfig.cfgPermissions_Roles[role]["command_"+str(command)]
+            settings["head"] = list(roles)
+            settings["registered"] = WebServer.CommandChecker.registered
+            json_dump = json.dumps(settings)
+            return json_dump.encode()    
         
     def generate_general_settings():
         WebServer.bot.CoreConfig.load_role_permissions() #Load permissions from file

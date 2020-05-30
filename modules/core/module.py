@@ -5,7 +5,7 @@ import discord
 
 from modules.core import CoreConfig, CommandChecker
 from modules.core.httpServer import server
-  
+
 class Commandconfig(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -18,8 +18,7 @@ class Commandconfig(commands.Cog):
                         description="reloads the config from disk")
     async def config_reload(self, ctx):
         self.cfg.load()
-        await ctx.send("Reloaded!")
-                
-
+        await ctx.send("Reloaded!")    
+        
 def setup(bot):
     bot.add_cog(Commandconfig(bot))
