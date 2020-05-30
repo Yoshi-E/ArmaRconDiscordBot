@@ -176,7 +176,7 @@ class WebServer():
         
         
     async def terminate():
-        
+        WebServer.bot.terminated = True
         await WebServer.bot.logout()
     
     def restart():

@@ -21,12 +21,7 @@ import psutil
 import bec_rcon
 
 from modules.rcon import readLog
-
-new_path = os.path.dirname(os.path.realpath(__file__))+'/../core/'
-if new_path not in sys.path:
-    sys.path.append(new_path)
-from utils import CommandChecker, RateBucket, sendLong, CoreConfig, Tools
-
+from modules.core.utils import CommandChecker, RateBucket, sendLong, CoreConfig, Tools
 
 class CommandRconTaskScheduler(commands.Cog):
 

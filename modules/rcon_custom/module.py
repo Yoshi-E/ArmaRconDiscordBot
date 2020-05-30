@@ -11,10 +11,7 @@ from discord.ext.commands import has_permissions, CheckFailure
 import numpy as np
 from collections import deque
 
-new_path = os.path.dirname(os.path.realpath(__file__))+'/../core/'
-if new_path not in sys.path:
-    sys.path.append(new_path)
-from utils import CommandChecker, RateBucket, sendLong, CoreConfig, Tools
+from modules.core.utils import CommandChecker, RateBucket, sendLong, CoreConfig, Tools
 
 
 class CommandRcon_Custom(commands.Cog):

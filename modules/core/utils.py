@@ -2,6 +2,7 @@ import traceback
 import sys
 import os
 import discord
+from discord.ext import commands
 from packaging import version
 import time
 import inspect
@@ -9,11 +10,9 @@ import asyncio
 import glob
 assert version.parse(discord.__version__) >= version.parse("1.2.2"), "Module 'Discord' required to be >= 1.2.5"
 
-new_path = os.path.dirname(os.path.realpath(__file__))
-if new_path not in sys.path:
-    sys.path.append(new_path)
-from config import Config
+
 from modules.core.httpServer import server
+from modules.core.config import Config
 
 async def sendLong(ctx, msg: str, enclosed=False):
     discord_limit = 1900 #discord limit is 2000
@@ -148,6 +147,19 @@ class CoreConfig():
         
 class CommandChecker():
     permssion = CoreConfig.cfgPermissions
+    registered = []
+    @staticmethod
+    def command(*d_args,**d_kwargs):
+        def decorator(func):  
+            #print(d_args,d_kwargs)
+            CommandChecker.registered.append(func.__name__)
+            @commands.command(*d_args,**d_kwargs)
+            @commands.check(CommandChecker.checkPermission)
+            async def wrapper(*args,**kwargs):
+                await func(*args,**kwargs)
+            return wrapper 
+        return decorator
+    
     @staticmethod
     def disabled(ctx):
         return False
