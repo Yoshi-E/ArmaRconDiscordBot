@@ -174,7 +174,8 @@ class WebServer():
                     elif(isinstance(value, str)):
                         cfg[key] = str(data[key][0])
                     elif(value == None):
-                        cfg[key] = data[key][0]
+                        if(key in data):
+                            cfg[key] = data[key][0]
                     else:
                         raise Exception("Unkown datatype '{}'".format(type(value)))
                 break
