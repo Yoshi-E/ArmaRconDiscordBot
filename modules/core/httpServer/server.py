@@ -39,15 +39,7 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
             response.write(WebServer.generate_settings())
             self.wfile.write(response.getvalue())           
         elif self.path == '/set_general_settings.json':
-            content_length = int(self.headers['Content-Length'])
-            body = self.rfile.read(content_length)
-            self.send_response(301)
-            self.send_header('Location', "/restart.html")
-            self.end_headers()
-
-            body = "?"+body.decode('utf-8')
-            parsed = urlparse(body)
-            WebServer.bot.CoreConfig.setGeneralSetting(parse_qs(parsed.query))
+            WebServer.bot.CoreConfig.setGeneralSetting(self.data_redirect("/restart.html"))
             _thread.start_new_thread(WebServer.restart, ())
         elif self.path == '/get_general_settings.json':
             self.send_response(200)
@@ -66,65 +58,25 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
             parsed = urlparse(body)
             WebServer.bot.CoreConfig.setCommandSetting(parse_qs(parsed.query))            
         elif self.path == '/terminate_bot.json':
-            content_length = int(self.headers['Content-Length'])
-            body = self.rfile.read(content_length)
-            self.send_response(301)
-            self.send_header('Location', "/")
-            self.end_headers()
+            self.data_redirect()
             
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
             asyncio.ensure_future(WebServer.terminate())
             loop.run_forever()      
         elif self.path == '/restart_bot.json':
-            content_length = int(self.headers['Content-Length'])
-            body = self.rfile.read(content_length)
-            self.send_response(301)
-            self.send_header('Location', "/restart.html")
-            self.end_headers()
-            
+            self.data_redirect("/restart.html")
             _thread.start_new_thread(WebServer.restart, ())
         elif self.path == '/add_role.json':
-            content_length = int(self.headers['Content-Length'])
-            body = self.rfile.read(content_length)
-            self.send_response(301)
-            self.send_header('Location', "/")
-            self.end_headers()
-            
-            body = "?"+body.decode('utf-8')
-            parsed = urlparse(body)
-            WebServer.bot.CoreConfig.add_role(parse_qs(parsed.query))      
+            WebServer.bot.CoreConfig.add_role(self.data_redirect())      
         elif self.path == '/delete_role.json':
-            content_length = int(self.headers['Content-Length'])
-            body = self.rfile.read(content_length)
-            self.send_response(301)
-            self.send_header('Location', "/")
-            self.end_headers()
-            
-            body = "?"+body.decode('utf-8')
-            parsed = urlparse(body)
-            WebServer.bot.CoreConfig.delete_role(parse_qs(parsed.query))        
+            WebServer.bot.CoreConfig.delete_role(self.data_redirect())        
         elif self.path == '/active_deall_role.json':
-            content_length = int(self.headers['Content-Length'])
-            body = self.rfile.read(content_length)
-            self.send_response(301)
-            self.send_header('Location', "/")
-            self.end_headers()
-            
-            body = "?"+body.decode('utf-8')
-            parsed = urlparse(body)
-            WebServer.bot.CoreConfig.deall_role(parse_qs(parsed.query))        
+            WebServer.bot.CoreConfig.deall_role(self.data_redirect())        
         elif self.path == '/active_all_role.json':
-            content_length = int(self.headers['Content-Length'])
-            body = self.rfile.read(content_length)
-            self.send_response(301)
-            self.send_header('Location', "/")
-            self.end_headers()
-            
-            body = "?"+body.decode('utf-8')
-            parsed = urlparse(body)
-            WebServer.bot.CoreConfig.all_role(parse_qs(parsed.query))
+            WebServer.bot.CoreConfig.all_role(self.data_redirect())
         else:
+            #Default response
             content_length = int(self.headers['Content-Length'])
             body = self.rfile.read(content_length)
             self.send_response(200)
@@ -136,6 +88,16 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
             response.write(body)
             self.wfile.write(response.getvalue())
 
+    def data_redirect(self, file="/"):
+        content_length = int(self.headers['Content-Length'])
+        body = self.rfile.read(content_length)
+        self.send_response(301)
+        self.send_header('Location', file)
+        self.end_headers()
+        
+        body = "?"+body.decode('utf-8')
+        parsed = urlparse(body)
+        return parse_qs(parsed.query)
 
 class WebServer():
     bot = None
