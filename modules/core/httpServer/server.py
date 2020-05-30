@@ -10,7 +10,7 @@ import sys
 import asyncio
 import _thread
 
-
+from modules.core.config import Config
 class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         self.real_path = os.path.dirname(os.path.realpath(__file__))
@@ -74,7 +74,20 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
         elif self.path == '/active_deall_role.json':
             WebServer.bot.CoreConfig.deall_role(self.data_redirect())        
         elif self.path == '/active_all_role.json':
-            WebServer.bot.CoreConfig.all_role(self.data_redirect())
+            WebServer.bot.CoreConfig.all_role(self.data_redirect())         
+        elif "set_module_settings::" in self.path:
+            WebServer.set_module_settings(self.path, self.data_redirect())        
+        elif self.path == '/get_module_settings.json':
+            #Default response
+            content_length = int(self.headers['Content-Length'])
+            body = self.rfile.read(content_length)
+            self.send_response(200)
+            self.send_header('Content-type', 'text/json')
+            self.end_headers()
+            
+            response = BytesIO()
+            response.write(WebServer.get_module_settings())
+            self.wfile.write(response.getvalue())
         else:
             #Default response
             content_length = int(self.headers['Content-Length'])
@@ -102,10 +115,12 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
 class WebServer():
     bot = None
     CommandChecker = None
-    def __init__(self, bot, CommandChecker):
+    CoreConfig = None
+    def __init__(self, bot, CommandChecker, CoreConfig):
         self.bot = bot
         WebServer.bot = bot
         WebServer.CommandChecker = CommandChecker
+        WebServer.CoreConfig = CoreConfig
         port = 8000
         
         daemon = threading.Thread(name='web_server',
@@ -133,14 +148,39 @@ class WebServer():
             settings["head"] = list(roles)
             settings["registered"] = WebServer.CommandChecker.registered
             json_dump = json.dumps(settings)
+            return json_dump.encode()       
+
+    def get_module_settings():
+        if(WebServer.CommandChecker):
+            settings = {}
+            for cfg in WebServer.CoreConfig.registered:
+                settings[os.path.basename(cfg.cfg_path).split(".")[0]] = cfg.cfg
+
+            json_dump = json.dumps(settings)
             return json_dump.encode()    
         
     def generate_general_settings():
         WebServer.bot.CoreConfig.load_role_permissions() #Load permissions from file
-        json_dump = json.dumps( WebServer.bot.CoreConfig.cfg.cfg)
+        json_dump = json.dumps(WebServer.bot.CoreConfig.cfg.cfg)
         return json_dump.encode()
         
-        
+    def set_module_settings(file, data):
+        file = file.split("::")[1]
+        for cfg in WebServer.CoreConfig.registered:
+            if(os.path.basename(cfg.cfg_path) == file):
+                for key, value in cfg.items():
+                    if(isinstance(value, int)):
+                        cfg[key] = int(data[key][0])
+                    elif(isinstance(value, str)):
+                        cfg[key] = str(data[key][0])
+                    elif(value == None):
+                        cfg[key] = data[key][0]
+                    else:
+                        raise Exception("Unkown datatype '{}'".format(type(value)))
+                break
+
+            
+            
     async def terminate():
         WebServer.bot.terminated = True
         await WebServer.bot.logout()

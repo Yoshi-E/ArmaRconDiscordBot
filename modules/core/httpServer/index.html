@@ -38,15 +38,23 @@ tr:nth-child(even) {
 </form>
 <br>
 
+
+<div id="module_settings">
+
+</div>
+<br>
 <form action="/add_role.json" method="post">
   <label for="add_role">Add Role:</label><br>
   <input type="text" id="add_role" name="add_role" value=""><br>
   <input type="submit" value="Submit">
 </form> 
 
+
 <table id="permission_settings">
 
 </table>
+
+
 </body>
 
 </html>
@@ -194,5 +202,44 @@ $.post('/get_general_settings.json', {
 		document.getElementById("prefix").value = data["BOT_PREFIX"]
 });
 
+$.post('/get_module_settings.json', { 
+	}, function(data) { 
+		var main_div_p = document.getElementById("module_settings");
+		//console.log(data);
+		jQuery.each(data, function(key, val) {
+			
+			var main_div = document.createElement("form");
+			main_div.action="/set_module_settings::"+key+".json";
+			main_div.method="post";
+			main_div.id="module_settings";
+			main_div_p.appendChild(main_div);
+			//Create Title
+			var element = document.createElement("h2");
+			element.innerHTML = key;
+			main_div.appendChild(element);  
+			
+			//Create Otions
+			jQuery.each(data[key], function(key, val) {
+				var element = document.createElement("label");
+				element.innerHTML = key+": ";
+				main_div.appendChild(element);  
+				var element = document.createElement("input");
+				element.type = "text";
+				element.id = key;
+				element.name = key;
+				element.value = val;
+				main_div.appendChild(element);  
+				var element = document.createElement("br");
+				main_div.appendChild(element); 
+			});
+			var element = document.createElement("input");
+			element.type = "submit";
+			element.value = "Submit";
+			element.onclick = "return confirm('Are you sure?')";		
+			main_div.appendChild(element); 
+
+
+		});
+});
 
 </script>

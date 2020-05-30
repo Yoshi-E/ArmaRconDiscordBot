@@ -209,6 +209,7 @@ class CommandRcon(commands.Cog):
         self.arma_chat_channels = ["Side", "Global", "Vehicle", "Direct", "Group", "Command"]
         
         self.rcon_settings = CoreConfig.cfg.new(self.path+"/rcon_cfg.json", self.path+"/rcon_cfg.default_json")
+        CoreConfig.registered.append(self.rcon_settings)
         self.lastReconnect = deque()
         self.ipReader = geoip2.database.Reader(self.path+"/GeoLite2-Country.mmdb")
         

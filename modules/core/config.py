@@ -109,8 +109,8 @@ class Config():
 
     # return a new config handler
     def new(self, cfg_path = None, default_cfg_path = None):
-        return Config(cfg_path, default_cfg_path)
-
+        cfg = Config(cfg_path, default_cfg_path)
+        return cfg
   
 def serialize(obj):
     if isinstance(obj, Config):

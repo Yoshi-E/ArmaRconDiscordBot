@@ -79,12 +79,13 @@ class CoreConfig():
     path = os.path.dirname(os.path.realpath(__file__))
     cfg = Config(path+"/config.json")
     cfgPermissions = Config(path+"/permissions.json", path+"/permissions.default_json")
+    registered = []
     bot = None
-    
     def __init__(self, bot):
+        
         CoreConfig.bot = bot
         self.cfgPermissions_Roles = {}
-        self.WebServer = server.WebServer(bot, CommandChecker)
+        self.WebServer = server.WebServer(bot, CommandChecker, CoreConfig)
         
     @staticmethod
     def update():
@@ -117,8 +118,7 @@ class CoreConfig():
                 
             for command in CoreConfig.bot.commands:
                 self.cfgPermissions_Roles[role]["command_"+str(command)] = val
-
-        
+                
     def setCommandSetting(self, data):
         val = True if data["value"][0]=="true" else False
         self.cfgPermissions_Roles[data["role"][0]][data["name"][0]] = val
