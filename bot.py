@@ -10,7 +10,11 @@ import subprocess
 # API Reference
 #https://discordpy.readthedocs.io/en/rewrite/ext/commands/api.html#event-reference
 
-modules = ["errorhandle","core", "rcon"] #, "rcon_custom"
+#Order of modules is important
+#Partent modules have to be loaded first
+modules = ["errorhandle","core", "rcon", "rcon_database"]
+#modules = ["errorhandle","core", "rcon", "rcon_ban_msg", rcon_ingamge_cmd, rcon_database]
+
 bot = commands.Bot(command_prefix="!", pm_help=True)
 bot.CoreConfig = utils.CoreConfig(bot)
  

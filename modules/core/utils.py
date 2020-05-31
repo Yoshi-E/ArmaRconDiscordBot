@@ -153,6 +153,7 @@ class CoreConfig():
         self.load_role_permissions()
         
 class CommandChecker():
+            
     permssion = CoreConfig.cfgPermissions
     registered = []
     registered_func = []
@@ -164,8 +165,15 @@ class CommandChecker():
             @commands.command(*d_args,**d_kwargs)
             @commands.check(CommandChecker.checkPermission)
             async def wrapper(*args,**kwargs):
-                await func(*args,**kwargs)
-            return wrapper 
+                return await func(*args,**kwargs)
+            for cmd in CoreConfig.bot.commands:
+                for func in CommandChecker.registered_func:
+                    if(str(cmd) == str(func.__name__)):
+                        signature = inspect.signature(func)
+                        cmd.params = signature.parameters.copy() 
+                        break
+                        #sys.exit()
+            return wrapper
         return decorator
     
     @staticmethod

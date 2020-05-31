@@ -19,8 +19,6 @@ import shlex, subprocess
 import psutil
 import inspect
 
-import bec_rcon
-
 from modules.rcon import readLog
 from modules.core.utils import CommandChecker, RateBucket, sendLong, CoreConfig, Tools
 
