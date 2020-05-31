@@ -3,6 +3,8 @@ import sys
 import os
 import discord
 from discord.ext import commands
+from discord.ext.commands import GroupMixin
+
 from packaging import version
 import time
 import inspect
@@ -152,8 +154,7 @@ class CoreConfig():
         self.cfgPermissions_Roles = {}
         self.load_role_permissions()
         
-class CommandChecker():
-            
+class CommandChecker():       
     permssion = CoreConfig.cfgPermissions
     registered = []
     registered_func = []
@@ -166,12 +167,19 @@ class CommandChecker():
             @commands.check(CommandChecker.checkPermission)
             async def wrapper(*args,**kwargs):
                 return await func(*args,**kwargs)
-            for cmd in CoreConfig.bot.commands:
-                for func in CommandChecker.registered_func:
-                    if(str(cmd) == str(func.__name__)):
-                        signature = inspect.signature(func)
-                        cmd.params = signature.parameters.copy() 
-                        break
+            signature = inspect.signature(func)
+            wrapper.params = signature.parameters.copy() 
+            func.name = wrapper.name
+            #print(dir(wrapper))
+            #print(wrapper.cog) #__cog_commands__
+            #print("####",func.__name__)
+            # sys.exit()
+            # for cmd in CoreConfig.bot.commands:
+                # for func in CommandChecker.registered_func:
+                    # if(str(cmd) == str(func.__name__)):
+                        # signature = inspect.signature(func)
+                        # cmd.params = signature.parameters.copy() 
+                        # break
                         #sys.exit()
             return wrapper
         return decorator

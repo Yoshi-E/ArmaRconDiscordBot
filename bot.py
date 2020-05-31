@@ -4,7 +4,7 @@ from discord.ext import commands
 from modules.core import utils
 import time
 import subprocess
-
+import inspect
 # Make bot join server:
 # https://discordapp.com/oauth2/authorize?client_id=xxxxxx&scope=bot
 # API Reference
@@ -26,6 +26,13 @@ def load_modules():
             print('Failed to load extension: '+extension)
             traceback.print_exc()
 
+    for cmd in utils.CoreConfig.bot.commands:
+        for func in utils.CommandChecker.registered_func:
+            if(str(cmd) == str(func.name)):
+                signature = inspect.signature(func)
+                cmd.params = signature.parameters.copy() 
+                break
+                #sys.exit()
 ###################################################################################################
 #####                                  Initialization                                          ####
 ###################################################################################################     

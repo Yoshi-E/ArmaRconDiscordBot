@@ -22,6 +22,8 @@ class CommandRconDatabase(commands.Cog):
         self.player_db = CoreConfig.cfg.new(self.path+"/player_db.json")
 
         asyncio.ensure_future(self.on_ready())
+        
+        
         #self.import_epm_csv('Players.csv')
 
     async def on_ready(self):
@@ -67,9 +69,31 @@ class CommandRconDatabase(commands.Cog):
                 if(data_row[field] == i):
                     results.append(data_row)
         return results
+        
+    def find_by_linked(self, beid, beids = set(), ips = set(), names = set()):
+        for key, val in self.player_db.items():
+            if(beid not in beids and key == beid):
+                for data in val:
+                    beids.add(data["beid"])
+                    ips.add(data["ip"])
+                    names.add(data["name"])
+                    
+                    ip_list = self.find_by_field("ip", data["ip"])
+                    for row in ip_list:
+                        ips.add(row["ip"]) 
+                        if(row["beid"] not in beids):
+                            beids.add(row["beid"])
+                            r = self.find_by_linked(row["beid"], beids, ips, names)
+                            beids = beids.union(r["beids"])
+                            ips = ips.union(r["ips"])
+                            names = names.union(r["names"])
+        return {"beids": beids, "ips": ips, "names": names}
+
+        #print(init)
 ###################################################################################################
 #####                                       Commands                                           ####
 ###################################################################################################         
+
 
     @CommandChecker.command(name='find',
             brief="find user data by field",
@@ -77,11 +101,35 @@ class CommandRconDatabase(commands.Cog):
     async def find_data(self, ctx, field, data):
         result = self.find_by_field(field, data)
         if(len(result) > 0):
-            await ctx.send("\n".join(result))  
+            msg = ""
+            for row in result:
+                msg += str(row)+"\n"
+            await sendLong(ctx, msg)  
         else:
-            await ctx.send("Sorry, I could not find anything")  
+            await sendLong(ctx, "Sorry, I could not find anything")      
+            
+    @CommandChecker.command(name='find_linked',
+            brief="Does a cross search over IPs and BEID",
+            pass_context=True)
+    async def find_linked(self, ctx, beid):
+        result = self.find_by_linked(beid)
+        print(result)
+        msg = ""
+        if(len(result["beids"]) > 0):
+            msg+= "BEID: ```\n"
+            for beid in result["beids"]:
+                msg+=beid+"\n"
+            msg+= "```\n"            
+            
+            msg+= "Names: ```"
+            for name in result["names"]:
+                msg+=str(name)+"\n"
+            msg+= "```"
+            await sendLong(ctx, msg)
+        else:
+            await sendLong(ctx, "Sorry, I could not find anything")  
 
-        
-
+    
+    
 def setup(bot):
     bot.add_cog(CommandRconDatabase(bot))
