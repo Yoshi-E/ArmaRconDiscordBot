@@ -128,6 +128,7 @@ class CoreConfig():
     def setGeneralSetting(self, data):
        CoreConfig.cfg["TOKEN"] = data["token"][0]
        CoreConfig.cfg["BOT_PREFIX"] = data["prefix"][0]   
+       CoreConfig.cfg["PUSH_CHANNEL"] = int(data["push_channel"][0])   
 
     def deall_role(self, data):
         role = data["role"][0]

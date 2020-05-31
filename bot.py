@@ -26,13 +26,16 @@ def load_modules():
             print('Failed to load extension: '+extension)
             traceback.print_exc()
 
+    #We are using a custom wrapper for the discord.ext.commands
+    #In the process the commands are losing information about the parameters
+    #We are setting the parameters from cache:
     for cmd in utils.CoreConfig.bot.commands:
         for func in utils.CommandChecker.registered_func:
             if(str(cmd) == str(func.name)):
                 signature = inspect.signature(func)
                 cmd.params = signature.parameters.copy() 
                 break
-                #sys.exit()
+
 ###################################################################################################
 #####                                  Initialization                                          ####
 ###################################################################################################     

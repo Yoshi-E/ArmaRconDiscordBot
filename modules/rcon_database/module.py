@@ -13,7 +13,7 @@ from discord.ext.commands import has_permissions, CheckFailure
 import csv
 from modules.core.utils import CommandChecker, RateBucket, sendLong, CoreConfig, Tools
 
-#Convert SDF with https://www.rebasedata.com/convert-sdf-to-csv-online
+
 
 class CommandRconDatabase(commands.Cog):
     def __init__(self, bot):
@@ -23,17 +23,69 @@ class CommandRconDatabase(commands.Cog):
 
         asyncio.ensure_future(self.on_ready())
         
-        
+        #Import an EPM rcon database
+        #First convert the EPM export (.sdf) to csv:
+        #Convert SDF with https://www.rebasedata.com/convert-sdf-to-csv-online
+        #then just import it:
         #self.import_epm_csv('Players.csv')
 
     async def on_ready(self):
         await self.bot.wait_until_ready()
         self.CommandRcon = self.bot.cogs["CommandRcon"]
+        asyncio.ensure_future(self.fetch_player_data_loop())
+        
+    async def fetch_player_data_loop(self):
+        while True: 
+            await asyncio.sleep(60)
+            try:
+                if(self.CommandRcon.arma_rcon.disconnected==True):
+                    continue
+                players = await self.CommandRcon.arma_rcon.getPlayersArray()
+                self.player_db.save = False 
+                
+                for player in players:
+                    d_row = {
+                        "ID": player[0],
+                        "name": player[4],
+                        "beid": player[3],
+                        "ip": player[1].split(":")[0], #removes port from ip
+                        "note": ""
+                    }    
+                    if(self.in_data(d_row)==False):
+                        if(player[3] not in self.player_db):
+                            self.player_db[d_row["beid"]] = []
+                        await self.new_data_entry(d_row)
+                        self.player_db[d_row["beid"]].append(d_row)
+                
+                
+                self.player_db.save = True
+                self.player_db.json_save()
+                
+            except Exception as e:
+                traceback.print_exc()
+                print(e)
+            
         
 ###################################################################################################
 #####                                   General functions                                      ####
 ###################################################################################################         
+    
+    async def new_data_entry(self, row):
+        linked = self.find_by_linked(row["beid"])
+        ctx = self.bot.get_channel(int(CoreConfig.cfg["PUSH_CHANNEL"]))
         
+        if(len(linked["beid"])>1):
+            ctx.send("Warning: Player '{name}' with BEID '{beid}' might be using >=2 accounts from the same ip".format(row))
+        
+        
+    
+    def in_data(self, row):
+        data = self.player_db[row["beid"]]
+        for d in data:
+            if(row["name"]==d["name"] and row["ip"]==d["ip"]):
+                return True
+        return False
+                
     def import_epm_csv(self, file='Players.csv'):
         #disable auto saving, so the files is not written for every data entry
         self.player_db.save = False 
@@ -113,7 +165,6 @@ class CommandRconDatabase(commands.Cog):
             pass_context=True)
     async def find_linked(self, ctx, beid):
         result = self.find_by_linked(beid)
-        print(result)
         msg = ""
         if(len(result["beids"]) > 0):
             msg+= "BEID: ```\n"

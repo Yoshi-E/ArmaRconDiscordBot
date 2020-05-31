@@ -18,7 +18,14 @@ class Commandconfig(commands.Cog):
                         description="reloads the config from disk")
     async def config_reload(self, ctx):
         self.cfg.load()
-        await ctx.send("Reloaded!")    
+        await ctx.send("Reloaded!")      
+
+    @CommandChecker.command(  name='setpush',
+                        brief="Sets the channel the bots sends status updates to",
+                        description="Sets the channel the bots sends status updates to")
+    async def set_push(self, ctx):
+        self.cfg["PUSH_CHANNEL"] = int(ctx.channel.id)
+        await ctx.send("Channel set")    
         
 def setup(bot):
     bot.add_cog(Commandconfig(bot))

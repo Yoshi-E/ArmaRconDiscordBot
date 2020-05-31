@@ -25,7 +25,8 @@ tr:nth-child(even) {
 
 <form action="/set_general_settings.json" method="post">
   <label for="token">Discord Token:</label><input type="text" id="token" name="token" value="Enter your token here" size="70" ><br>
-  <label for="prefix">Command prefix:</label><input type="text" id="prefix" name="prefix" value="!"><br>
+  <label for="prefix">Command prefix:</label><input type="text" id="prefix" name="prefix" value="!"><br>  
+  <label for="push_channel">Push status to channel:</label><input type="text" id="push_channel" name="push_channel" value=""><br>
   <input type="submit" value="Submit" onclick="return confirm('You need to restart the bot to apply changes')">
 </form>
 <br>
@@ -200,6 +201,7 @@ $.post('/get_general_settings.json', {
 		//console.log(data);
 		document.getElementById("token").value = data["TOKEN"]
 		document.getElementById("prefix").value = data["BOT_PREFIX"]
+		document.getElementById("push_channel").value = data["PUSH_CHANNEL"]
 });
 
 $.post('/get_module_settings.json', { 
