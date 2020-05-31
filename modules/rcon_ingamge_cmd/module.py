@@ -212,6 +212,9 @@ class CommandRconIngameComs(commands.Cog):
         self.afkLock = False
         self.afkTime = -1
         asyncio.ensure_future(self.on_ready())
+        
+        self.RconCommandEngine = RconCommandEngine
+        
         RconCommandEngine.cogs = self
         RconCommandEngine.rate_limit_commands.append("afk")
         #RconCommandEngine.admins.append("Yoshi_E")
