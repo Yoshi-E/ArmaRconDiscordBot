@@ -74,8 +74,8 @@ class CommandRconDatabase(commands.Cog):
         linked = self.find_by_linked(row["beid"])
         ctx = self.bot.get_channel(int(CoreConfig.cfg["PUSH_CHANNEL"]))
         
-        if(len(linked["beid"])>1):
-            ctx.send("Warning: Player '{name}' with BEID '{beid}' might be using >=2 accounts from the same ip".format(row))
+        if(len(linked["beids"])>1):
+            await ctx.send("Warning: Player '{name}' with BEID '{beid}' might be using >=2 accounts from the same ip".format(**row))
         
         
     
