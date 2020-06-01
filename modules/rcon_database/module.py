@@ -127,22 +127,24 @@ class CommandRconDatabase(commands.Cog):
         return results
         
     def find_by_linked(self, beid, beids = set(), ips = set(), names = set()):
-        for key, val in self.player_db.items():
-            if(beid not in beids and key == beid):
-                for data in val:
-                    beids.add(data["beid"])
-                    ips.add(data["ip"])
-                    names.add(data["name"])
-                    
-                    ip_list = self.find_by_field("ip", data["ip"])
-                    for row in ip_list:
-                        ips.add(row["ip"]) 
-                        if(row["beid"] not in beids):
-                            beids.add(row["beid"])
-                            r = self.find_by_linked(row["beid"], beids, ips, names)
-                            beids = beids.union(r["beids"])
-                            ips = ips.union(r["ips"])
-                            names = names.union(r["names"])
+        if(beid not in self.player_db):
+            return {"beids": beids, "ips": ips, "names": names}
+            
+        entries = self.player_db[beid]
+        for data in entries:
+            beids.add(data["beid"])
+            ips.add(data["ip"])
+            names.add(data["name"])
+            
+            ip_list = self.find_by_field("ip", data["ip"])
+            for row in ip_list:
+                ips.add(row["ip"]) 
+                if(row["beid"] not in beids):
+                    beids.add(row["beid"])
+                    r = self.find_by_linked(row["beid"], beids, ips, names)
+                    beids = beids.union(r["beids"])
+                    ips = ips.union(r["ips"])
+                    names = names.union(r["names"])
         return {"beids": beids, "ips": ips, "names": names}
 
         #print(init)
