@@ -126,7 +126,13 @@ class CommandRconDatabase(commands.Cog):
                     results.append(data_row)
         return results
         
-    def find_by_linked(self, beid, beids = set(), ips = set(), names = set()):
+    def find_by_linked(self, beid, beids = None, ips = None, names = None):
+        if(beids == None):
+            beids = set(),         
+        if(ips == None):
+            ips = set(),        
+        if(names == None):
+            names = set(), 
         if(beid not in self.player_db):
             return {"beids": beids, "ips": ips, "names": names}
             
