@@ -33,6 +33,7 @@ class CommandRconDatabase(commands.Cog):
         await self.bot.wait_until_ready()
         self.CommandRcon = self.bot.cogs["CommandRcon"]
         asyncio.ensure_future(self.fetch_player_data_loop())
+        #self.check_all_users()
         
     async def fetch_player_data_loop(self):
         while True: 
@@ -154,6 +155,14 @@ class CommandRconDatabase(commands.Cog):
         return {"beids": beids, "ips": ips, "names": names}
 
         #print(init)
+    
+    #Checks all users in the database for possible multi account usage.
+    #The generated list will be printed into console.
+    def check_all_users(self, min = 2):
+        for key in self.player_db.keys():
+            data = self.find_by_linked(key)
+            if(len(data["beids"]) >= min):
+                print(data)
 ###################################################################################################
 #####                                       Commands                                           ####
 ###################################################################################################         
