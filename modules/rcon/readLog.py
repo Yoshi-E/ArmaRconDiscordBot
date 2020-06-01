@@ -106,7 +106,7 @@ class readLog:
                                 #self.scanfile(self.current_log) #Log most likely empty, but a quick scan cant hurt.
                                 file = open(self.cfg["logs_path"]+self.current_log, "r")
                                 print("current log: "+self.current_log)
-                                self.on_newLog(old_log, self.current_log)
+                                #self.on_newLog(old_log, self.current_log)
                         else:
                             self.processLogLine(line)
                 except Exception as e:

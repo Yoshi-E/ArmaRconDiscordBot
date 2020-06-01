@@ -96,7 +96,7 @@ class CoreConfig():
     def load_role_permissions(self):
         files = glob.glob(CoreConfig.path+"/permissions_*.json")
         if(len(files)==0):
-            CoreConfig.generate_default_settings()
+            self.generate_default_settings()
         for file in files:
             role = os.path.basename(file).replace("permissions_", "").replace(".json", "")
             self.cfgPermissions_Roles[role] = Config(CoreConfig.path+"/permissions_{}.json".format(role))

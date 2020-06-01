@@ -24,12 +24,16 @@ class CommandRcon_Custom(commands.Cog):
         
     async def on_ready(self):
         await self.bot.wait_until_ready()
-        self.CommandRcon = self.bot.cogs["CommandRcon"]
-    
-        self.post_channel = self.bot.get_channel(602204350907154432) #channel id
-        self.CommandRcon.arma_rcon.add_Event("received_ServerMessage", self.rcon_on_msg_received)
-        await self.init_bans_watchdog()
-    
+        try:
+            await asyncio.sleep(60) #wait addional time for everything to be ready
+            self.CommandRcon = self.bot.cogs["CommandRcon"]
+        
+            self.post_channel = self.bot.get_channel(CoreConfig.cfg["PUSH_CHANNEL"]) #channel id
+            self.CommandRcon.arma_rcon.add_Event("received_ServerMessage", self.rcon_on_msg_received)
+            await self.init_bans_watchdog()
+        except Exception as e:
+            traceback.print_exc()
+            print(e)
     
     def rcon_on_msg_received(self, args):
         message=args[0]

@@ -44,9 +44,12 @@ class CommandRconDatabase(commands.Cog):
                 self.player_db.save = False 
                 
                 for player in players:
+                    name = player[4]
+                    if(name.endswith(" (Lobby)")): #Strip lobby from name
+                        name = name[:-8]
                     d_row = {
                         "ID": player[0],
-                        "name": player[4],
+                        "name": name,
                         "beid": player[3],
                         "ip": player[1].split(":")[0], #removes port from ip
                         "note": ""
@@ -77,9 +80,10 @@ class CommandRconDatabase(commands.Cog):
         if(len(linked["beids"])>1):
             await ctx.send(":warning: Player '{name}' with BEID '{beid}' might be using >=2 accounts from the same ip".format(**row))
         
-        
-    
+
     def in_data(self, row):
+        if(row["beid"] not in self.player_db):
+            return False
         data = self.player_db[row["beid"]]
         for d in data:
             if(row["name"]==d["name"] and row["ip"]==d["ip"]):
