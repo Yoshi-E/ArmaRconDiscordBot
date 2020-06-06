@@ -6,6 +6,7 @@ import json
 import os
 import sys
 import traceback
+import datetime
 import discord
 from discord.ext import commands
 from discord.ext.commands import has_permissions, CheckFailure
@@ -44,6 +45,8 @@ class CommandRconDatabase(commands.Cog):
                 players = await self.CommandRcon.arma_rcon.getPlayersArray()
                 self.player_db.save = False 
                 
+                
+                c_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") 
                 for player in players:
                     name = player[4]
                     if(name.endswith(" (Lobby)")): #Strip lobby from name
@@ -53,14 +56,19 @@ class CommandRconDatabase(commands.Cog):
                         "name": name,
                         "beid": player[3],
                         "ip": player[1].split(":")[0], #removes port from ip
-                        "note": ""
-                    }    
-                    if(self.in_data(d_row)==False):
+                        "note": "",
+                        "last-seen": c_time
+                    }   
+                    in_data = self.in_data(d_row)
+                    if(in_data==False):
+                        #Create new entry in database
                         if(player[3] not in self.player_db):
                             self.player_db[d_row["beid"]] = []
                         await self.new_data_entry(d_row)
                         self.player_db[d_row["beid"]].append(d_row)
-                
+                    else:
+                        #Update the last seen timestamp
+                        in_data["last-seen"] = c_time
                 
                 self.player_db.save = True
                 self.player_db.json_save()
@@ -88,7 +96,7 @@ class CommandRconDatabase(commands.Cog):
         data = self.player_db[row["beid"]]
         for d in data:
             if(row["name"]==d["name"] and row["ip"]==d["ip"]):
-                return True
+                return d
         return False
                 
     def import_epm_csv(self, file='Players.csv'):

@@ -16,8 +16,10 @@ assert version.parse(discord.__version__) >= version.parse("1.2.2"), "Module 'Di
 from modules.core.httpServer import server
 from modules.core.config import Config
 
-async def sendLong(ctx, msg: str, enclosed=False):
+async def sendLong(ctx, msg: str, enclosed=False, hard_post_limit=4):
     discord_limit = 1900 #discord limit is 2000
+    if(len(msg) > discord_limit*hard_post_limit):
+        msg = msg[:discord_limit*hard_post_limit]
     while(len(msg)>0): 
         if(len(msg)>discord_limit): 
             t = msg[discord_limit::-1]
