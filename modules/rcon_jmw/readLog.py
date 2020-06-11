@@ -500,10 +500,10 @@ class readLog:
                 zplots[-1].set_title(pdata["title"])
         
         #create folders to for images / raw data
-        if not os.path.exists(self.self.cfg_jmw['data_path']):
-            os.makedirs(self.self.cfg_jmw['data_path'])
-        if not os.path.exists(self.self.cfg_jmw['image_path']):
-            os.makedirs(self.self.cfg_jmw['image_path'])
+        if not os.path.exists(self.cfg_jmw['data_path']):
+            os.makedirs(self.cfg_jmw['data_path'])
+        if not os.path.exists(self.cfg_jmw['image_path']):
+            os.makedirs(self.cfg_jmw['image_path'])
         
         t=""
         if(lastwinner=="currentGame"):
@@ -511,8 +511,8 @@ class readLog:
         if(admin==True):
             t +="-ADV"
                         #path / date # time # duration # winner # addtional_tags
-        filename_pic =(self.self.cfg_jmw['image_path']+fdate+"#"+timestamp.replace(":","-")+"#"+str(gameduration)+"#"+lastwinner+"#"+lastmap+"#"+t+'.png').replace("\\","/")
-        filename =    (self.self.cfg_jmw['data_path']+ fdate+"#"+timestamp.replace(":","-")+"#"+str(gameduration)+"#"+lastwinner+"#"+lastmap+"#"+t+'.json').replace("\\","/")
+        filename_pic =(self.cfg_jmw['image_path']+fdate+"#"+timestamp.replace(":","-")+"#"+str(gameduration)+"#"+lastwinner+"#"+lastmap+"#"+t+'.png').replace("\\","/")
+        filename =    (self.cfg_jmw['data_path']+ fdate+"#"+timestamp.replace(":","-")+"#"+str(gameduration)+"#"+lastwinner+"#"+lastmap+"#"+t+'.json').replace("\\","/")
         
         #save image
         fig.savefig(filename_pic, dpi=100, pad_inches=3)
