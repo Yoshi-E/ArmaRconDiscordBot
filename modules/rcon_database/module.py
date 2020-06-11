@@ -86,12 +86,11 @@ class CommandRconDatabase(commands.Cog):
     
     async def new_data_entry(self, row):
         linked = self.find_by_linked(row["beid"])
-        ctx = self.bot.get_channel(int(CoreConfig.modules["modules/core"]["discord"]["post_channel"]))
-        
+
         if(len(linked["beids"])>1):
             channel = self.bot.get_channel(self.cfg["post_channel"])
             if(channel):
-                await ctx.send(":warning: Player '{name}' with BEID '{beid}' might be using >=2 accounts from the same ip".format(**row))
+                await channel.send(":warning: Player '{name}' with BEID '{beid}' might be using >=2 accounts from the same ip".format(**row))
         
 
     def in_data(self, row):
