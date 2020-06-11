@@ -1,8 +1,0 @@
-[submodule "rcon_jmw"]
-	path = modules/rcon_jmw
-	url = https://github.com/Yoshi-E/ArmaRconDiscordBotModules.git
-	branch = rcon_jmw
-[submodule "modules/rcon_jmw"]
-	path = modules/rcon_jmw
-	url = https://github.com/Yoshi-E/ArmaRconDiscordBotModules.git
-	branch = rcon_jmw
