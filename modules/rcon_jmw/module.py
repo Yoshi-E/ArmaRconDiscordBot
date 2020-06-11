@@ -171,6 +171,7 @@ class CommandJMW(commands.Cog):
                     await channel.send(file=discord.File(log_graph), content=msg)
 
         except Exception as e:
+             traceback.print_exc()
             await channel.send("Unable to find game: "+str(e))
 
     
