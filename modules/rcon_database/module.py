@@ -22,6 +22,8 @@ class CommandRconDatabase(commands.Cog):
         self.path = os.path.dirname(os.path.realpath(__file__))
         self.player_db = CoreConfig.cfg.new(self.path+"/player_db.json")
 
+        self.cfg = CoreConfig.modules["modules/rcon_database"]["general"]
+        
         asyncio.ensure_future(self.on_ready())
         
         #Import an EPM rcon database
@@ -87,7 +89,9 @@ class CommandRconDatabase(commands.Cog):
         ctx = self.bot.get_channel(int(CoreConfig.modules["modules/core"]["discord"]["post_channel"]))
         
         if(len(linked["beids"])>1):
-            await ctx.send(":warning: Player '{name}' with BEID '{beid}' might be using >=2 accounts from the same ip".format(**row))
+            channel = self.bot.get_channel(self.cfg["post_channel"])
+            if(channel):
+                await ctx.send(":warning: Player '{name}' with BEID '{beid}' might be using >=2 accounts from the same ip".format(**row))
         
 
     def in_data(self, row):

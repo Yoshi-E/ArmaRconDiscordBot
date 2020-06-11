@@ -1,3 +1,4 @@
 {
-    "load_module": true
+    "load_module": true,
+	"post_channel": 1
 }
