@@ -1,0 +1,7 @@
+{
+    "ip": "192.168.0.1",
+    "password": "Password",
+    "port": 2302,
+    "timeoutSec": 25,
+    "max_reconnects_per_minute": 2
+}
