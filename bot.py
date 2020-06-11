@@ -38,7 +38,7 @@ def main():
     cfg = utils.CoreConfig.modules["modules/core"]["discord"]
     try:
         bot.run(cfg["TOKEN"])
-    except KeyError:
+    except KeyError, discord.errors.LoginFailure::
         print("")
         input("Please configure the bot on the settings page. [ENTER to terminte the bot]")
      
