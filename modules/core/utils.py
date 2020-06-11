@@ -57,9 +57,10 @@ class Modules(object):
             module = module.replace("\\", "/")
             try:
                 cfg = Modules.loadCfg(module)
-                if(cfg and cfg["load_module"] == True):
+                if(cfg):
                     CoreConfig.modules[module] = {Modules.general_settings_file: cfg}
-                    bot.load_extension(module.replace("/", ".")+".module")
+                    if(cfg["load_module"] == True):
+                        bot.load_extension(module.replace("/", ".")+".module")
                 else:
                     print("[Modules] Skipped Cogs in '{}'".format(module))
             except (discord.ClientException, ModuleNotFoundError):
@@ -192,7 +193,7 @@ class CoreConfig():
     def setGeneralSetting(self, data):
        CoreConfig.modules["modules/core"]["discord"]["TOKEN"] = data["token"][0]
        CoreConfig.modules["modules/core"]["discord"]["BOT_PREFIX"] = data["prefix"][0]   
-       CoreConfig.modules["modules/core"]["discord"]["PUSH_CHANNEL"] = int(data["push_channel"][0])   
+       CoreConfig.modules["modules/core"]["discord"]["post_channel"] = int(data["post_channel"][0])   
 
     def deall_role(self, data):
         role = data["role"][0]

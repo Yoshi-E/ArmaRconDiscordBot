@@ -30,7 +30,7 @@ class Commandconfig(commands.Cog):
                         brief="Sets the channel the bots sends status updates to",
                         description="Sets the channel the bots sends status updates to")
     async def set_push(self, ctx):
-        self.cfg["PUSH_CHANNEL"] = int(ctx.channel.id)
+        self.cfg["post_channel"] = int(ctx.channel.id)
         await ctx.send("Channel set")    
         
 def setup(bot):
