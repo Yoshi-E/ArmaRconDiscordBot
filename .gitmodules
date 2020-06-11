@@ -1,0 +1,4 @@
+[submodule "modules/jmwBOT"]
+	path = modules/jmwBOT
+	url = https://github.com/Yoshi-E/jmwBOT.git
+	branch = module
