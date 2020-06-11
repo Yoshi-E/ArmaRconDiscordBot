@@ -1,4 +1,4 @@
-[submodule "modules/jmwBOT"]
-	path = modules/jmwBOT
-	url = https://github.com/Yoshi-E/jmwBOT.git
-	branch = module
+[submodule "rcon_jmw"]
+	path = modules/rcon_jmw
+	url = https://github.com/Yoshi-E/ArmaRconDiscordBotModules.git
+	branch = rcon_jmw

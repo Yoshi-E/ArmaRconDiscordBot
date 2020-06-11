@@ -11,6 +11,8 @@ import asyncio
 import _thread
 
 from modules.core.config import Config
+from modules.core import utils
+
 class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         self.real_path = os.path.dirname(os.path.realpath(__file__))
@@ -151,20 +153,46 @@ class WebServer():
             return json_dump.encode()       
 
     def get_module_settings():
-        if(WebServer.CommandChecker):
-            settings = {}
-            for cfg in WebServer.CoreConfig.registered:
-                settings[os.path.basename(cfg.cfg_path).split(".")[0]] = cfg.cfg
+        settings = {}
+        for module_name,module in utils.CoreConfig.modules.items():
+            settings[module_name] = {}
+            for name, cfg in module.items():
+                settings[module_name][name] = cfg.cfg
+    
+    
+        json_dump = json.dumps(settings)
+        return json_dump.encode()    
 
-            json_dump = json.dumps(settings)
-            return json_dump.encode()    
-        
     def generate_general_settings():
         WebServer.bot.CoreConfig.load_role_permissions() #Load permissions from file
         json_dump = json.dumps(WebServer.bot.CoreConfig.cfg.cfg)
         return json_dump.encode()
         
     def set_module_settings(file, data):
+        print(data)
+    
+        for key,row in data.items():
+            keys = key.split(".")
+            if(len(keys) == 3):
+                old_val = utils.CoreConfig.modules[keys[0]][keys[1]][keys[2]]
+                new_val = row[0]
+                
+                if(isinstance(old_val, str)):
+                    new_val = str(new_val)                
+                elif(isinstance(old_val, bool)):
+                    if(new_val.lower() in ['true', '1', 't', 'y', 'yes', 'yeah', 'yup', 'certainly', 'uh-huh']): new_val = True
+                    else:
+                        new_val = False
+                elif(isinstance(old_val, int)):
+                    new_val = int(new_val)
+                else:
+                    raise Exception("Unkown datatype '{}'".format(type(value)))
+                utils.CoreConfig.modules[keys[0]][keys[1]][keys[2]] = new_val
+            else: 
+                raise Exception("Invalid data structure for '{}'".format(data))     
+        return
+        
+        
         file = file.split("::")[1]
         for cfg in WebServer.CoreConfig.registered:
             if(os.path.basename(cfg.cfg_path) == file):

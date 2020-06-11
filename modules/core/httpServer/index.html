@@ -23,14 +23,6 @@ tr:nth-child(even) {
 
 <h2>RCON Settings</h2>
 
-<form action="/set_general_settings.json" method="post">
-  <label for="token">Discord Token:</label><input type="text" id="token" name="token" value="Enter your token here" size="70" ><br>
-  <label for="prefix">Command prefix:</label><input type="text" id="prefix" name="prefix" value="!"><br>  
-  <label for="push_channel">Push status to channel:</label><input type="text" id="push_channel" name="push_channel" value=""><br>
-  <input type="submit" value="Submit" onclick="return confirm('You need to restart the bot to apply changes')">
-</form>
-<br>
-
 <form action="/terminate_bot.json" method="post">
   <input type="submit" value="Shutdown Bot" onclick="return confirm('Are you sure?')">
 </form>
@@ -44,6 +36,7 @@ tr:nth-child(even) {
 
 </div>
 <br>
+<h2>Permissions</h2>
 <form action="/add_role.json" method="post">
   <label for="add_role">Add Role:</label><br>
   <input type="text" id="add_role" name="add_role" value=""><br>
@@ -188,52 +181,62 @@ function permission_changed(e) {
 	});
 };
 
-$.post('/get_settings.json', { 
-	}, function(data) { 
-		//console.log(data);
-		generateTableHead(permission_settings, data["head"])
-		delete data["head"];
-		generateTable(permission_settings, data)
-});
-
-$.post('/get_general_settings.json', { 
-	}, function(data) { 
-		//console.log(data);
-		document.getElementById("token").value = data["TOKEN"]
-		document.getElementById("prefix").value = data["BOT_PREFIX"]
-		document.getElementById("push_channel").value = data["PUSH_CHANNEL"]
-});
-
+//Load Module settings
 $.post('/get_module_settings.json', { 
 	}, function(data) { 
 		var main_div_p = document.getElementById("module_settings");
 		//console.log(data);
-		jQuery.each(data, function(key, val) {
+		jQuery.each(data, function(key1, val1) {
 			
 			var main_div = document.createElement("form");
-			main_div.action="/set_module_settings::"+key+".json";
+			main_div.action="/set_module_settings::"+key1+".json";
 			main_div.method="post";
 			main_div.id="module_settings";
 			main_div_p.appendChild(main_div);
 			//Create Title
 			var element = document.createElement("h2");
-			element.innerHTML = key;
+			element.innerHTML = key1;
 			main_div.appendChild(element);  
 			
-			//Create Otions
-			jQuery.each(data[key], function(key, val) {
-				var element = document.createElement("label");
-				element.innerHTML = key+": ";
-				main_div.appendChild(element);  
-				var element = document.createElement("input");
-				element.type = "text";
-				element.id = key;
-				element.name = key;
-				element.value = val;
-				main_div.appendChild(element);  
-				var element = document.createElement("br");
-				main_div.appendChild(element); 
-			});
+			//create subgroup
+			jQuery.each(data[key1], function(key2, val2) {
+				var div = document.createElement("div");
+				main_div.appendChild(div); 
+				
+				var element = document.createElement("h3");
+				element.innerHTML = key2;
+				div.appendChild(element);
+				//Create Otions
+				jQuery.each(data[key1][key2], function(key3, val3) {
+					var element = document.createElement("label");
+					element.innerHTML = key3+": ";
+					main_div.appendChild(element);  
+					
+					var element = document.createElement("input");
+					//console.log(data);
+					console.log(typeof val3);
+					if (typeof val3 === "boolean"){
+						element.type = "checkbox";
+						element.checked = val3;
+						element.name = key1+"."+key2+"."+key3;
+						
+						//add hidden checkbox (for post submit):
+						var hidden = document.createElement("input");
+						hidden.type = "hidden";
+						hidden.value = !val3;
+						hidden.name = key1+"."+key2+"."+key3;
+						main_div.appendChild(hidden);  
+					} else {
+						element.type = "text";
+					}
+					element.id = key1+"."+key2+"."+key3;
+					element.name = key1+"."+key2+"."+key3;
+					element.value = val3;
+					main_div.appendChild(element);  
+					var element = document.createElement("br");
+					main_div.appendChild(element); 
+				});
+		    });
 			var element = document.createElement("input");
 			element.type = "submit";
 			element.value = "Submit";
@@ -244,4 +247,12 @@ $.post('/get_module_settings.json', {
 		});
 });
 
+//Load Permissions
+$.post('/get_settings.json', { 
+	}, function(data) { 
+		//console.log(data);
+		generateTableHead(permission_settings, data["head"])
+		delete data["head"];
+		generateTable(permission_settings, data)
+});
 </script>
