@@ -1,5 +1,5 @@
 {
     "TOKEN": "enter_token_here",
     "BOT_PREFIX": "!",
-    "PUSH_CHANNEL": 123
+    "post_channel": 123
 }
