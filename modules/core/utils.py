@@ -44,6 +44,67 @@ async def sendLong(ctx, msg: str, enclosed=False, hard_post_limit=4):
                 await ctx.send(msg)
             msg = ""
 
+
+class Modules(object):
+    settings_dir = ".settings/"
+    general_settings_file = "general"
+    core_dir = "modules/core/"
+   
+    def loadCogs(bot):
+        Modules.module_list = sorted(list(glob.glob("modules/*")))
+
+        for module in  Modules.module_list:
+            module = module.replace("\\", "/")
+            try:
+                cfg = Modules.loadCfg(module)
+                if(cfg and cfg["load_module"] == True):
+                    CoreConfig.modules[module] = {Modules.general_settings_file: cfg}
+                    bot.load_extension(module.replace("/", ".")+".module")
+                else:
+                    print("[Modules] Skipped Cogs in '{}'".format(module))
+            except (discord.ClientException, ModuleNotFoundError):
+                print('Failed to load extension: '+extension)
+                traceback.print_exc()   
+        Modules.fix_wrappers()
+
+    def loadCfg(module):
+        setting_folder = module+"/"+Modules.settings_dir
+
+        if(not os.path.exists(setting_folder)):
+            return False
+            os.mkdir(setting_folder)
+        
+        default_setting = setting_folder+Modules.general_settings_file+".default_json"
+        if(not os.path.exists(default_setting)):
+            default_setting =   Modules.core_dir + Modules.settings_dir + Modules.general_settings_file + ".default_json"
+                          
+                          
+        cfg = CoreConfig.cfg.new(   setting_folder+
+                                    Modules.general_settings_file+".json", 
+                                    default_setting)
+
+        return cfg
+        
+
+    def fix_wrappers():
+        #We are using a custom wrapper for the discord.ext.commands
+        #In the process the commands are losing information about the parameters
+        #We are setting the parameters from cache:
+        for cmd in CoreConfig.bot.commands:
+            for func in CommandChecker.registered_func:
+                if(str(cmd) == str(func.name)):
+                    signature = inspect.signature(func)
+                    cmd.params = signature.parameters.copy() 
+                    break
+                    
+
+
+
+
+
+
+
+
 class Tools():
     @staticmethod
     def column(matrix, i):
@@ -84,6 +145,7 @@ class CoreConfig():
     cfg = Config(path+"/config.json")
     cfgPermissions = Config(path+"/permissions.json", path+"/permissions.default_json")
     registered = []
+    modules = {}
     bot = None
     def __init__(self, bot):
         
@@ -128,9 +190,9 @@ class CoreConfig():
         self.cfgPermissions_Roles[data["role"][0]][data["name"][0]] = val
     
     def setGeneralSetting(self, data):
-       CoreConfig.cfg["TOKEN"] = data["token"][0]
-       CoreConfig.cfg["BOT_PREFIX"] = data["prefix"][0]   
-       CoreConfig.cfg["PUSH_CHANNEL"] = int(data["push_channel"][0])   
+       CoreConfig.modules["modules/core"]["discord"]["TOKEN"] = data["token"][0]
+       CoreConfig.modules["modules/core"]["discord"]["BOT_PREFIX"] = data["prefix"][0]   
+       CoreConfig.modules["modules/core"]["discord"]["PUSH_CHANNEL"] = int(data["push_channel"][0])   
 
     def deall_role(self, data):
         role = data["role"][0]

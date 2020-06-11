@@ -14,7 +14,11 @@ class Config():
         self.default_cfg_path = default_cfg_path
         self.save = True
         if(default_cfg_path):
-            self.cfg_default = json.load(open(self.default_cfg_path,"r"))
+            try:
+                self.cfg_default = json.load(open(self.default_cfg_path,"r"))
+            except Exception as e:
+                traceback.print_exc()
+                raise Exception("{} for '{}'".format(e, self.cfg_path))
        
         if(cfg_path):
             self.load()
@@ -23,24 +27,28 @@ class Config():
         self.cfg = self.json_load()
     
     def json_load(self):
-        cfg = None
-        if(os.path.isfile(self.cfg_path)):
-            cfg_t = json.load(open(self.cfg_path,"r"))
-            if(self.default_cfg_path):
-                cfg = self.cfg_default.copy()
-                cfg.update(cfg_t)
-                with open(self.cfg_path, 'w') as outfile:
-                    json.dump(cfg, outfile, indent=4, separators=(',', ': '), default=serialize)  
+        try:
+            cfg = None
+            if(os.path.isfile(self.cfg_path)):
+                cfg_t = json.load(open(self.cfg_path,"r"))
+                if(self.default_cfg_path):
+                    cfg = self.cfg_default.copy()
+                    cfg.update(cfg_t)
+                    with open(self.cfg_path, 'w') as outfile:
+                        json.dump(cfg, outfile, indent=4, separators=(',', ': '), default=serialize)  
+                else:
+                    cfg = cfg_t
             else:
-                cfg = cfg_t
-        else:
-            if(self.default_cfg_path):
-                with open(self.cfg_path, 'w') as outfile:
-                    json.dump(self.cfg_default, outfile, indent=4, separators=(',', ': '), default=serialize)
-                cfg = self.cfg_default
-        if(cfg == None):
-            return {}
-        return cfg
+                if(self.default_cfg_path):
+                    with open(self.cfg_path, 'w') as outfile:
+                        json.dump(self.cfg_default, outfile, indent=4, separators=(',', ': '), default=serialize)
+                    cfg = self.cfg_default
+            if(cfg == None):
+                return {}
+            return cfg
+        except Exception as e:
+            traceback.print_exc()
+            raise Exception("{} for '{}'".format(e, self.cfg_path))
         
     def json_save(self):
         if(self.cfg_path):

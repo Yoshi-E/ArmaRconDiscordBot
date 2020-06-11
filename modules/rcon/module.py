@@ -21,7 +21,8 @@ import psutil
 import bec_rcon
 
 from modules.rcon import readLog
-from modules.core.utils import CommandChecker, RateBucket, sendLong, CoreConfig, Tools
+from modules.core.utils import CommandChecker, RateBucket, CoreConfig
+import modules.core.utils as utils
 
 
 class CommandRconSettings(commands.Cog):
@@ -51,7 +52,7 @@ class CommandRconSettings(commands.Cog):
             #msg = "\n".join(message_list)
             msg = self.CommandRcon.generateChat(10)
             if(len(msg)>0 and len(msg.strip())>0):
-                await sendLong(ctx, "The Keyword '{}' was triggered: \n {}".format(keyword, msg))
+                await utils.sendLong(ctx, "The Keyword '{}' was triggered: \n {}".format(keyword, msg))
 
     async def checkKeyWords(self, message):
         for id, value in self.rcon_adminNotification.items():
@@ -71,54 +72,7 @@ class CommandRconSettings(commands.Cog):
             userEle["muted"] = False
             userEle["sendAlways"] = True
         return userEle
-        
-###################################################################################################
-#####                              Arma 3 Server start - stop                                  ####
-###################################################################################################         
-    def start_server(self):
-        
-        #subprocess.call(shlex.split(self.CommandRcon.rcon_settings["start_server"]))  
-        self.server_pid = subprocess.Popen(shlex.split(self.CommandRcon.rcon_settings["start_server"]))  
-        
-    def stop_server(self):
-        if(self.server_pid != None):
-            self.server_pid.kill()
-            self.server_pid = None
-        else:
-            return False
-            
-    def stop_all_server(self):
-        for proc in psutil.process_iter():
-            if(proc.name()==self.CommandRcon.rcon_settings["stop_server"]):
-                proc.kill()
-        #os.system('taskkill /f /im {}'.format(self.CommandRcon.rcon_settings["stop_server"])) 
-        
-    @CommandChecker.command(name='start',
-            brief="Starts the arma server",
-            pass_context=True)
-    async def start(self, ctx):
-        await ctx.send("Starting Server...")  
-        self.start_server()
-        self.CommandRcon.autoReconnect = True
-   
-    @CommandChecker.command(name='stop',
-            brief="Stops the arma server (If server was started with !start)",
-            pass_context=True)
-    async def stop(self, ctx):
-        self.CommandRcon.autoReconnect = False
-        if(self.stop_server()==False):
-            await ctx.send("Failed to stop server. You might want to try '!stop_all' to stop all arma 3 instances")
-        else:
-            await ctx.send("Stopped the Server.")      
-
-    @CommandChecker.command(name='stopall',
-            brief="Stop all configured arma servers",
-            pass_context=True)
-    async def stop_all(self, ctx):
-        self.CommandRcon.autoReconnect = False
-        self.stop_all_server()
-        await ctx.send("Stop all Servers.")  
-        
+ 
 ###################################################################################################
 #####                              Admin notification commands                                 ####
 ###################################################################################################  
@@ -158,7 +112,7 @@ class CommandRconSettings(commands.Cog):
         id = ctx.message.author.id
         if(str(id) in  self.rcon_adminNotification and len(self.rcon_adminNotification[str(id)]["keywords"])>0 ):
             keywords = "\n".join(self.rcon_adminNotification[str(id)]["keywords"])
-            await sendLong(ctx, "```{}```".format(keywords))
+            await utils.sendLong(ctx, "```{}```".format(keywords))
         else:
             await ctx.send("You dont have any keywords.")
         self.rcon_adminNotification.json_save()  
@@ -208,8 +162,15 @@ class CommandRcon(commands.Cog):
 
         self.arma_chat_channels = ["Side", "Global", "Vehicle", "Direct", "Group", "Command"]
         
-        self.rcon_settings = CoreConfig.cfg.new(self.path+"/rcon_cfg.json", self.path+"/rcon_cfg.default_json")
+        
+        #Load cfg:
+        self.rcon_settings = CoreConfig.cfg.new(  self.path+"/"+
+                                        utils.Modules.settings_dir+"rcon.json", 
+                                        self.path+"/"+
+                                        utils.Modules.settings_dir+"rcon.default_json")
+        CoreConfig.modules["modules/rcon"]["rcon"] = self.rcon_settings
         CoreConfig.registered.append(self.rcon_settings)
+        
         self.lastReconnect = deque()
         self.ipReader = geoip2.database.Reader(self.path+"/GeoLite2-Country.mmdb")
         
@@ -477,7 +438,7 @@ class CommandRcon(commands.Cog):
         pass_context=True)
     async def getChat(self, ctx, limit=20): 
         msg = self.generateChat(limit)
-        await sendLong(ctx, msg)
+        await utils.sendLong(ctx, msg)
 
     @CommandChecker.command(name='players+',
         brief="Lists current players on the server",
@@ -501,7 +462,7 @@ class CommandRcon(commands.Cog):
                     flag = ":flag_{}:".format(region)
                 msg+= "#{} | {} {}".format(id, flag, name)+"\n"
 
-        await sendLong(ctx, msg)
+        await utils.sendLong(ctx, msg)
         
 ###################################################################################################
 #####                                   BEC Rcon commands                                      ####
@@ -519,7 +480,7 @@ class CommandRcon(commands.Cog):
             msg = "Executed command: ``"+str(message)+"`` and returned nothing (confirmed its execution)"
         else:
             msg = "Executed command: ``"+str(message)+"`` wich returned: "+str(data)
-        await sendLong(ctx,msg)
+        await utils.sendLong(ctx,msg)
 
     @CommandChecker.command(name='kickPlayer',
         brief="Kicks a player who is currently on the server",
@@ -681,7 +642,7 @@ class CommandRcon(commands.Cog):
         pass_context=True)
     async def getMissions(self, ctx):
         missions = await self.arma_rcon.getMissions()
-        await sendLong(ctx, missions)
+        await utils.sendLong(ctx, missions)
         
     @CommandChecker.command(name='loadMission',
         brief="Loads a mission",

@@ -1,17 +1,23 @@
 from discord.ext import commands
 from discord.ext.commands import has_permissions, CheckFailure
 import discord
-
+import os
 
 from modules.core import CoreConfig, CommandChecker
+import modules.core.utils as utils
 from modules.core.httpServer import server
 
 class Commandconfig(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-
-
-        self.cfg = self.bot.CoreConfig.cfg
+        self.path = os.path.dirname(os.path.realpath(__file__))
+        
+        #Load cfg:
+        self.cfg = CoreConfig.cfg.new(  self.path+"/"+
+                                        utils.Modules.settings_dir+"discord.json", 
+                                        self.path+"/"+
+                                        utils.Modules.settings_dir+"discord.default_json")
+        CoreConfig.modules["modules/core"]["discord"] = self.cfg 
         
     @CommandChecker.command(  name='config_reload',
                         brief="reloads the config",
