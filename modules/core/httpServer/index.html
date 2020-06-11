@@ -218,23 +218,28 @@ $.post('/get_module_settings.json', {
 					if (typeof val3 === "boolean"){
 						element.type = "checkbox";
 						element.checked = val3;
+						element.value = true;
 						element.name = key1+"."+key2+"."+key3;
 						
 						//add hidden checkbox (for post submit):
 						var hidden = document.createElement("input");
 						hidden.type = "hidden";
-						hidden.value = !val3;
+						hidden.value = false;
 						hidden.name = key1+"."+key2+"."+key3;
-						main_div.appendChild(hidden);  
+						  
 					} else {
 						element.type = "text";
+						element.value = val3;
 					}
 					element.id = key1+"."+key2+"."+key3;
 					element.name = key1+"."+key2+"."+key3;
-					element.value = val3;
+					
 					main_div.appendChild(element);  
 					var element = document.createElement("br");
 					main_div.appendChild(element); 
+					if (typeof val3 === "boolean"){
+						main_div.appendChild(hidden);
+					};
 				});
 		    });
 			var element = document.createElement("input");

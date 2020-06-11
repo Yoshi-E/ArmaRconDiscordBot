@@ -188,6 +188,7 @@ class WebServer():
                 else:
                     raise Exception("Unkown datatype '{}'".format(type(value)))
                 utils.CoreConfig.modules[keys[0]][keys[1]][keys[2]] = new_val
+                print(keys, "to", new_val)
             else: 
                 raise Exception("Invalid data structure for '{}'".format(data))     
         return
