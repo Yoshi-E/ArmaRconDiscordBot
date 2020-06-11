@@ -22,6 +22,18 @@ class CommandErrorHandler(commands.Cog):
         """The event triggered when an error is raised while invoking a command.
         ctx   : Context
         error : Exception"""
+        
+        ignored = (commands.CommandNotFound, commands.UserInputError, commands.errors.CheckFailure)
+        
+        # Allows us to check for original exceptions raised and sent to CommandInvokeError.
+        # If nothing is found. We keep the exception passed to on_command_error.
+        error = getattr(error, 'original', error)
+        
+        # Anything in ignored will return and prevent anything happening.
+        if isinstance(error, ignored):
+            print("{}: '{}'. Ignored error: '{}'".format(ctx.author.name, ctx.command.name, error))
+            return
+            
         stack = traceback.extract_stack()[:-3] + traceback.extract_tb(error.__traceback__)
         pretty = traceback.format_list(stack)
         #stacktrace = ''.join(pretty) + '\n  {} {}'.format(error.__class__,error)
@@ -31,15 +43,7 @@ class CommandErrorHandler(commands.Cog):
         if hasattr(ctx.command, 'on_error'):
             return
         
-        ignored = (commands.CommandNotFound, commands.UserInputError)
-        
-        # Allows us to check for original exceptions raised and sent to CommandInvokeError.
-        # If nothing is found. We keep the exception passed to on_command_error.
-        error = getattr(error, 'original', error)
-        
-        # Anything in ignored will return and prevent anything happening.
-        if isinstance(error, ignored):
-            return
+
 
         elif isinstance(error, commands.DisabledCommand):
             return await ctx.send(f'{ctx.command} has been disabled.')

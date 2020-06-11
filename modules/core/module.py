@@ -1,30 +1,31 @@
-import traceback
-import sys
 from discord.ext import commands
 from discord.ext.commands import has_permissions, CheckFailure
 import discord
-import os
 
-new_path = os.path.dirname(os.path.realpath(__file__))
-if new_path not in sys.path:
-    sys.path.append(new_path)
-from utils import CoreConfig, CommandChecker
-     
+
+from modules.core import CoreConfig, CommandChecker
+from modules.core.httpServer import server
+
 class Commandconfig(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-        self.cfg = CoreConfig.cfg
-        self.bot.cfg = CoreConfig.cfg
+
+        self.cfg = self.bot.CoreConfig.cfg
         
-    @commands.command(  name='config_reload',
+    @CommandChecker.command(  name='config_reload',
                         brief="reloads the config",
                         description="reloads the config from disk")
-    @commands.check(CommandChecker.checkAdmin)
     async def config_reload(self, ctx):
-        self.bot.cfg.load()
-        await ctx.send("Reloaded!")
-                
+        self.cfg.load()
+        await ctx.send("Reloaded!")      
 
+    @CommandChecker.command(  name='setpush',
+                        brief="Sets the channel the bots sends status updates to",
+                        description="Sets the channel the bots sends status updates to")
+    async def set_push(self, ctx):
+        self.cfg["PUSH_CHANNEL"] = int(ctx.channel.id)
+        await ctx.send("Channel set")    
+        
 def setup(bot):
     bot.add_cog(Commandconfig(bot))
