@@ -12,7 +12,7 @@ import inspect
 
 #Order of modules is important
 #Partent modules have to be loaded first
-modules = ["errorhandle","core", "rcon", "rcon_database"]
+modules = ["errorhandle","core", "rcon", "rcon_ban_msg", "rcon_ingamge_cmd", "rcon_database", "jmwBOT"]
 #modules = ["errorhandle","core", "rcon", "rcon_ban_msg", rcon_ingamge_cmd, rcon_database]
 
 bot = commands.Bot(command_prefix="!", pm_help=True)
