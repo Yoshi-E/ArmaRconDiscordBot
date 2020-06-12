@@ -49,6 +49,10 @@ class CommandRconDatabase(commands.Cog):
                 
                 
                 c_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") 
+                #Set status
+                if(self.cfg["set_custom_status"]==True):
+                    await self.set_status(players)
+                
                 for player in players:
                     name = player[4]
                     if(name.endswith(" (Lobby)")): #Strip lobby from name
@@ -79,7 +83,14 @@ class CommandRconDatabase(commands.Cog):
                 traceback.print_exc()
                 print(e)
             
+    async def set_status(self, players):
+        game_name = "{} Players".format(len(players))
+        status = discord.Status.do_not_disturb #discord.Status.online
+        if(self.CommandRcon.arma_rcon.disconnected==False):
+            status = discord.Status.online
         
+        await self.bot.change_presence(activity=discord.Game(name=game_name), status=status)
+    
 ###################################################################################################
 #####                                   General functions                                      ####
 ###################################################################################################         

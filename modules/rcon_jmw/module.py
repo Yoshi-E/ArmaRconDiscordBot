@@ -56,8 +56,11 @@ class CommandJMW(commands.Cog):
                 traceback.print_exc()
                 
     async def setStatus(self):
+        if(self.cfg["set_custom_status"]==False):
+            return
         if(self.bot.is_closed()):
-            return False
+            return
+            
         game = ""
         status = discord.Status.do_not_disturb #discord.Status.online
         
