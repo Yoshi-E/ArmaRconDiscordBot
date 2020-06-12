@@ -1,4 +1,5 @@
 {
     "load_module": true,
-	"post_channel": 1
+	"post_channel": 1,
+	"set_custom_status": false
 }
