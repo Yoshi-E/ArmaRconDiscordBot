@@ -20,6 +20,10 @@ class CommandRcon_Custom(commands.Cog):
         self.bot = bot
         self.path = os.path.dirname(os.path.realpath(__file__))
         self.recentBans = deque(maxlen=100) #tracks the message "has been kicked by BattlEye: Admin Ban"
+        
+        #Load cfg:
+        self.cfg = CoreConfig.modules["modules/rcon_ban_msg"]["general"]
+        
         asyncio.ensure_future(self.on_ready())
         
     async def on_ready(self):
@@ -28,7 +32,7 @@ class CommandRcon_Custom(commands.Cog):
             await asyncio.sleep(60) #wait addional time for everything to be ready
             self.CommandRcon = self.bot.cogs["CommandRcon"]
         
-            self.post_channel = self.bot.get_channel(CoreConfig.cfg["PUSH_CHANNEL"]) #channel id
+            self.post_channel = self.bot.get_channel(self.cfg["post_channel"]) #channel id
             self.CommandRcon.arma_rcon.add_Event("received_ServerMessage", self.rcon_on_msg_received)
             await self.init_bans_watchdog()
         except Exception as e:
@@ -104,10 +108,14 @@ class CommandRcon_Custom(commands.Cog):
             await self.check_newBan()
             
     async def announce_ban_added(self, data):
+        if(self.post_channel == None):
+            return
         name, guid = self.name_from_guid(data[1])
         await self.post_channel.send("``{}`` has been **banned**!: \nGUID: {}\nTime: {}\nReason: {}".format(name, data[1], data[2], data[3]))   
         
     async def announce_ban_removed(self, data):
+        if(self.post_channel == None):
+            return
         name, guid = self.name_from_guid(data[1])
         await self.post_channel.send("``{}`` has been **unbanned**!: \nGUID: {}\nTime: {}\nReason: {}".format(name, data[1], data[2], data[3])) 
 

@@ -11,6 +11,8 @@ import asyncio
 import _thread
 
 from modules.core.config import Config
+from modules.core import utils
+
 class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         self.real_path = os.path.dirname(os.path.realpath(__file__))
@@ -151,37 +153,52 @@ class WebServer():
             return json_dump.encode()       
 
     def get_module_settings():
-        if(WebServer.CommandChecker):
-            settings = {}
-            for cfg in WebServer.CoreConfig.registered:
-                settings[os.path.basename(cfg.cfg_path).split(".")[0]] = cfg.cfg
+        settings = {}
+        for module_name,module in utils.CoreConfig.modules.items():
+            settings[module_name] = {}
+            for name, cfg in module.items():
+                settings[module_name][name] = {}
+                for k,v in cfg.cfg.items(): 
+                    if(isinstance(v, int) and v >= 9007199254740991): #js max int
+                        settings[module_name][name][k] = str(v)
+                    else:
+                        settings[module_name][name][k] = v
+    
+    
+        json_dump = json.dumps(settings)
+        return json_dump.encode()    
 
-            json_dump = json.dumps(settings)
-            return json_dump.encode()    
-        
     def generate_general_settings():
         WebServer.bot.CoreConfig.load_role_permissions() #Load permissions from file
         json_dump = json.dumps(WebServer.bot.CoreConfig.cfg.cfg)
         return json_dump.encode()
         
     def set_module_settings(file, data):
-        file = file.split("::")[1]
-        for cfg in WebServer.CoreConfig.registered:
-            if(os.path.basename(cfg.cfg_path) == file):
-                for key, value in cfg.items():
-                    if(isinstance(value, int)):
-                        cfg[key] = int(data[key][0])
-                    elif(isinstance(value, str)):
-                        cfg[key] = str(data[key][0])
-                    elif(value == None):
-                        if(key in data):
-                            cfg[key] = data[key][0]
+        #print(data)
+    
+        for key,row in data.items():
+            keys = key.split(".")
+            if(len(keys) == 3):
+                old_val = utils.CoreConfig.modules[keys[0]][keys[1]][keys[2]]
+                new_val = row[0]
+                
+                if(isinstance(old_val, str)):
+                    new_val = str(new_val)                
+                elif(isinstance(old_val, bool)):
+                    if(new_val.lower() in ['true', '1', 't', 'y', 'yes', 'yeah', 'yup', 'certainly', 'uh-huh']): new_val = True
                     else:
-                        raise Exception("Unkown datatype '{}'".format(type(value)))
-                break
+                        new_val = False
+                elif(isinstance(old_val, int)):
+                    new_val = int(new_val)
+                else:
+                    raise Exception("Unkown datatype '{}'".format(type(value)))
+                utils.CoreConfig.modules[keys[0]][keys[1]][keys[2]] = new_val
+                print(keys, "to", new_val)
+                utils.CoreConfig.modules[keys[0]][keys[1]].json_save()
+            else: 
+                raise Exception("Invalid data structure for '{}'".format(data))     
 
-            
-            
+    
     async def terminate():
         WebServer.bot.terminated = True
         await WebServer.bot.logout()
