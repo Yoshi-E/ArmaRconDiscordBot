@@ -185,7 +185,7 @@ function permission_changed(e) {
 $.post('/get_module_settings.json', { 
 	}, function(data) { 
 		var main_div_p = document.getElementById("module_settings");
-		//console.log(data);
+		console.log(data);
 		jQuery.each(data, function(key1, val1) {
 			
 			var main_div = document.createElement("form");

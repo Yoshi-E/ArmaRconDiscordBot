@@ -157,7 +157,12 @@ class WebServer():
         for module_name,module in utils.CoreConfig.modules.items():
             settings[module_name] = {}
             for name, cfg in module.items():
-                settings[module_name][name] = cfg.cfg
+                settings[module_name][name] = {}
+                for k,v in cfg.cfg.items(): 
+                    if(isinstance(v, int) and v >= 9007199254740991): #js max int
+                        settings[module_name][name][k] = str(v)
+                    else:
+                        settings[module_name][name][k] = v
     
     
         json_dump = json.dumps(settings)
@@ -169,7 +174,7 @@ class WebServer():
         return json_dump.encode()
         
     def set_module_settings(file, data):
-        print(data)
+        #print(data)
     
         for key,row in data.items():
             keys = key.split(".")
@@ -189,28 +194,11 @@ class WebServer():
                     raise Exception("Unkown datatype '{}'".format(type(value)))
                 utils.CoreConfig.modules[keys[0]][keys[1]][keys[2]] = new_val
                 print(keys, "to", new_val)
+                utils.CoreConfig.modules[keys[0]][keys[1]].json_save()
             else: 
                 raise Exception("Invalid data structure for '{}'".format(data))     
-        return
-        
-        
-        file = file.split("::")[1]
-        for cfg in WebServer.CoreConfig.registered:
-            if(os.path.basename(cfg.cfg_path) == file):
-                for key, value in cfg.items():
-                    if(isinstance(value, int)):
-                        cfg[key] = int(data[key][0])
-                    elif(isinstance(value, str)):
-                        cfg[key] = str(data[key][0])
-                    elif(value == None):
-                        if(key in data):
-                            cfg[key] = data[key][0]
-                    else:
-                        raise Exception("Unkown datatype '{}'".format(type(value)))
-                break
 
-            
-            
+    
     async def terminate():
         WebServer.bot.terminated = True
         await WebServer.bot.logout()
