@@ -45,7 +45,7 @@ class CommandJoinMSG(commands.Cog):
             #"connect"
             elif(message.endswith(") connected")):
                 msg = "(".join(message.split("(﻿")[:-1]) #removes the last block with the ip
-                msg += " connected" 
+                msg += "connected" 
                 asyncio.ensure_future(self.channel.send(msg))
                 
     
