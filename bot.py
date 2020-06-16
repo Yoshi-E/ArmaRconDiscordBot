@@ -5,6 +5,8 @@ from modules.core import utils
 import time
 import subprocess
 import inspect
+import asyncio
+import sys
 # Make bot join server:
 # https://discordapp.com/oauth2/authorize?client_id=xxxxxx&scope=bot
 # API Reference
@@ -38,8 +40,10 @@ def main():
     cfg = utils.CoreConfig.modules["modules/core"]["discord"]
     try:
         bot.run(cfg["TOKEN"])
+    except (KeyboardInterrupt, asyncio.CancelledError):
+        sys.exit("Bot Terminated (KeyboardInterrupt)")
     except (KeyError, discord.errors.LoginFailure):
-        print("")
+        print("##########################################")
         input("Please configure the bot on the settings page. [ENTER to terminte the bot]")
      
 

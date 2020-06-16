@@ -35,6 +35,8 @@ class CommandRcon_Custom(commands.Cog):
             self.post_channel = self.bot.get_channel(self.cfg["post_channel"]) #channel id
             self.CommandRcon.arma_rcon.add_Event("received_ServerMessage", self.rcon_on_msg_received)
             await self.init_bans_watchdog()
+        except (KeyboardInterrupt, asyncio.CancelledError):
+            print("[asyncio] exiting", on_ready)
         except Exception as e:
             traceback.print_exc()
             print(e)
@@ -103,9 +105,12 @@ class CommandRcon_Custom(commands.Cog):
         
         #bans format: ["ID", "GUID", "Time", "Reason"]
         print("Starting ban watchdog")
-        while True:
-            await asyncio.sleep(60)
-            await self.check_newBan()
+        try:
+            while True:
+                await asyncio.sleep(60)
+                await self.check_newBan()
+        except (KeyboardInterrupt, asyncio.CancelledError):
+            print("[asyncio] exiting", bans_watchdog)
             
     async def announce_ban_added(self, data):
         if(self.post_channel == None):

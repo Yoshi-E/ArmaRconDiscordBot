@@ -51,9 +51,12 @@ class CommandJMW(commands.Cog):
             try:
                 await asyncio.sleep(50)
                 await self.setStatus()
+            except (KeyboardInterrupt, asyncio.CancelledError):
+                print("[asyncio] exiting", task_setStatus)
             except Exception as e:
                 print("setting status failed", e)
                 traceback.print_exc()
+
                 
     async def setStatus(self):
         if(self.cfg["set_custom_status"]==False):

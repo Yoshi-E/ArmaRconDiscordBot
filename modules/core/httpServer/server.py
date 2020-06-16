@@ -28,6 +28,18 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
         else:
             file = "/index.html"
         
+        if self.path.endswith(".png"):
+            mimetype='image/png'
+            sendReply = True
+            
+            f = open(self.real_path+self.path, "rb") 
+            self.send_response(200)
+            self.send_header('Content-type',mimetype)
+            self.end_headers()
+            self.wfile.write(f.read())
+            f.close()
+            return
+        
         with open(self.real_path+file) as fh:
             self.send_response(200)
             self.send_header('Content-type', 'text/html')

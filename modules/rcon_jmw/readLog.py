@@ -274,38 +274,44 @@ class readLog:
                     line = None
                     
     async def watch_log(self):
-        databuilder = {}
-        while(True): #Wait till a log file exsists
-            logs = self.getLogs()
-            if(len(logs) > 0):
-                current_log = logs[-1]
-                print("current log: "+current_log)
-                file = open(self.cfg_arma["log_path"]+current_log, "r")
-                file.seek(0, 2) #jump to the end of the file
-                try:
-                    while (True):
-                        #where = file.tell()
-                        try:
-                            line = file.readline()
-                        except:
-                            line = None
-                        if not line:
-                            await asyncio.sleep(10)
-                            #file.seek(where)
-                            if(current_log != self.getLogs()[-1]):
-                                old_log = current_log
-                                current_log = self.getLogs()[-1] #update to new recent log
-                                #self.scanfile(current_log) #Log most likely empty, but a quick scan cant hurt.
-                                file = open(self.cfg_arma["log_path"]+current_log, "r")
-                                print("current log: "+current_log)
-                                self.on_newLog(old_log, current_log)
-                        else:
-                            databuilder = self.processLogLine(line, databuilder, True)
-                except Exception as e:
-                    print(e)
-                    traceback.print_exc()
-            else:
-                await asyncio.sleep(10*60)
+        try:
+            databuilder = {}
+            while(True): #Wait till a log file exsists
+                logs = self.getLogs()
+                if(len(logs) > 0):
+                    current_log = logs[-1]
+                    print("current log: "+current_log)
+                    file = open(self.cfg_arma["log_path"]+current_log, "r")
+                    file.seek(0, 2) #jump to the end of the file
+                    try:
+                        while (True):
+                            #where = file.tell()
+                            try:
+                                line = file.readline()
+                            except:
+                                line = None
+                            if not line:
+                                await asyncio.sleep(10)
+                                #file.seek(where)
+                                if(current_log != self.getLogs()[-1]):
+                                    old_log = current_log
+                                    current_log = self.getLogs()[-1] #update to new recent log
+                                    #self.scanfile(current_log) #Log most likely empty, but a quick scan cant hurt.
+                                    file = open(self.cfg_arma["log_path"]+current_log, "r")
+                                    print("current log: "+current_log)
+                                    self.on_newLog(old_log, current_log)
+                            else:
+                                databuilder = self.processLogLine(line, databuilder, True)
+                    
+                    except (KeyboardInterrupt, asyncio.CancelledError):
+                        print("[asyncio] exiting", watch_log)
+                    except Exception as e:
+                        print(e)
+                        traceback.print_exc()
+                else:
+                    await asyncio.sleep(10*60)
+        except (KeyboardInterrupt, asyncio.CancelledError):
+            print("[asyncio] exiting", watch_log)
                 
 ###################################################################################################
 #####                                  Event Handeler                                          ####
