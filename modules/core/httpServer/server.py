@@ -18,6 +18,10 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
         self.real_path = os.path.dirname(os.path.realpath(__file__))
         super().__init__(*args, **kwargs)
 
+    #overwrite and disable log messages
+    def log_message(self, format, *args):
+            return
+            
     def do_GET(self):
         if self.path in ["/restart.html"]:
             file = "/restart.html"
