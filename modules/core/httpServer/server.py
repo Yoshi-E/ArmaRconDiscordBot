@@ -222,13 +222,14 @@ class WebServer():
     async def terminate():
         WebServer.bot.terminated = True
         await WebServer.bot.logout()
+        sys.exit("Terminated by web interface")
     
     def restart():
         WebServer.bot.restarting = True
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-        asyncio.ensure_future(WebServer._restart())
-        loop.run_forever()   
+        loop.run_until_complete(asyncio.ensure_future(WebServer._restart())) 
+        sys.exit("Terminated by web interface")
     
     async def _restart():
         await asyncio.sleep(2)
