@@ -18,11 +18,27 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
         self.real_path = os.path.dirname(os.path.realpath(__file__))
         super().__init__(*args, **kwargs)
 
+    #overwrite and disable log messages
+    def log_message(self, format, *args):
+            return
+            
     def do_GET(self):
         if self.path in ["/restart.html"]:
             file = "/restart.html"
         else:
             file = "/index.html"
+        
+        if self.path.endswith(".png"):
+            mimetype='image/png'
+            sendReply = True
+            
+            f = open(self.real_path+self.path, "rb") 
+            self.send_response(200)
+            self.send_header('Content-type',mimetype)
+            self.end_headers()
+            self.wfile.write(f.read())
+            f.close()
+            return
         
         with open(self.real_path+file) as fh:
             self.send_response(200)
@@ -206,13 +222,14 @@ class WebServer():
     async def terminate():
         WebServer.bot.terminated = True
         await WebServer.bot.logout()
+        sys.exit("Terminated by web interface")
     
     def restart():
         WebServer.bot.restarting = True
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-        asyncio.ensure_future(WebServer._restart())
-        loop.run_forever()   
+        loop.run_until_complete(asyncio.ensure_future(WebServer._restart())) 
+        sys.exit("Terminated by web interface")
     
     async def _restart():
         await asyncio.sleep(2)

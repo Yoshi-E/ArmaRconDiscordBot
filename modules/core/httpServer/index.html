@@ -2,6 +2,28 @@
 <html>
 <head>
 <style>
+* {
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+html, button, input, select, textarea,
+.pure-g [class *= "pure-u"] {
+
+    font-family: arial, sans-serif;
+}
+
+a {
+    text-decoration: none;
+    color: rgb(61, 146, 201);
+}
+a:hover,
+a:focus {
+    text-decoration: underline;
+}
+
+
 table {
   font-family: arial, sans-serif;
   border-collapse: collapse;
@@ -17,11 +39,60 @@ td, th {
 tr:nth-child(even) {
   background-color: #dddddd;
 }
+
+input[type="text"] {
+	width: 100%;
+
+}
+.module_setting {
+	width: 700px;
+	margin: 15px;
+	padding: 5px;
+	border: 1px;
+	border-style: groove;
+
+}
+
+
+.module-title {
+    font-size: 1.4em;
+    color: #222;
+    font-weight: bold;
+	margin: 0px;
+	background: lightgray;
+}
+.module-title:hover{
+    text-decoration: none;
+}
+
+.setting-title {
+    font-size: 1.1em;
+    color: #222;
+    font-weight: bold;
+	margin: 5px;
+}
+.setting-title:hover{
+    text-decoration: none;
+}
+
+.checkmark {
+	width: auto;
+}
+
+
+.yoshi-coin {
+	position:absolute;
+	right: 0;
+	top: 0;
+	width:42px;
+}
+
 </style>
 </head>
 <body>
 
 <h2>RCON Settings</h2>
+
 
 <form action="/terminate_bot.json" method="post">
   <input type="submit" value="Shutdown Bot" onclick="return confirm('Are you sure?')">
@@ -32,9 +103,16 @@ tr:nth-child(even) {
 <br>
 
 
+<a href="https://github.com/Yoshi-E/ArmaRconDiscordBot">
+<img src="images/yoshi_coin.png" alt="yoshi coin" class="yoshi-coin">
+</a>
+
+
 <div id="module_settings">
 
 </div>
+
+
 <br>
 <h2>Permissions</h2>
 <form action="/add_role.json" method="post">
@@ -217,13 +295,12 @@ $.post('/get_module_settings.json', {
 		console.log(data);
 		jQuery.each(data, function(key1, val1) {
 			
-			var main_div = document.createElement("form");
-			main_div.action="/set_module_settings::"+key1+".json";
-			main_div.method="post";
-			main_div.id="module_settings";
+			var main_div = document.createElement("div");
+			main_div.className ="module_setting";
 			main_div_p.appendChild(main_div);
 			//Create Title
 			var element = document.createElement("h2");
+			element.className = "module-title";
 			element.innerHTML = key1;
 			main_div.appendChild(element);  
 			
@@ -233,6 +310,7 @@ $.post('/get_module_settings.json', {
 				main_div.appendChild(div); 
 				
 				var element = document.createElement("h3");
+				element.className = "setting-title";
 				element.innerHTML = key2;
 				div.appendChild(element);
 				//Create Otions
@@ -247,15 +325,10 @@ $.post('/get_module_settings.json', {
 					if (typeof val3 === "boolean"){
 						element.type = "checkbox";
 						element.checked = val3;
+						element.className = "checkmark";
 						element.value = true;
 						element.name = key1+"."+key2+"."+key3;
 						
-						//add hidden checkbox (for post submit):
-						var hidden = document.createElement("input");
-						hidden.type = "hidden";
-						hidden.value = false;
-						hidden.name = key1+"."+key2+"."+key3;
-						  
 					} else {
 						element.type = "text";
 						element.value = val3;
@@ -267,18 +340,8 @@ $.post('/get_module_settings.json', {
 					main_div.appendChild(element);  
 					var element = document.createElement("br");
 					main_div.appendChild(element); 
-					if (typeof val3 === "boolean"){
-						main_div.appendChild(hidden);
-					};
 				});
 		    });
-			/*var element = document.createElement("input");
-			element.type = "submit";
-			element.value = "Submit";
-			element.onclick = "return confirm('Are you sure?')";		
-			main_div.appendChild(element); */
-
-
 		});
 });
 

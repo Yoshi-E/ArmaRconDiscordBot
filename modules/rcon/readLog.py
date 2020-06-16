@@ -36,6 +36,9 @@ class readLog:
         # self.dataRows = tempdataRows
         
         #Start Watchlog
+        if(asyncio.get_event_loop().is_closed()):
+            print("Failed to start", self.watch_log)
+            return
         asyncio.ensure_future(self.watch_log())
 
     #get the log files from folder and sort them by oldest first
