@@ -181,6 +181,35 @@ function permission_changed(e) {
 	});
 };
 
+
+function setting_changed(e) {
+	if(e.srcElement.type === 'checkbox') {
+		var v = e.srcElement.checked
+	} else  {
+		var v = e.srcElement.value;
+	}
+
+	$.post('/set_module_settings::TEST.json', { 
+	name: e.srcElement.id,
+	value: v
+	}, function(data) { 
+		//console.log(data);
+	});
+};
+
+
+function debounce(func, interval) {
+    var lastCall = -1;
+    return function() {
+        clearTimeout(lastCall);
+        var args = arguments;
+        var self = this;
+        lastCall = setTimeout(function() {
+            func.apply(self, args);
+        }, interval);
+    };
+}
+
 //Load Module settings
 $.post('/get_module_settings.json', { 
 	}, function(data) { 
@@ -233,7 +262,8 @@ $.post('/get_module_settings.json', {
 					}
 					element.id = key1+"."+key2+"."+key3;
 					element.name = key1+"."+key2+"."+key3;
-					
+					//element.oninput = setting_changed;
+					element.oninput = debounce(setting_changed,500);
 					main_div.appendChild(element);  
 					var element = document.createElement("br");
 					main_div.appendChild(element); 
@@ -242,11 +272,11 @@ $.post('/get_module_settings.json', {
 					};
 				});
 		    });
-			var element = document.createElement("input");
+			/*var element = document.createElement("input");
 			element.type = "submit";
 			element.value = "Submit";
 			element.onclick = "return confirm('Are you sure?')";		
-			main_div.appendChild(element); 
+			main_div.appendChild(element); */
 
 
 		});

@@ -176,27 +176,31 @@ class WebServer():
     def set_module_settings(file, data):
         #print(data)
     
-        for key,row in data.items():
-            keys = key.split(".")
-            if(len(keys) == 3):
-                old_val = utils.CoreConfig.modules[keys[0]][keys[1]][keys[2]]
-                new_val = row[0]
-                
-                if(isinstance(old_val, str)):
-                    new_val = str(new_val)                
-                elif(isinstance(old_val, bool)):
-                    if(new_val.lower() in ['true', '1', 't', 'y', 'yes', 'yeah', 'yup', 'certainly', 'uh-huh']): new_val = True
-                    else:
-                        new_val = False
-                elif(isinstance(old_val, int)):
-                    new_val = int(new_val)
+        #for key,row in data.items():
+        key = data["name"][0]
+        if("value" not in data):
+            new_val = ""
+        else:
+            new_val = data["value"][0]
+        
+        keys = key.split(".")
+        if(len(keys) == 3):
+            old_val = utils.CoreConfig.modules[keys[0]][keys[1]][keys[2]]
+            if(isinstance(old_val, str)):
+                new_val = str(new_val)                
+            elif(isinstance(old_val, bool)):
+                if(new_val.lower() in ['true', '1', 't', 'y', 'yes', 'yeah', 'yup', 'certainly', 'uh-huh']): new_val = True
                 else:
-                    raise Exception("Unkown datatype '{}'".format(type(value)))
-                utils.CoreConfig.modules[keys[0]][keys[1]][keys[2]] = new_val
-                print(keys, "to", new_val)
-                utils.CoreConfig.modules[keys[0]][keys[1]].json_save()
-            else: 
-                raise Exception("Invalid data structure for '{}'".format(data))     
+                    new_val = False
+            elif(isinstance(old_val, int)):
+                new_val = int(new_val)
+            else:
+                raise Exception("Unkown datatype '{}'".format(type(value)))
+            utils.CoreConfig.modules[keys[0]][keys[1]][keys[2]] = new_val
+            print(keys, "to", new_val)
+            utils.CoreConfig.modules[keys[0]][keys[1]].json_save()
+        else: 
+            raise Exception("Invalid data structure for '{}'".format(data))     
 
     
     async def terminate():
