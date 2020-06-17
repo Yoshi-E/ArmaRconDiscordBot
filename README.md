@@ -35,25 +35,25 @@ https://github.com/Yoshi-E/Python-BEC-RCon
 
 ## Features
 
-Easy setup and configuration with a web based setup page
+Easy setup and configuration with a web based setup page<br>
 ![easy setup](https://i.imgur.com/IiIOST2.png)
 
-Receive Ban notifications (Local only):
+Receive Ban notifications (Local only):<br>
 ![ban notifications](https://i.imgur.com/fXWWblD.png)
 
-Warnings for people that might be using multiple accounts
+Warnings for people that might be using multiple accounts<br>
 ![multi account warning](https://i.imgur.com/vixaJAg.png)
 
-Search users using IP, BEID, Name, last seen:
+Search users using IP, BEID, Name, last seen:<br>
 ![database search](https://i.imgur.com/OolyCBv.png)
 
-See user nationality
+See user nationality<br>
 ![database search](https://i.imgur.com/2huOd6e.png)
 
-Server performance
+Server performance<br>
 ![server performance](https://i.imgur.com/9aTK480.png)
 
-Get notified on key words
+Get notified on key words<br>
 ![key words](https://i.imgur.com/3aSGob1.png)
 
 ## Monetization
