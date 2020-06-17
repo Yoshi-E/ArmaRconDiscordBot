@@ -2,6 +2,7 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse
 from urllib.parse import parse_qs
 from io import BytesIO
+import socket
 import http
 import os
 import json
@@ -139,7 +140,9 @@ class WebServer():
         WebServer.bot = bot
         WebServer.CommandChecker = CommandChecker
         WebServer.CoreConfig = CoreConfig
-        port = 8000
+        
+        self.path = os.path.dirname(os.path.realpath(__file__))
+        port = CoreConfig.cfg["setting_port"] #8000
         
         daemon = threading.Thread(name='web_server',
                                   target=self._start_server,
@@ -149,6 +152,14 @@ class WebServer():
 
         
     def _start_server(self, port=8000):
+        s_port = port
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            while(s.connect_ex(('localhost', port)) == 0):
+                port += 1
+                if(port >= 65535):
+                    raise ConnectionAbortedError("Unable to find free port".format(port))
+        if(s_port != port):
+            print("[WARNING] Port '{}' already in use, using '{}' instead.".format(s_port, port))
         print("Settings page online on: http://localhost:{}/".format(port))
         self.httpd = HTTPServer(('localhost', port), SimpleHTTPRequestHandler)
         self.httpd.serve_forever()

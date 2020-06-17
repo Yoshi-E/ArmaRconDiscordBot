@@ -69,6 +69,9 @@ class Modules(object):
         Modules.fix_wrappers()
 
     def loadCfg(module):
+        if("modules/core" in module):
+            return CoreConfig.cfg
+            
         setting_folder = module+"/"+Modules.settings_dir
 
         if(not os.path.exists(setting_folder)):
@@ -143,7 +146,8 @@ class RateBucket():
 
 class CoreConfig():
     path = os.path.dirname(os.path.realpath(__file__))
-    cfg = Config(path+"/config.json")
+    #Core config is always avaible, modules only after they are loaded
+    cfg = Config(path+"/"+Modules.settings_dir+"/"+Modules.general_settings_file+".json", path+"/"+Modules.settings_dir+"/"+Modules.general_settings_file+".default_json")
     cfgPermissions = Config(path+"/permissions.json", path+"/permissions.default_json")
     registered = []
     modules = {}

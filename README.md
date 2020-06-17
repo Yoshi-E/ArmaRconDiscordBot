@@ -33,6 +33,31 @@ https://github.com/Yoshi-E/Python-BEC-RCon
 
 [![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://paypal.me/YoshiEU)
 
+## Features
+
+Easy setup and configuration with a web based setup page<br>
+![easy setup](https://i.imgur.com/IiIOST2.png)
+
+Display Player acount in the bots status:<br>
+![player count](https://i.imgur.com/ehjPjF8.png)
+
+Receive Ban notifications (Local only):<br>
+![ban notifications](https://i.imgur.com/fXWWblD.png)
+
+Warnings for people that might be using multiple accounts<br>
+![multi account warning](https://i.imgur.com/vixaJAg.png)
+
+Search users using IP, BEID, Name, last seen:<br>
+![database search](https://i.imgur.com/OolyCBv.png)
+
+See user nationality<br>
+![database search](https://i.imgur.com/2huOd6e.png)
+
+Server performance<br>
+![server performance](https://i.imgur.com/9aTK480.png)
+
+Get notified on key words<br>
+![key words](https://i.imgur.com/3aSGob1.png)
 
 ## Monetization
 This Bot (or code that I own inside) __cannot__ be used in a monetization process.

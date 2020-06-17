@@ -74,8 +74,6 @@ class readLog:
         return self.dataToGraph(meta, game, admin)
 
 
-    
-    
     # index: 0 = current game
     # start = index is starts searching from
     # returns false if not enough data to read log was present
@@ -125,7 +123,7 @@ class readLog:
         last_time_iter = 0
         first_line = True
         set_new = False     #when game crashed and mission continues
-        created_df = False
+        #created_df = False
         #values
         meta = {
                 "map": "Unkown",
@@ -146,11 +144,11 @@ class readLog:
 
                 val["time"] = val["time"]+last_time
                 last_time_iter = val["time"] 
-                if(val["time"] > 100000 and created_df == False):
-                    print("[WARNING] Data timeframe out of bounds: {}".format(val))
-                    with open('dataframe.json', 'a+') as outfile:
-                        json.dump(data, outfile)
-                    created_df = True
+                #if(val["time"] > 100000 and created_df == False):
+                #    print("[WARNING] Data timeframe out of bounds: {}".format(val))
+                #    with open('dataframe.json', 'a+') as outfile:
+                #        json.dump(data, outfile)
+                #    created_df = True
             if(val["CTI_DataPacket"]=="GameOver"):
                 meta["timestamp"] = val["timestamp"]
                 #meta["map"] = val["Map"]
