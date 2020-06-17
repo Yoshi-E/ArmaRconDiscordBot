@@ -46,9 +46,9 @@ class readLog:
         if(self.lastLogCheck == None or (datetime.now() - self.lastLogCheck).total_seconds() > 60):
             self.lastLogCheck = datetime.now()
             
-            if(os.path.exists(self.cfg['logs_path'])):
+            if(os.path.exists(self.cfg['log_path'])):
                 files = []
-                for file in os.listdir(self.cfg['logs_path']):
+                for file in os.listdir(self.cfg['log_path']):
                     if (file.endswith(".log") or file.endswith(".rpt")):
                         files.append(file)
                 return sorted(files)
@@ -69,7 +69,7 @@ class readLog:
         
     #this function will continusly scan a log for data entries. They are stored in self.dataRows
     def scanfile(self, name):
-        with open(self.cfg['logs_path']+name) as fp: 
+        with open(self.cfg['log_path']+name) as fp: 
             data = None
             try:
                 line = fp.readline()
@@ -90,7 +90,7 @@ class readLog:
             if(len(logs) > 0):
                 self.current_log = logs[-1]
                 print("current log: "+self.current_log)
-                file = open(self.cfg["logs_path"]+self.current_log, "r")
+                file = open(self.cfg["log_path"]+self.current_log, "r")
                 file.seek(0, 2) #jump to the end of the file
                 try:
                     while (True):
@@ -107,7 +107,7 @@ class readLog:
                                 old_log = self.current_log
                                 self.current_log = new_log[-1] #update to new recent log
                                 #self.scanfile(self.current_log) #Log most likely empty, but a quick scan cant hurt.
-                                file = open(self.cfg["logs_path"]+self.current_log, "r")
+                                file = open(self.cfg["log_path"]+self.current_log, "r")
                                 print("current log: "+self.current_log)
                                 #self.on_newLog(old_log, self.current_log)
                         else:

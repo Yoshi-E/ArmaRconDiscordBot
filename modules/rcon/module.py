@@ -821,7 +821,7 @@ class CommandRcon(commands.Cog):
             await asyncio.sleep(2)
             for i in range(0,5):
                 if(len(self.log_reader.dataRows)==0):
-                    await ctx.send("Failed to acquire data. Current path: '{}', log: '{}'".format(CoreConfig.cfg['logs_path'], self.log_reader.current_log))
+                    await ctx.send("Failed to acquire data. Current path: '{}', log: '{}'".format(CoreConfig.modules["modules/arma"]["general"]['log_path'], self.log_reader.current_log))
                     break
                 await ctx.send(self.log_reader.dataRows[-1])
                 await asyncio.sleep(1.1)
