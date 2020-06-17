@@ -10,8 +10,8 @@ import sys
 # API Reference
 #https://discordpy.readthedocs.io/en/rewrite/ext/commands/api.html#event-reference
 
-cfg = utils.CoreConfig.modules["modules/core"]["discord"]
-bot = commands.Bot(command_prefix=cfg["BOT_PREFIX"], pm_help=True)
+#cfg = utils.CoreConfig.modules["modules/core"]["discord"]
+bot = commands.Bot(command_prefix="!", pm_help=True)
 bot.CoreConfig = utils.CoreConfig(bot)
  
 ###################################################################################################
