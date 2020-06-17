@@ -26,9 +26,10 @@ async def on_ready():
     bot.CoreConfig.load_role_permissions()
 
 def main():
-
+    
     utils.Modules.loadCogs(bot)
     
+    cfg = utils.CoreConfig.modules["modules/core"]["discord"]
     try:
         bot.run(cfg["TOKEN"])
     except (KeyboardInterrupt, asyncio.CancelledError):
