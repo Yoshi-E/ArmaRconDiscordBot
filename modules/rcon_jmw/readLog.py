@@ -74,8 +74,6 @@ class readLog:
         return self.dataToGraph(meta, game, admin)
 
 
-    
-    
     # index: 0 = current game
     # start = index is starts searching from
     # returns false if not enough data to read log was present
