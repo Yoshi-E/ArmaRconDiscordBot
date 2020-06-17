@@ -1,10 +1,8 @@
 import discord
-import traceback
 from discord.ext import commands
 from modules.core import utils
 import time
 import subprocess
-import inspect
 import asyncio
 import sys
 # Make bot join server:
@@ -12,23 +10,16 @@ import sys
 # API Reference
 #https://discordpy.readthedocs.io/en/rewrite/ext/commands/api.html#event-reference
 
-#Order of modules is important
-#Partent modules have to be loaded first
-#modules = ["errorhandle","core", "rcon", "rcon_ban_msg", "rcon_ingamge_cmd", "rcon_database", "jmwBOT"]
-#modules = ["errorhandle","core", "rcon", "rcon_ban_msg", rcon_ingamge_cmd, rcon_database]
-
-bot = commands.Bot(command_prefix="!", pm_help=True)
+cfg = utils.CoreConfig.modules["modules/core"]["discord"]
+bot = commands.Bot(command_prefix=cfg["BOT_PREFIX"], pm_help=True)
 bot.CoreConfig = utils.CoreConfig(bot)
  
-
 ###################################################################################################
 #####                                  Initialization                                          ####
 ###################################################################################################     
 
-
 @bot.event
 async def on_ready():
-
     print('Logged in as {} [{}]'.format(bot.user.name, bot.user.id))
     print(bot.guilds)
     print('------------')
@@ -37,7 +28,7 @@ async def on_ready():
 def main():
 
     utils.Modules.loadCogs(bot)
-    cfg = utils.CoreConfig.modules["modules/core"]["discord"]
+    
     try:
         bot.run(cfg["TOKEN"])
     except (KeyboardInterrupt, asyncio.CancelledError):
