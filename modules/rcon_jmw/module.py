@@ -146,7 +146,6 @@ class CommandJMW(commands.Cog):
             game = self.readLog.readData(admin, gameindex)   
             timestamp = game["date"]+" "+game["time"]
             msg="Sorry, I could not find any games"
-            link = "\n<http://www.jammywarfare.eu/replays/?file={}>".format(urllib.parse.quote(game["picname"].split("/")[-1].replace("-CUR", "").replace("-ADV", "").replace(".png", ".json")))
             if(admin == True): #post additional info
                 if(game["gameduration"] < 2):
                     gameindex+=1
@@ -157,7 +156,7 @@ class CommandJMW(commands.Cog):
                     filename = game["dataname"]
                 log_graph = filename
                 msg="["+timestamp+"] "+str(game["gameduration"])+"min game. Winner:"+game["lastwinner"]
-                msg += link
+                msg += "\n<http://www.jammywarfare.eu/replays/?file={}>".format(urllib.parse.quote(game["picname"].split("/")[-1].replace(".png", ".json")))
                 await channel.send(file=discord.File(log_graph), content=msg)
                 com_east = "EAST_com:"+str(Counter(self.readLog.featchValues(game["data"], "commander_east")))
                 com_west = "WEST_com:"+str(Counter(self.readLog.featchValues(game["data"], "commander_west")))
@@ -177,7 +176,7 @@ class CommandJMW(commands.Cog):
                     msg="["+timestamp+"] Congratulation, "+game["lastwinner"]+"! You beat the other team after "+str(game["gameduration"])+"min of intense fighting. A new game is about to start, time to join!"
                     filename = game["picname"]
                     log_graph = filename
-                    msg += link
+                    msg += "\n<http://www.jammywarfare.eu/replays/?file={}>".format(urllib.parse.quote(game["picname"].split("/")[-1].replace("-CUR", "").replace("-ADV", "").replace(".png", ".json")))
                     #http://www.jammywarfare.eu/replays/?file=2020-06-17%2310-53-00%23195%23EAST%23Altis%23.json
                     #http://www.jammywarfare.eu/replays/?file=/home/arma/scripts/jmwBOT/modules/jmw/images/2020-06-18%2317-06-40%23285%23currentGame%23Altis%23-CUR-ADV.png
                     await channel.send(file=discord.File(log_graph), content=msg)
