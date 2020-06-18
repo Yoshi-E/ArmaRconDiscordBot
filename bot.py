@@ -52,4 +52,3 @@ if __name__ == '__main__':
         
         time.sleep(1)
         subprocess.Popen("python" + " bot.py", shell=True)
-            

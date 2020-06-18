@@ -282,4 +282,3 @@ class CommandChecker():
                     if(cmd in pr[str(role)] and pr[str(role)][cmd]):
                         return True
         return False       
-
