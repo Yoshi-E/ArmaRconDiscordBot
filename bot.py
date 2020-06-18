@@ -11,7 +11,9 @@ import sys
 #https://discordpy.readthedocs.io/en/rewrite/ext/commands/api.html#event-reference
 
 #cfg = utils.CoreConfig.modules["modules/core"]["discord"]
-bot = commands.Bot(command_prefix="!", pm_help=True)
+cfg = utils.CoreConfig.cfgDiscord
+
+bot = commands.Bot(command_prefix=cfg["BOT_PREFIX"], pm_help=True)
 bot.CoreConfig = utils.CoreConfig(bot)
  
 ###################################################################################################
@@ -25,28 +27,29 @@ async def on_ready():
     print('------------')
     bot.CoreConfig.load_role_permissions()
 
-def main():
+async def main():
     
     utils.Modules.loadCogs(bot)
     
-    cfg = utils.CoreConfig.modules["modules/core"]["discord"]
     try:
-        bot.run(cfg["TOKEN"])
+        await bot.login(cfg["TOKEN"])
+        await bot.connect()
     except (KeyboardInterrupt, asyncio.CancelledError):
         sys.exit("Bot Terminated (KeyboardInterrupt)")
     except (KeyError, discord.errors.LoginFailure):
-        print("##########################################")
-        input("Please configure the bot on the settings page. [ENTER to terminte the bot]")
-     
+        print("")
+        input("Please configure the bot on the settings page. [ENTER to terminte the bot]\n")
 
-     
+
 if __name__ == '__main__':
-    while True:
-        main()
-        if(hasattr(bot, "restarting") and bot.restarting == True):
-            print("Restarting")
-            
-            time.sleep(1)
-            subprocess.Popen("python" + " bot.py", shell=True)
+
+    #while True:
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(main())
+    #asyncio.ensure_future()
+    if(hasattr(bot, "restarting") and bot.restarting == True):
+        print("Restarting")
         
+        time.sleep(1)
+        subprocess.Popen("python" + " bot.py", shell=True)
             
