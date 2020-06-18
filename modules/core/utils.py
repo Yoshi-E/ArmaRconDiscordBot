@@ -148,6 +148,7 @@ class CoreConfig():
     path = os.path.dirname(os.path.realpath(__file__))
     #Core config is always avaible, modules only after they are loaded
     cfg = Config(path+"/"+Modules.settings_dir+"/"+Modules.general_settings_file+".json", path+"/"+Modules.settings_dir+"/"+Modules.general_settings_file+".default_json")
+    cfgDiscord = Config(path+"/"+Modules.settings_dir+"/discord.json", path+"/"+Modules.settings_dir+"/discord.default_json")
     cfgPermissions = Config(path+"/permissions.json", path+"/permissions.default_json")
     registered = []
     modules = {}
@@ -281,4 +282,3 @@ class CommandChecker():
                     if(cmd in pr[str(role)] and pr[str(role)][cmd]):
                         return True
         return False       
-
