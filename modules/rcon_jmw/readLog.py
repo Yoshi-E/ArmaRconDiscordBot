@@ -118,7 +118,8 @@ class readLog:
             # 
         # lastmap = datarow["Map"]
   
-    def processGameData(self, data):
+    def processGameData(self, pdata):
+        data = pdata.clone()
         last_time = 0
         last_time_iter = 0
         first_line = True
