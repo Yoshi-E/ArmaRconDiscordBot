@@ -12,6 +12,7 @@ from discord.ext.commands import has_permissions, CheckFailure
 import ast
 import sys
 import traceback
+import urllib.parse
 
 from modules.core.utils import CommandChecker, sendLong, CoreConfig
 
@@ -155,6 +156,7 @@ class CommandJMW(commands.Cog):
                     filename = game["dataname"]
                 log_graph = filename
                 msg="["+timestamp+"] "+str(game["gameduration"])+"min game. Winner:"+game["lastwinner"]
+                msg += "\n<www.jammywarfare.eu/replays/?file={}>".format(urllib.parse.quote(filename))
                 await channel.send(file=discord.File(log_graph), content=msg)
                 com_east = "EAST_com:"+str(Counter(self.readLog.featchValues(game["data"], "commander_east")))
                 com_west = "WEST_com:"+str(Counter(self.readLog.featchValues(game["data"], "commander_west")))
@@ -174,6 +176,7 @@ class CommandJMW(commands.Cog):
                     msg="["+timestamp+"] Congratulation, "+game["lastwinner"]+"! You beat the other team after "+str(game["gameduration"])+"min of intense fighting. A new game is about to start, time to join!"
                     filename = game["picname"]
                     log_graph = filename
+                    msg += "\n<www.jammywarfare.eu/replays/?file={}>".format(urllib.parse.quote(filename))
                     await channel.send(file=discord.File(log_graph), content=msg)
 
         except Exception as e:
