@@ -176,8 +176,8 @@ class readLog:
         if(start==None):
             start = len(self.dataRows)
         data = self.getGameData(start, index)
-        meta, data = self.processGameData(data)
-        return [meta, data]
+        meta, pdata = self.processGameData(data)
+        return [meta, pdata]
         
         
     def updateDicArray(self, parent, data):

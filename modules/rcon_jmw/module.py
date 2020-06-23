@@ -303,30 +303,10 @@ class CommandJMW(commands.Cog):
     async def setRestart(self, ctx):
         await ctx.send("Restarting...")
         sys.exit()     
-    ###################################################################################################
-    #####                                  Debug Commands                                          ####
-    ###################################################################################################
-    async def handle_exception(self, myfunction):
-        coro = getattr(self, myfunction)
-        for i in range (0,5):
-            try:
-                await coro()
-            except Exception as ex:
-                if(self.bot.is_closed()):
-                    return False
-                ex = str(ex)+"/n"+str(traceback.format_exc())
-                user=self.bot.get_user(165810842972061697)
-                await user.send("Caught exception")
-                await user.send(ex[:1800] + '..' if len(ex) > 1800 else ex)
-                print("Caught Error: ", ex)
-                await asyncio.sleep(10)  
                   
 
-local_module = None     
 def setup(bot):
-    global local_module
     module = CommandJMW(bot)
-    #bot.loop.create_task(module.handle_exception("watch_Log"))
-    bot.loop.create_task(module.handle_exception("task_setStatus"))
+    bot.loop.create_task(module.task_setStatus())
     bot.add_cog(module)
     
