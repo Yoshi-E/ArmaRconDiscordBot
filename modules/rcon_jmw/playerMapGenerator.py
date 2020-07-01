@@ -89,7 +89,7 @@ class playerMapGenerator():
 
 
         
-    def generateMap(self, player_name="all", bins=1000, sigma=16, new=False):
+    def generateMap(self, player_name="all", bins=1000, sigma=16, new=True):
         img = Image.open(self.path+'/mapTemplates/Altis_sat_s.jpg').convert('LA').convert("RGBA")
         players = self.generateData(player_name)
         print("Cords Count:", len(players))
