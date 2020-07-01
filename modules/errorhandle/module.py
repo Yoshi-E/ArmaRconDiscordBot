@@ -31,7 +31,10 @@ class CommandErrorHandler(commands.Cog):
         
         # Anything in ignored will return and prevent anything happening.
         if isinstance(error, ignored):
-            print("{}: '{}'. Ignored error: '{}'".format(ctx.author.name, ctx.command.name, error))
+            if(ctx.author):
+                print("{}: '{}'. Ignored error: '{}'".format(ctx.author.name, ctx.command.name, error))
+            else:
+                print("{}: '{}'. Ignored error: '{}'".format(ctx, ctx.command.name, error))
             return
             
         stack = traceback.extract_stack()[:-3] + traceback.extract_tb(error.__traceback__)
