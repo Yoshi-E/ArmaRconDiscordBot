@@ -312,6 +312,23 @@ class CommandJMW(commands.Cog):
              await sendLong(ctx,"No data found")
         else:
             await sendLong(ctx,"How often the location was visted: Green = 1-9, Blue = 10-99, Red = >99")
+            await ctx.send(file=discord.File(virtualFile, 'heatmap{}'.format(".jpg")))   
+            
+    @CommandChecker.command(name='heatmapOld',
+        brief="generates a heatmap of a select player",
+        aliases=['heatmapold'],
+        pass_context=True)
+    async def heatmapold(self, ctx, *player_name):
+        await sendLong(ctx,"Generating data...")
+        
+        player_name = " ".join(player_name)
+        if(len(player_name)==0):
+            player_name = "all"
+        virtualFile = self.playerMapGenerator.generateMap(player_name, sigma=8, False)
+        if(virtualFile == False):
+             await sendLong(ctx,"No data found")
+        else:
+            await sendLong(ctx,"How often the location was visted: Green = 1-9, Blue = 10-99, Red = >99")
             await ctx.send(file=discord.File(virtualFile, 'heatmap{}'.format(".jpg")))
                 
     @CommandChecker.command(name='r',
