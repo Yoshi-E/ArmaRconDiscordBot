@@ -284,13 +284,30 @@ class CommandJMW(commands.Cog):
         brief="generates a heatmap of a select player",
         aliases=['heatMap'],
         pass_context=True)
-    async def getData(self, ctx, *player_name):
+    async def heatmap(self, ctx, *player_name):
         await sendLong(ctx,"Generating data...")
         
         player_name = " ".join(player_name)
         if(len(player_name)==0):
             player_name = "all"
-        virtualFile = self.playerMapGenerator.generateMap(player_name, 100)
+        virtualFile = self.playerMapGenerator.generateMap(player_name, sigma=16)
+        if(virtualFile == False):
+             await sendLong(ctx,"No data found")
+        else:
+            await sendLong(ctx,"How often the location was visted: Green = 1-9, Blue = 10-99, Red = >99")
+            await ctx.send(file=discord.File(virtualFile, 'heatmap{}'.format(".jpg")))   
+
+    @CommandChecker.command(name='heatmapA',
+        brief="generates a heatmap of a select player",
+        aliases=['heatmapa'],
+        pass_context=True)
+    async def heatmap(self, ctx, *player_name):
+        await sendLong(ctx,"Generating data...")
+        
+        player_name = " ".join(player_name)
+        if(len(player_name)==0):
+            player_name = "all"
+        virtualFile = self.playerMapGenerator.generateMap(player_name, sigma=8)
         if(virtualFile == False):
              await sendLong(ctx,"No data found")
         else:
