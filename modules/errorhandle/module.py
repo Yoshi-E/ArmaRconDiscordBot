@@ -31,9 +31,9 @@ class CommandErrorHandler(commands.Cog):
         
         # Anything in ignored will return and prevent anything happening.
         if isinstance(error, ignored):
-            if(ctx.author):
+            try:
                 print("{}: '{}'. Ignored error: '{}'".format(ctx.author.name, ctx.command.name, error))
-            else:
+            except:
                 print("{}: '{}'. Ignored error: '{}'".format(ctx, ctx.command.name, error))
             return
             
