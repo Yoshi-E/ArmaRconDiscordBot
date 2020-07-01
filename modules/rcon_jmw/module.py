@@ -301,7 +301,7 @@ class CommandJMW(commands.Cog):
         brief="generates a heatmap of a select player",
         aliases=['heatmapa'],
         pass_context=True)
-    async def heatmap(self, ctx, *player_name):
+    async def heatmapA(self, ctx, *player_name):
         await sendLong(ctx,"Generating data...")
         
         player_name = " ".join(player_name)

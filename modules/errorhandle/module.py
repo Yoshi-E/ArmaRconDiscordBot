@@ -34,7 +34,7 @@ class CommandErrorHandler(commands.Cog):
             try:
                 print("{}: '{}'. Ignored error: '{}'".format(ctx.author.name, ctx.command.name, error))
             except:
-                print("{}: '{}'. Ignored error: '{}'".format(ctx, ctx.command.name, error))
+                print("{}: Ignored error: '{}'".format(ctx, error))
             return
             
         stack = traceback.extract_stack()[:-3] + traceback.extract_tb(error.__traceback__)
