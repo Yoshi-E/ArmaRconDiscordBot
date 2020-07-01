@@ -324,7 +324,7 @@ class CommandJMW(commands.Cog):
         player_name = " ".join(player_name)
         if(len(player_name)==0):
             player_name = "all"
-        virtualFile = self.playerMapGenerator.generateMap(player_name, sigma=8, False)
+        virtualFile = self.playerMapGenerator.generateMap(player_name, sigma=8, new=False)
         if(virtualFile == False):
              await sendLong(ctx,"No data found")
         else:
