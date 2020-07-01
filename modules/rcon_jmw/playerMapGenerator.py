@@ -83,6 +83,8 @@ class playerMapGenerator():
     def colvF1(self, val, max=10):
         norm = val / max
         rgba = self.color(norm)
+        if(val == 0):
+            return (0,0,0)
         return (round(int(256*rgba[0])), round(int(256*rgba[1])), round(int(256*rgba[2])))
 
 
