@@ -5,7 +5,6 @@ import ast
 import os
 from datetime import datetime
 import json
-import builtins as __builtin__
 import logging
 import re
 from collections import deque
@@ -15,64 +14,12 @@ import sys
 import itertools
 import asyncio
 import inspect
-
-logging.basicConfig(filename='error.log',
-                    level=logging.INFO, 
-                    format='%(asctime)s %(levelname)-8s %(message)s',
-                    datefmt='%Y-%m-%d %H:%M:%S')
-
-def print(*args, **kwargs):
-    if(len(args)>0):
-        logging.info(args[0])
-    return __builtin__.print(*args, **kwargs)
     
-class readLog:
+class ProcessLog:
     def __init__(self, cfg, cfg_jmw):
         self.cfg_arma = cfg
         self.cfg_jmw = cfg_jmw
         self.path = os.path.dirname(os.path.realpath(__file__))
-        self.maxDataRows = 10000
-        #all data rows are stored in here, limited to prevent memory leaks
-        self.dataRows=deque(maxlen=self.maxDataRows)
-        #scan most recent log. Until enough data is collected
-        logs = self.getLogs()
-        tempdataRows = deque(maxlen=self.maxDataRows)
-        self.Events = []
-        if(len(logs)==0):
-            print("[Warning]: No logs found in path '{}'".format(self.cfg_arma['log_path']))
-        for log in reversed(logs):
-            print("Pre-scanning: "+log)
-            self.scanfile(log)
-            if(len(tempdataRows)+len(self.dataRows) <= self.maxDataRows):
-                tempdataRows.extendleft(reversed(self.dataRows))
-                self.dataRows = deque(maxlen=self.maxDataRows)
-            else:
-                #TODO only merge some parts (to fill complelty)
-                break
-            if(len(tempdataRows)>=self.maxDataRows):
-                break
-        self.dataRows = tempdataRows
-        
-        #Start Watchlog
-        asyncio.ensure_future(self.watch_log())
-
-    #get the log files from folder and sort them by oldest first
-    def getLogs(self):
-        if(os.path.exists(self.cfg_arma['log_path'])):
-            files = []
-            for file in os.listdir(self.cfg_arma['log_path']):
-                if (file.endswith(".log") or file.endswith(".rpt")):
-                    files.append(file)
-            return sorted(files)
-        else:
-            return []
-
-    #might fail needs try catch
-    #uses recent data entries to create a full game
-    def readData(self, admin, gameindex):
-        meta, game = self.generateGame(len(self.dataRows), gameindex)
-        return self.dataToGraph(meta, game, admin)
-
 
     # index: 0 = current game
     # start = index is starts searching from
@@ -93,9 +40,14 @@ class readLog:
                 pass
         return False
     
-    
-    
-    
+
+    #might fail needs try catch
+    #uses recent data entries to create a full game
+    def readData(self, admin, gameindex):
+        meta, game = self.generateGame(len(self.dataRows), gameindex)
+        return self.dataToGraph(meta, game, admin)
+
+
     def getGameData(self, start, index=None):
         if(index == None):
             index = 0
@@ -113,10 +65,6 @@ class readLog:
         if(start==False):
             raise EOFError("Failed generating game #{}. Start not found".format(index))
         return list(collections.deque(itertools.islice(self.dataRows, start+1, end+1)))
-    
-    
-            # 
-        # lastmap = datarow["Map"]
   
     def processGameData(self, pdata):
         data = pdata.copy()
@@ -188,13 +136,7 @@ class readLog:
         parent.update(data)
         return parent
     
-    
-    def splitTimestamp(self, pline):
-        splitat = pline.find("[")
-        r = pline[splitat:]  #remove timestamp
-        timestamp = pline[:splitat]
-        return [timestamp[:-1],r]
-        
+    # Conforms a log line array (string) into a valid Python dict
     def parseLine(self, line):
         r = self.splitTimestamp(line)[1]
         r = r.rstrip() #remove /n
@@ -208,7 +150,8 @@ class readLog:
         r = r.replace(",EAST]", ',"EAST"]') #this still needs working
         r = r.replace("true", "True")
         r = r.replace("false", "False")
-        return r
+        data = ast.literal_eval(r) #WARNING: Security risk
+        return dict(data)
             
     def processLogLine(self, line, databuilder, active=None):
         if(active==None):
@@ -216,8 +159,7 @@ class readLog:
         #check if line contains a datapacket
         if(line.find("BattlEye") ==-1 and line.find("[") > 0 and "CTI_DataPacket" in line and line.rstrip()[-2:] == "]]"):
             try:
-                datarow = ast.literal_eval(self.parseLine(line)) #convert string into array object
-                datarow = dict(datarow)
+                datarow = self.parseLine(line) #convert string into array object
                 
                 if(datarow["CTI_DataPacket"] == "Header"):
                     datarow["timestamp"] = self.splitTimestamp(line)[0]
@@ -256,103 +198,7 @@ class readLog:
                 line = "Error"
                 traceback.print_exc()
         return databuilder
-
-    #this function will continusly scan a log for data entries. They are stored in self.dataRows
-    def scanfile(self, name):
-        with open(self.cfg_arma['log_path']+name) as fp: 
-            databuilder = {}
-            try:
-                line = fp.readline()
-            except:
-                line = None
-            while line:
-                databuilder = self.processLogLine(line, databuilder)
-                try:
-                    line = fp.readline()
-                except:
-                    line = None
-                    
-    async def watch_log(self):
-        try:
-            databuilder = {}
-            while(True): #Wait till a log file exsists
-                logs = self.getLogs()
-                if(len(logs) > 0):
-                    current_log = logs[-1]
-                    print("current log: "+current_log)
-                    file = open(self.cfg_arma["log_path"]+current_log, "r")
-                    file.seek(0, 2) #jump to the end of the file
-                    try:
-                        while (True):
-                            #where = file.tell()
-                            try:
-                                line = file.readline()
-                            except:
-                                line = None
-                            if not line:
-                                await asyncio.sleep(10)
-                                #file.seek(where)
-                                if(current_log != self.getLogs()[-1]):
-                                    old_log = current_log
-                                    current_log = self.getLogs()[-1] #update to new recent log
-                                    #self.scanfile(current_log) #Log most likely empty, but a quick scan cant hurt.
-                                    file = open(self.cfg_arma["log_path"]+current_log, "r")
-                                    print("current log: "+current_log)
-                                    self.on_newLog(old_log, current_log)
-                            else:
-                                databuilder = self.processLogLine(line, databuilder, True)
-                    
-                    except (KeyboardInterrupt, asyncio.CancelledError):
-                        print("[asyncio] exiting", watch_log)
-                    except Exception as e:
-                        print(e)
-                        traceback.print_exc()
-                else:
-                    await asyncio.sleep(10*60)
-        except (KeyboardInterrupt, asyncio.CancelledError):
-            print("[asyncio] exiting", watch_log)
                 
-###################################################################################################
-#####                                  Event Handeler                                          ####
-###################################################################################################   
-    def add_Event(self, name: str, func):
-        events = ["on_missionHeader", "on_missionData", "on_missionGameOver", "on_newLog"]
-        if(name in events):
-            self.Events.append([name,func])
-        else:
-            raise Exception("Failed to add unkown event: "+name)
-
-            
-    def check_Event(self, parent, *args):
-        for event in self.Events:
-            func = event[1]
-            if(inspect.iscoroutinefunction(func)): #is async
-                if(event[0]==parent):
-                    if(len(args)>0):
-                        asyncio.ensure_future(func(args))
-                    else:
-                        asyncio.ensure_future(func())
-            else:
-                if(event[0]==parent):
-                    if(len(args)>0):
-                        func(args)
-                    else:
-                        func()
-###################################################################################################
-#####                                  Event functions                                         ####
-################################################################################################### 
-    def on_missionHeader(self, data):
-        self.check_Event("on_missionHeader", data)    
-        
-    def on_missionData(self, data):
-        self.check_Event("on_missionData", data)    
-        
-    def on_missionGameOver(self, data):
-        self.check_Event("on_missionGameOver", data)    
-        
-    def on_newLog(self, oldLog, newLog):
-        self.check_Event("on_newLog", oldLog, newLog)
-
    
 ###################################################################################################
 #####                                  Graph Generation                                        ####

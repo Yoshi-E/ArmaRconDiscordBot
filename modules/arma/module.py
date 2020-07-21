@@ -20,10 +20,9 @@ import psutil
 
 import bec_rcon
 
-from modules.rcon import readLog
 from modules.core.utils import CommandChecker, RateBucket, CoreConfig
 import modules.core.utils as utils
-
+from modules.arma import readLog
 
 class CommandArma(commands.Cog):
     def __init__(self, bot):
@@ -31,6 +30,8 @@ class CommandArma(commands.Cog):
         self.path = os.path.dirname(os.path.realpath(__file__))
         
         self.cfg = CoreConfig.modules["modules/arma"]["general"]
+        
+        self.log_reader = readLog.readLog(self.cfg["log_path"])
         
         self.server_pid = None
         asyncio.ensure_future(self.on_ready())

@@ -4,7 +4,6 @@ import asyncio
 from collections import Counter
 import json
 import os
-from .readLog import readLog
 from .playerMapGenerator import playerMapGenerator
 import discord
 from discord.ext import commands
@@ -23,7 +22,6 @@ class CommandJMW(commands.Cog):
         
         self.cfg = CoreConfig.modules["modules/rcon_jmw"]["general"]
         
-        self.readLog = None
         self.user_data = {}
         if(os.path.isfile(self.path+"/userdata.json")):
             self.user_data = json.load(open(self.path+"/userdata.json","r"))
@@ -33,10 +31,10 @@ class CommandJMW(commands.Cog):
     async def on_ready(self):
         await self.bot.wait_until_ready()
         try:
-            self.CommandRcon = self.bot.cogs["CommandRcon"]
-            self.readLog = readLog(CoreConfig.modules["modules/arma"]["general"], self.cfg)            
-            self.readLog.add_Event("on_missionHeader", self.gameStart)
-            self.readLog.add_Event("on_missionGameOver", self.gameEnd)
+            #self.CommandRcon = self.bot.cogs["CommandRcon"]
+            #self.readLog = readLog(CoreConfig.modules["modules/arma"]["general"], self.cfg)            
+            #self.readLog.add_Event("on_missionHeader", self.gameStart)
+            #self.readLog.add_Event("on_missionGameOver", self.gameEnd)
             
             self.playerMapGenerator = playerMapGenerator(self.cfg["data_path"])
         except Exception as e:
@@ -294,7 +292,6 @@ class CommandJMW(commands.Cog):
         if(virtualFile == False):
              await sendLong(ctx,"No data found")
         else:
-            await sendLong(ctx,"How often the location was visted: Green = 1-9, Blue = 10-99, Red = >99")
             await ctx.send(file=discord.File(virtualFile, 'heatmap{}'.format(".jpg")))   
 
     @CommandChecker.command(name='heatmapA',
@@ -311,7 +308,6 @@ class CommandJMW(commands.Cog):
         if(virtualFile == False):
              await sendLong(ctx,"No data found")
         else:
-            await sendLong(ctx,"How often the location was visted: Green = 1-9, Blue = 10-99, Red = >99")
             await ctx.send(file=discord.File(virtualFile, 'heatmap{}'.format(".jpg")))   
             
     @CommandChecker.command(name='r',

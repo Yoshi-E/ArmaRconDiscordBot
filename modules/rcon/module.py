@@ -174,7 +174,7 @@ class CommandRcon(commands.Cog):
         self.lastReconnect = deque()
         self.ipReader = geoip2.database.Reader(self.path+"/GeoLite2-Country.mmdb")
         
-        self.log_reader = readLog(CoreConfig.modules["modules/arma"]["general"])
+        self.log_reader = None #TODO
         
         asyncio.ensure_future(self.on_ready())
         
