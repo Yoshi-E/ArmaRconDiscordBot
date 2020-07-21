@@ -25,7 +25,7 @@ class Event_Handler(object):
         if(name in self.events):
             self.Events.append([name,func])
         else:
-            raise Exception("Failed to add unkown event: "+name)
+            raise Exception("Failed to add unknown event: "+name)
 
     def check_Event(self, parent, *args):
         for event in self.Events:
@@ -48,7 +48,7 @@ class Event_Handler(object):
 #timeStampFormat
 class readLog:
     def __init__(self, log_path):
-        self.maxDataRows = 10000
+        self.maxDataRows = 5000
         self.skip_server_init = True #Skips the server loading stuff
         
         
@@ -62,7 +62,7 @@ class readLog:
         
         #self.EH.add_Event("other", self.test)
         
-        self.pre_scan()
+        #self.pre_scan()
         
         #Start Watchlog
         asyncio.ensure_future(self.watch_log())
@@ -119,39 +119,39 @@ class readLog:
             ["clutter_no_TS", "^((.*): (.*) - unknown animation source (.*))"], #B_Truck_01_mover_F: mirror_l_hide - unknown animation source mirror_l_hide
             ["clutter_no_TS", "^(Strange convex (.*) in (.*.p3d):(.*))"], #Strange convex component141 in a3\rocks_f\sharp\sharprock_wallv.p3d:geometryFire
         #server
-            ["Server sessionID", "^(sessionID: (.*))"], #sessionID: 20e34f8f50d2d2fad69c12452e853f7c6bc83ad5
-            ["Server online", "^(Host identity created\.)"], #Host identity created.
-            ["Server port", "^(Game Port: ([0-9]*), Steam Query Port: ([0-9]*))"], #Game Port: 2302, Steam Query Port: 2303
+            ["Server sessionID",        "^(sessionID: (.*))"], #sessionID: 20e34f8f50d2d2fad69c12452e853f7c6bc83ad5
+            ["Server online",           "^(Host identity created\.)"], #Host identity created.
+            ["Server port",             "^(Game Port: ([0-9]*), Steam Query Port: ([0-9]*))"], #Game Port: 2302, Steam Query Port: 2303
             ["Server waiting for game", "^(Waiting for next game\.)"], #Waiting for next game.
         #mission
-            ["Mission roles assigned", "^(Roles assigned\.)"], #Roles assigned.
-            ["Mission readname", "^(Mission (.*) read from bank.)"], #Mission BECTI BE 0.97 - Zerty 1.3.5.2 read from bank.
-            ["Mission reading", "^(Reading mission \.\.\.)"], #Reading mission ...
-            ["Mission read", "^(Mission read\.)"], #Mission read.
-            ["Mission starting", "^(Starting mission:)"], #Starting mission:
-            ["Mission file", "^( Mission file: (.*) \((.*)\))"], # Mission file: becti_current (__cur_mp)
-            ["Mission world", "^( Mission world: (.*))"], # Mission world: Altis
-            ["Mission directory", "^( Mission directory: (.*))"], # Mission directory: mpmissions\__cur_mp.Altis\
-            ["Mission id", "^( Mission id: (.*))"], # Mission id: a001eb0dc827137d84595a7706f2cdd937f95fa3
-            ["Mission finished", "^(Game finished\.)"], #Game finished.
-            ["Mission started", "^(Game started\.)"], #Game started.
+            ["Mission roles assigned",  "^(Roles assigned\.)"], #Roles assigned.
+            ["Mission readname",        "^(Mission (.*) read from bank.)"], #Mission BECTI BE 0.97 - Zerty 1.3.5.2 read from bank.
+            ["Mission reading",         "^(Reading mission \.\.\.)"], #Reading mission ...
+            ["Mission read",            "^(Mission read\.)"], #Mission read.
+            ["Mission starting",        "^(Starting mission:)"], #Starting mission:
+            ["Mission file",            "^( Mission file: (.*) \((.*)\))"], # Mission file: becti_current (__cur_mp)
+            ["Mission world",           "^( Mission world: (.*))"], # Mission world: Altis
+            ["Mission directory",       "^( Mission directory: (.*))"], # Mission directory: mpmissions\__cur_mp.Altis\
+            ["Mission id",              "^( Mission id: (.*))"], # Mission id: a001eb0dc827137d84595a7706f2cdd937f95fa3
+            ["Mission finished",        "^(Game finished\.)"], #Game finished.
+            ["Mission started",         "^(Game started\.)"], #Game started.
         #player
-            ["Player modified data file", "^((.*) uses modified data file)"], #KKD | dawkar3152 uses modified data file
-            ["Player disconnected", "^(Player (.*) disconnected.)"], #Player ARMATA disconnected.
-            ["Player connecting", "^(Player (.*) connecting.)"], #Player Celis connecting.
-            ["Player connected", "^(Player (.*) connected \(id=([0-9]*)\)\.)"], #Player Fritz connected (id=76561198017145527).
-            ["Player xml parse error", "^(Warning: Could not parse squad\.xml for Player\[(.*)\], Squad\[(.*)\])"], #Warning: Could not parse squad.xml for Player[Hptm.v.Kriegern], Squad[https://armasquads.de/user/squads/xml/gvy2AxinZc2O1N2oU0OR6PWblHFr3Tte/squad.xml]
+            ["Player modified data file",   "^((.*) uses modified data file)"], #KKD | dawkar3152 uses modified data file
+            ["Player disconnected",         "^(Player (.*) disconnected.)"], #Player ARMATA disconnected.
+            ["Player connecting",           "^(Player (.*) connecting.)"], #Player Celis connecting.
+            ["Player connected",            "^(Player (.*) connected \(id=([0-9]*)\)\.)"], #Player Fritz connected (id=76561198017145527).
+            ["Player xml parse error",      "^(Warning: Could not parse squad\.xml for Player\[(.*)\], Squad\[(.*)\])"], #Warning: Could not parse squad.xml for Player[Hptm.v.Kriegern], Squad[https://armasquads.de/user/squads/xml/gvy2AxinZc2O1N2oU0OR6PWblHFr3Tte/squad.xml]
         #BattlEye
-            ["BattlEye initialized", "^(BattlEye Server: Initialized \((.*)\))"], #BattlEye Server: Initialized (v1.217)
-            ["BattlEye registering player", "^(BEServer: registering a new player #([0-9]*))"], #BEServer: registering a new player #989446346
-            ["BattlEye chat message", "^(BattlEye Server: \((.*)\) (.*): (.*))"], #BattlEye Server: (Side) Matt Fox: m
-            ["BattlEye player connected", "^(BattlEye Server: Player #([0-9]*) (.*) \(([0-9]*\.[0-9]*\.[0-9]*\.[0-9]*):([0-9]*)\) connected)"], #BattlEye Server: Player #36 Master (88.196.232.197:2304) connected
-            ["BattlEye player disconnected", "^(BattlEye Server: Player #([0-9]*) (.*) disconnected)"], #BattlEye Server: Player #4 Ztppp disconnected
-            ["BattlEye player guid", "^(BattlEye Server: Player #(.*) (.*) - GUID: (.*))"], #BattlEye Server: Player #38 Fritz - GUID: 54333f4dbe1d3c73b227c8a3ed7b663c
-            ["BattlEye player guid verified", "^(BattlEye Server: Verified GUID \((.*)\) of player #([0-9]*) (.*))"], #BattlEye Server: Verified GUID (2854515fa6c84ca6657cd55fa8c145cb) of player #8 Sgt. Gonzalez
-            ["BattlEye player kicked", "^(Player (.*) kicked off by BattlEye: (.*))"],  #Player MM Leon kicked off by BattlEye: Admin Kick (AFK too long (user_check by Ztppp))
-            ["BattlEye rcon admin login", "^(BattlEye Server: RCon admin #([0-9]*) \((.*):(.*)\) logged in)"],  #BattlEye Server: RCon admin #0 (90.92.59.82:59806) logged in
-            ["BattlEye chat direct message", "^(BattlEye Server: RCon admin #([0-9]*): \(To (.*)\) (.*))"]  #BattlEye Server: RCon admin #1: (To MM Leon) 
+            ["BattlEye initialized",            "^(BattlEye Server: Initialized \((.*)\))"], #BattlEye Server: Initialized (v1.217)
+            ["BattlEye registering player",     "^(BEServer: registering a new player #([0-9]*))"], #BEServer: registering a new player #989446346
+            ["BattlEye chat message",           "^(BattlEye Server: \((.*)\) (.*): (.*))"], #BattlEye Server: (Side) Matt Fox: m
+            ["BattlEye player connected",       "^(BattlEye Server: Player #([0-9]*) (.*) \(([0-9]*\.[0-9]*\.[0-9]*\.[0-9]*):([0-9]*)\) connected)"], #BattlEye Server: Player #36 Master (88.196.232.197:2304) connected
+            ["BattlEye player disconnected",    "^(BattlEye Server: Player #([0-9]*) (.*) disconnected)"], #BattlEye Server: Player #4 Ztppp disconnected
+            ["BattlEye player guid",            "^(BattlEye Server: Player #(.*) (.*) - GUID: (.*))"], #BattlEye Server: Player #38 Fritz - GUID: 54333f4dbe1d3c73b227c8a3ed7b663c
+            ["BattlEye player guid verified",   "^(BattlEye Server: Verified GUID \((.*)\) of player #([0-9]*) (.*))"], #BattlEye Server: Verified GUID (2854515fa6c84ca6657cd55fa8c145cb) of player #8 Sgt. Gonzalez
+            ["BattlEye player kicked",          "^(Player (.*) kicked off by BattlEye: (.*))"],  #Player MM Leon kicked off by BattlEye: Admin Kick (AFK too long (user_check by Ztppp))
+            ["BattlEye rcon admin login",       "^(BattlEye Server: RCon admin #([0-9]*) \((.*):(.*)\) logged in)"],  #BattlEye Server: RCon admin #0 (90.92.59.82:59806) logged in
+            ["BattlEye chat direct message",    "^(BattlEye Server: RCon admin #([0-9]*): \(To (.*)\) (.*))"]  #BattlEye Server: RCon admin #1: (To MM Leon) 
         ]
         #TODO: Bans?
         self.EH = Event_Handler([row[0] for row in self.events])
@@ -163,7 +163,7 @@ class readLog:
                 return event[0], m
         return None, None
     
-    def processLogLine(self, line):
+    def processLogLine(self, line, save=False):
         timestamp, msg = self.splitTimestamp(line)
             
         event, m = self.check_log_events(msg, self.events)
@@ -173,12 +173,13 @@ class readLog:
                 self.skip = True
             elif(event=="Server online"):
                 self.skip = False
-            if("clutter" not in event):
+            if("clutter" not in event and save):
                 self.dataRows.append((timestamp, msg, m))
         else:
             if(self.skip==False):
                 self.EH.check_Event("other", timestamp, msg)
-                self.dataRows.append((timestamp, msg))
+                if(save):
+                    self.dataRows.append((timestamp, msg))
                 
                 
     #get the log files from folder and sort them by oldest first
@@ -218,6 +219,7 @@ class readLog:
                     line = None
                     
     async def watch_log(self):
+        await asyncio.sleep(60)
         try:
             while(True): #Wait till a log file exsists
                 logs = self.getLogs()

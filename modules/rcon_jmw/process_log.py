@@ -14,13 +14,64 @@ import sys
 import itertools
 import asyncio
 import inspect
-    
-class ProcessLog:
-    def __init__(self, cfg, cfg_jmw):
-        self.cfg_arma = cfg
-        self.cfg_jmw = cfg_jmw
-        self.path = os.path.dirname(os.path.realpath(__file__))
 
+
+class Event_Handler(object):
+    def __init__(self, events):
+        self.events = events
+        self.events.append("other")
+        self.Events = []
+        
+    def add_Event(self, name: str, func):
+        if(name in self.events):
+            self.Events.append([name,func])
+        else:
+            raise Exception("Failed to add unknown event: "+name)
+
+    def check_Event(self, parent, *args):
+        for event in self.Events:
+            func = event[1]
+            if(inspect.iscoroutinefunction(func)): #is async
+                if(event[0]==parent):
+                    if(len(args)>0):
+                        asyncio.ensure_future(func(*args))
+                    else:
+                        asyncio.ensure_future(func())
+            else:
+                if(event[0]==parent):
+                    if(len(args)>0):
+                        func(*args)
+                    else:
+                        func()
+
+
+class ProcessLog:
+    def __init__(self, readLog, cfg_jmw):
+        self.readLog = readLog
+        self.path = os.path.dirname(os.path.realpath(__file__))
+        self.cfg_jmw = cfg_jmw
+        
+        self.maxDataRows = 10000
+        self.dataRows=deque(maxlen=self.maxDataRows)
+        self.databuilder = {}
+        self.active = False
+        
+        self.define_EH()
+        #Add EventHandlers:
+        self.readLog.EH.add_Event("other", self.processLogLine)
+        
+        self.readLog.pre_scan()
+        self.active = True
+    
+    def define_EH(self):
+        self.events = [
+            "on_missionHeader",
+            "on_missionGameOver",
+            "on_missionData"
+        ]
+        
+        self.EH = Event_Handler(self.events)
+        
     # index: 0 = current game
     # start = index is starts searching from
     # returns false if not enough data to read log was present
@@ -40,13 +91,6 @@ class ProcessLog:
                 pass
         return False
     
-
-    #might fail needs try catch
-    #uses recent data entries to create a full game
-    def readData(self, admin, gameindex):
-        meta, game = self.generateGame(len(self.dataRows), gameindex)
-        return self.dataToGraph(meta, game, admin)
-
 
     def getGameData(self, start, index=None):
         if(index == None):
@@ -115,7 +159,13 @@ class ProcessLog:
                 last_time_iter = 0
             first_line = False
         return [meta, data]
-        
+    
+    #might fail needs try catch
+    #uses recent data entries to create a full game
+    def readData(self, admin, gameindex):
+        meta, game = self.generateGame(len(self.dataRows), gameindex)
+        return self.dataToGraph(meta, game, admin)
+     
     #generates a game from recent entries    
     # index: 0 = current game
     def generateGame(self, start=None, index=None):
@@ -137,9 +187,8 @@ class ProcessLog:
         return parent
     
     # Conforms a log line array (string) into a valid Python dict
-    def parseLine(self, line):
-        r = self.splitTimestamp(line)[1]
-        r = r.rstrip() #remove /n
+    def parseLine(self, msg):
+        r = msg.rstrip() #remove /n
         #converting arma3 boolen working with python +converting rawnames to strings:#
         #(?<!^|\]|\[)"(?!\]|\[$)
         #(?:^(?<!\])|(?<!\[))"(?:(?!\])|\[)
@@ -151,53 +200,57 @@ class ProcessLog:
         r = r.replace("true", "True")
         r = r.replace("false", "False")
         data = ast.literal_eval(r) #WARNING: Security risk
+        #print(data)
         return dict(data)
             
-    def processLogLine(self, line, databuilder, active=None):
-        if(active==None):
-            active=False
+    def processLogLine(self, timestamp, line):
+        if(self.active==None):
+            self.active=False
         #check if line contains a datapacket
-        if(line.find("BattlEye") ==-1 and line.find("[") > 0 and "CTI_DataPacket" in line and line.rstrip()[-2:] == "]]"):
+        m = re.match('^(\[\["CTI_DataPacket","(.*?)"],.*])', line)
+        if(m):
+            type = m.group(2)
             try:
                 datarow = self.parseLine(line) #convert string into array object
-                
-                if(datarow["CTI_DataPacket"] == "Header"):
-                    datarow["timestamp"] = self.splitTimestamp(line)[0]
+                if(type == "Header"):
+                    datarow["timestamp"] = timestamp
                     self.dataRows.append(datarow)
-                    if(active):
-                        self.on_missionHeader(datarow)
-                if("Data_" in datarow["CTI_DataPacket"]):
-                    if(len(databuilder)>0):
+                    if(self.active):
+                        self.EH.check_Event("on_missionHeader", datarow)
+                if("Data_" in type):
+                    index = int(re.match('.*_([0-9]*)', type).group(1))
+                    if(len(self.databuilder)>0):
+                        index_db = int(re.match('.*_([0-9]*)', self.databuilder["CTI_DataPacket"]).group(1))
                         #check if previous 'Data_x' is present
-                        if(int(databuilder["CTI_DataPacket"][-1])+1 == int(datarow["CTI_DataPacket"][-1])):
-                            databuilder = self.updateDicArray(databuilder, datarow)
+                        if(index_db+1 == index):
+                            self.databuilder = self.updateDicArray(self.databuilder, datarow)
                             #If last element "Data_EOD" is present, 
-                            if("EOD" in datarow["CTI_DataPacket"]):
-                                databuilder["CTI_DataPacket"] = "Data"
-                                self.dataRows.append(databuilder.copy())
-                                if(active):
-                                    self.on_missionData(databuilder.copy())
-                                databuilder = {}
-                    elif(datarow["CTI_DataPacket"] == "Data_1"):
+                            if("EOD" in type):
+                                self.databuilder["CTI_DataPacket"] = "Data"
+                                self.dataRows.append(self.databuilder.copy())
+                                if(self.active):
+                                    self.EH.check_Event("on_missionData", self.databuilder.copy())
+                                self.databuilder = {}
+                    elif(type == "Data_1"):
                         #add first element
-                        databuilder = self.updateDicArray(databuilder, datarow)
+                        self.databuilder = self.updateDicArray(self.databuilder, datarow)
 
-                if(datarow["CTI_DataPacket"] == "EOF"):
+                if(type == "EOF"):
                     pass
                     #raise Exception("Read mission EOF")
                     #self.dataRows.append(datarow) #Append EOF (should usually never be called)
-                if(datarow["CTI_DataPacket"] == "GameOver"):
-                    datarow["timestamp"] = self.splitTimestamp(line)[0] #finish time
+                if(type == "GameOver"):
+                    datarow["timestamp"] = timestamp #finish time
                     self.dataRows.append(datarow) #Append Gameover / End
-                    if(active):
-                        self.on_missionGameOver(datarow)
+                    if(self.active):
+                        self.EH.check_Event("on_missionGameOver", datarow)
                 
             except Exception as e:
                 print(e)
                 print(line)
                 line = "Error"
                 traceback.print_exc()
-        return databuilder
+        #return self.databuilder
                 
    
 ###################################################################################################
@@ -265,27 +318,27 @@ class ProcessLog:
                     }) 
                     
         if(admin == True):       
-            v1 = self.featchValues(data, "active_SQF_count")
+            v1 = self.featchValues(data, "self.active_SQF_count")
             if(len(v1) > 0):
                 plots.append({
                     "data": [[v1, "g"]],
                     "xlabel": "Time in min",
-                    "ylabel": "Active SQF",
-                    "title": "Active Server SQF"
+                    "ylabel": "self.active SQF",
+                    "title": "self.active Server SQF"
                     })  
                     
         if(admin == True):       
-            v1 = self.featchValues(data, "active_towns")
+            v1 = self.featchValues(data, "self.active_towns")
             if(len(v1) > 0):
                 plots.append({
                     "data": [[v1, "g"]],
                     "xlabel": "Time in min",
-                    "ylabel": "Active Towns",
-                    "title": "Active Towns"
+                    "ylabel": "self.active Towns",
+                    "title": "self.active Towns"
                     }) 
                     
         if(admin == True):       
-            v1 = self.featchValues(data, "active_AI")
+            v1 = self.featchValues(data, "self.active_AI")
             if(len(v1) > 0):
                 plots.append({
                     "data": [[v1, "g"]],

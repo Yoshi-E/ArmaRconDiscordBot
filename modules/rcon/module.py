@@ -20,7 +20,6 @@ import psutil
 
 import bec_rcon
 
-from modules.rcon import readLog
 from modules.core.utils import CommandChecker, RateBucket, CoreConfig
 import modules.core.utils as utils
 

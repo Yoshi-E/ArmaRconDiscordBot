@@ -14,6 +14,7 @@ import traceback
 import urllib.parse
 
 from modules.core.utils import CommandChecker, sendLong, CoreConfig
+from modules.rcon_jmw.process_log import ProcessLog
 
 class CommandJMW(commands.Cog):
     def __init__(self, bot):
@@ -31,10 +32,13 @@ class CommandJMW(commands.Cog):
     async def on_ready(self):
         await self.bot.wait_until_ready()
         try:
-            #self.CommandRcon = self.bot.cogs["CommandRcon"]
-            #self.readLog = readLog(CoreConfig.modules["modules/arma"]["general"], self.cfg)            
-            #self.readLog.add_Event("on_missionHeader", self.gameStart)
-            #self.readLog.add_Event("on_missionGameOver", self.gameEnd)
+            self.CommandRcon = self.bot.cogs["CommandRcon"]
+            self.CommandArma = self.bot.cogs["CommandArma"]
+            
+            self.processLog = ProcessLog(self.CommandArma.readLog, self.cfg)
+            self.processLog.EH.add_Event("on_missionHeader", self.gameStart)
+            self.processLog.EH.add_Event("on_missionGameOver", self.gameEnd)
+            #self.processLog.readLog.pre_scan()
             
             self.playerMapGenerator = playerMapGenerator(self.cfg["data_path"])
         except Exception as e:
@@ -66,11 +70,11 @@ class CommandJMW(commands.Cog):
         game = ""
         status = discord.Status.do_not_disturb #discord.Status.online
         
-        if(not self.readLog):
+        if(not self.processLog):
             return
         #get current Game data
         try:
-            meta, game = self.readLog.generateGame()
+            meta, game = self.processLog.generateGame()
         except EOFError:
             return #No valid logs found, just return
             
@@ -90,7 +94,7 @@ class CommandJMW(commands.Cog):
         winner = "currentGame"
         if("winner" in meta):
             winner = meta["winner"]   
-        map = "unkown"
+        map = "unknown"
         if("map" in meta):
             map = meta["map"]
             
@@ -141,14 +145,14 @@ class CommandJMW(commands.Cog):
         if(self.bot.is_closed()):
             return False
         try:
-            game = self.readLog.readData(admin, gameindex)   
+            game = self.processLog.readData(admin, gameindex)   
             timestamp = game["date"]+" "+game["time"]
             msg="Sorry, I could not find any games"
             if(admin == True): #post additional info
                 if(game["gameduration"] < 2):
                     gameindex+=1
                     await channel.send("Selected game is too short, displaying lastgame="+str(gameindex)+" instead")
-                    game = self.readLog.readData(admin, gameindex)  
+                    game = self.processLog.readData(admin, gameindex)  
                 filename = game["picname"]
                 if(sendraw == True):
                     filename = game["dataname"]
@@ -156,8 +160,8 @@ class CommandJMW(commands.Cog):
                 msg="["+timestamp+"] "+str(game["gameduration"])+"min game. Winner:"+game["lastwinner"]
                 msg += "\n<http://www.jammywarfare.eu/replays/?file={}>".format(urllib.parse.quote(game["picname"].split("/")[-1].replace(".png", ".json")))
                 await channel.send(file=discord.File(log_graph), content=msg)
-                com_east = "EAST_com:"+str(Counter(self.readLog.featchValues(game["data"], "commander_east")))
-                com_west = "WEST_com:"+str(Counter(self.readLog.featchValues(game["data"], "commander_west")))
+                com_east = "EAST_com:"+str(Counter(self.processLog.featchValues(game["data"], "commander_east")))
+                com_west = "WEST_com:"+str(Counter(self.processLog.featchValues(game["data"], "commander_west")))
                 await channel.send(com_east)
                 await channel.send(com_west)
             else: #normal dislay
@@ -192,7 +196,7 @@ class CommandJMW(commands.Cog):
         channel = self.bot.get_channel(int(self.cfg["post_channel"]))
         await self.dm_users_new_game()
         await self.processGame(channel)
-        self.readLog.readData(True, 1) #Generate advaced data as well, for later use.  
+        self.processLog.readData(True, 1) #Generate advaced data as well, for later use.  
         
     async def gameStart(self, data):
         if(self.bot.is_closed()):
@@ -266,16 +270,16 @@ class CommandJMW(commands.Cog):
         brief="dumps array data into a dump.json file",
         pass_context=True)
     async def dump(self, ctx):
-        await ctx.send("Dumping {} packets to file".format(len(self.readLog.dataRows)))
+        await ctx.send("Dumping {} packets to file".format(len(self.processLog.dataRows)))
         with open(self.path+"/dump.json", 'w') as outfile:
-            json.dump(list(self.readLog.dataRows), outfile)      
+            json.dump(list(self.processLog.dataRows), outfile)      
     
     @CommandChecker.command(name='getData',
         brief="gets recent log entry (0 = first, -1 = last)",
         aliases=['getdata'],
         pass_context=True)
     async def getData(self, ctx, index=0):
-        msg = "There are {} packets: ```{}```".format(len(self.readLog.dataRows), self.readLog.dataRows[index])
+        msg = "There are {} packets: ```{}```".format(len(self.processLog.dataRows), self.processLog.dataRows[index])
         await sendLong(ctx,msg)    
         
     @CommandChecker.command(name='heatmap',
