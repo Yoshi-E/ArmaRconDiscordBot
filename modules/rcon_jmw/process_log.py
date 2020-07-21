@@ -15,35 +15,7 @@ import itertools
 import asyncio
 import inspect
 
-
-class Event_Handler(object):
-    def __init__(self, events):
-        self.events = events
-        self.events.append("other")
-        self.Events = []
-        
-    def add_Event(self, name: str, func):
-        if(name in self.events):
-            self.Events.append([name,func])
-        else:
-            raise Exception("Failed to add unknown event: "+name)
-
-    def check_Event(self, parent, *args):
-        for event in self.Events:
-            func = event[1]
-            if(inspect.iscoroutinefunction(func)): #is async
-                if(event[0]==parent):
-                    if(len(args)>0):
-                        asyncio.ensure_future(func(*args))
-                    else:
-                        asyncio.ensure_future(func())
-            else:
-                if(event[0]==parent):
-                    if(len(args)>0):
-                        func(*args)
-                    else:
-                        func()
-
+from modules.core.utils import Event_Handler
 
 class ProcessLog:
     def __init__(self, readLog, cfg_jmw):
