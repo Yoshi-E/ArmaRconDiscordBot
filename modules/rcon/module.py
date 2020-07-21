@@ -173,15 +173,16 @@ class CommandRcon(commands.Cog):
         self.lastReconnect = deque()
         self.ipReader = geoip2.database.Reader(self.path+"/GeoLite2-Country.mmdb")
         
-        self.log_reader = None #TODO
         
         asyncio.ensure_future(self.on_ready())
         
     async def on_ready(self):
         await self.bot.wait_until_ready()
-        self.CommandRconSettings = self.bot.cogs["CommandRconSettings"]
-        
+        self.CommandRconSettings = self.bot.cogs["CommandRconSettings"]        
         self.RateBucket = RateBucket(self.streamMsg)
+        
+        self.CommandArma = self.bot.cogs["CommandArma"]
+        self.readLog = self.CommandArma.readLog
         
         if("streamChat" in self.rcon_settings and self.rcon_settings["streamChat"] != None):
             self.streamChat = self.bot.get_channel(self.rcon_settings["streamChat"])
@@ -819,10 +820,10 @@ class CommandRcon(commands.Cog):
             await self.arma_rcon.monitords(1)
             await asyncio.sleep(2)
             for i in range(0,5):
-                if(len(self.log_reader.dataRows)==0):
-                    await ctx.send("Failed to acquire data. Current path: '{}', log: '{}'".format(CoreConfig.modules["modules/arma"]["general"]['log_path'], self.log_reader.current_log))
+                if(len(self.readLog.dataRows)==0):
+                    await ctx.send("Failed to acquire data. Current path: '{}'".format(CoreConfig.modules["modules/arma"]["general"]['log_path']))
                     break
-                await ctx.send(self.log_reader.dataRows[-1])
+                await ctx.send(self.readLog.dataRows[-1])
                 await asyncio.sleep(1.1)
             await self.arma_rcon.monitords(0)
         else:
