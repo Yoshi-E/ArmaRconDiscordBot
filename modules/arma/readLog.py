@@ -59,12 +59,10 @@ class readLog:
                 tempdataRows.extendleft(reversed(self.dataRows))
                 self.dataRows = deque(maxlen=self.maxDataRows)
             else:
-                #TODO only merge some parts (to fill complelty)
                 break
             if(len(tempdataRows)>=self.maxDataRows):
                 break
         self.dataRows = tempdataRows
-        
         
     def define_line_types(self):
         # Format: [name, regex]
@@ -130,6 +128,7 @@ class readLog:
         ]
         #TODO: Bans?
         self.EH = Event_Handler([row[0] for row in self.events])
+    
     # goes through an array of regex until it finds a match
     def check_log_events(self, line, events):
         for event in events:
@@ -172,6 +171,7 @@ class readLog:
     #returns timestamp and msg
     def splitTimestamp(self, log_line):
         #Default timeStampFormat
+        #TODO: Other formats
         m = re.match(r"^\s?([0-9]{1,2}:[0-9]{2}:[0-9]{2})\s(.*)", log_line)
         if(m):
             return m.group(1), m.group(2)
