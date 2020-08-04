@@ -42,13 +42,14 @@ async def main():
 
 
 if __name__ == '__main__':
-
-    #while True:
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(main())
-    #asyncio.ensure_future()
+    try:
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(main())
+    except (KeyboardInterrupt, asyncio.CancelledError):
+        print("[DiscordBot] Interrupted")
+        
     if(hasattr(bot, "restarting") and bot.restarting == True):
         print("Restarting")
         
         time.sleep(1)
-        subprocess.Popen("python" + " bot.py", shell=True)
+        subprocess.Popen("python" + " bot.py", shell=True) #TODO: Will not work on all system

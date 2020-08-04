@@ -49,6 +49,7 @@ class Event_Handler(object):
         self.events = events
         self.events.append("other")
         self.Events = []
+        self.disabled = False
         
     def add_Event(self, name: str, func):
         if(name in self.events):
@@ -57,6 +58,8 @@ class Event_Handler(object):
             raise Exception("Failed to add unknown event: "+name)
 
     def check_Event(self, parent, *args):
+        if(self.disabled):
+            return
         for event in self.Events:
             func = event[1]
             if(inspect.iscoroutinefunction(func)): #is async

@@ -18,27 +18,31 @@ import inspect
 from modules.core.utils import Event_Handler
 
 
-#Timestamp format:
+#timeStampFormat:
 #https://community.bistudio.com/wiki/server.cfg
-#timeStampFormat
+
 class readLog:
     def __init__(self, log_path):
-        self.maxDataRows = 5000
+        self.maxDataRows = 5000 #max amount of log lines stored in the buffer
+        self.maxMisisons = 10 #max amount of Missions stored in the buffer
         self.skip_server_init = True #Skips the server loading stuff
         
         
         #Internal vars:
         self.path = os.path.dirname(os.path.realpath(__file__))
         self.log_path = log_path
+        self.current_log = None
         #all data rows are stored in here, limited to prevent memory leaks
         self.dataRows=deque(maxlen=self.maxDataRows)
+        self.Missions=deque(maxlen=self.maxMisisons)
+        self.Missions_current = {"dict": {}, "data": []}
         self.skip = False
         self.define_line_types()
         
-        #self.EH.add_Event("other", self.test)
+        #self.EH.add_Event("Log line", self.test)
         
-        #self.pre_scan()
-        
+        self.pre_scan()
+
         #Start Watchlog
         asyncio.ensure_future(self.watch_log())
     
@@ -46,6 +50,7 @@ class readLog:
         print(args)
         
     def pre_scan(self):
+        self.EH.disabled = True
         logs = self.getLogs()
         tempdataRows = deque(maxlen=self.maxDataRows)
         if(len(logs)==0):
@@ -63,6 +68,7 @@ class readLog:
             if(len(tempdataRows)>=self.maxDataRows):
                 break
         self.dataRows = tempdataRows
+        self.EH.disabled = False
         
     def define_line_types(self):
         # Format: [name, regex]
@@ -127,7 +133,11 @@ class readLog:
             ["BattlEye chat direct message",    "^(BattlEye Server: RCon admin #([0-9]*): \(To (.*)\) (.*))"]  #BattlEye Server: RCon admin #1: (To MM Leon) 
         ]
         #TODO: Bans?
-        self.EH = Event_Handler([row[0] for row in self.events])
+        
+        #base events:
+        self.base_events = ["Log new", "Log line", "Log line filtered"]
+        
+        self.EH = Event_Handler([row[0] for row in self.events] + self.base_events)
     
     # goes through an array of regex until it finds a match
     def check_log_events(self, line, events):
@@ -137,9 +147,9 @@ class readLog:
                 return event[0], m
         return None, None
     
-    def processLogLine(self, line, save=False):
+    def processLogLine(self, line):
         timestamp, msg = self.splitTimestamp(line)
-            
+        self.EH.check_Event("Log line", timestamp, msg)
         event, m = self.check_log_events(msg, self.events)
         if(m):
             self.EH.check_Event(event, timestamp, *m.groups())
@@ -147,15 +157,34 @@ class readLog:
                 self.skip = True
             elif(event=="Server online"):
                 self.skip = False
-            if("clutter" not in event and save):
+            if("clutter" not in event):
                 self.dataRows.append((timestamp, msg, m))
+                self.processMission(event, (timestamp, msg, m))
+                    
+                self.EH.check_Event("Log line filtered", timestamp, msg, m)
         else:
             if(self.skip==False):
+                self.dataRows.append((timestamp, msg))
                 self.EH.check_Event("other", timestamp, msg)
-                if(save):
-                    self.dataRows.append((timestamp, msg))
                 
-                
+    def processMission(self, event, data): 
+        #new mission is being started
+        if(event == "Mission reading"):
+            self.Missions.append(self.Missions_current)
+            self.Missions_current = {"dict": {}, "data": []}
+            
+        #process data within a mission
+        if("Mission" in event):
+            self.Missions_current["dict"][event] = data
+        else:
+            self.Missions_current["data"].append(data)
+            
+        #mission is complete
+        if(event == "Mission finished"):
+        
+            self.Missions.append(self.Missions_current)
+            self.Missions_current = {"dict": {}, "data": []}
+            
     #get the log files from folder and sort them by oldest first
     def getLogs(self):
         if(os.path.exists(self.log_path)):
@@ -199,9 +228,9 @@ class readLog:
             while(True): #Wait till a log file exsists
                 logs = self.getLogs()
                 if(len(logs) > 0):
-                    current_log = logs[-1]
-                    print("current log: "+current_log)
-                    file = open(self.log_path+current_log, "r")
+                    self.current_log = logs[-1]
+                    print("current log: "+self.current_log)
+                    file = open(self.log_path+self.current_log, "r")
                     file.seek(0, 2) #jump to the end of the file
                     try:
                         while (True):
@@ -213,13 +242,12 @@ class readLog:
                             if not line:
                                 await asyncio.sleep(10)
                                 #file.seek(where)
-                                if(current_log != self.getLogs()[-1]):
-                                    old_log = current_log
-                                    current_log = self.getLogs()[-1] #update to new recent log
-                                    #self.scanfile(current_log) #Log most likely empty, but a quick scan cant hurt.
-                                    file = open(self.log_path+current_log, "r")
-                                    print("current log: "+current_log)
-                                    self.on_newLog(old_log, current_log)
+                                if(self.current_log != self.getLogs()[-1]):
+                                    old_log = self.current_log
+                                    self.current_log = self.getLogs()[-1] #update to new recent log
+                                    file = open(self.log_path+self.current_log, "r")
+                                    print("current log: "+self.current_log)
+                                    self.EH.check_Event("Log new", old_log, self.current_log)
                             else:
                                 self.processLogLine(line)
                     
