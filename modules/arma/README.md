@@ -21,6 +21,21 @@ https://github.com/Yoshi-E/Python-BEC-RCon
 ## Core Events
 
  * 
+ 
+## Arma 3 features
+Provides recent mission data in a list grouped by misson:
+
+ * Mission readname: contains Mission name in group 2
+ * Mission roles assigned
+ * Mission reading
+ * Mission starting
+ * Mission file: contains Mission file name in group 2 (e.g. becti_current (__cur_mp)) without extension
+ * Mission world: contains Mission world in group 2 (e.g. Altis)
+ * Mission directory: contains Mission in group 2 (e.g. mpmissions\\__cur_mp.Altis\\)
+ * Mission read
+ * Mission id: contains unique Mission id in group 2 (e.g. 13dfdd0042a09e918dfe17933d1372e6cefc3f9a). Unique for every session, if you load a save file, the id will remain identical.
+ * Mission started
+ * Mission finished
 
 ## Monetization
 This Bot (or code that I own inside) __cannot__ be used in a monetization process.

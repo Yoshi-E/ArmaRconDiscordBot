@@ -24,7 +24,7 @@ from modules.core.utils import Event_Handler
 class readLog:
     def __init__(self, log_path):
         self.maxDataRows = 5000 #max amount of log lines stored in the buffer
-        self.maxMisisons = 10 #max amount of Missions stored in the buffer
+        self.maxMisisons = 20 #max amount of Missions stored in the buffer
         self.skip_server_init = True #Skips the server loading stuff
         
         
@@ -42,13 +42,29 @@ class readLog:
         #self.EH.add_Event("Log line", self.test)
         
         self.pre_scan()
-
+        
+        self.test_missions()
+        
         #Start Watchlog
         asyncio.ensure_future(self.watch_log())
     
     def test(self, *args):
         print(args)
-        
+    
+    def test_missions(self):
+        for m in self.Missions:
+            if("Mission readname" in m["dict"]):
+                g = 2
+                print(m["dict"]["Mission readname"][2].group(g)) 
+                print(m["dict"]["Mission file"][2].group(g)) 
+                print(m["dict"]["Mission world"][2].group(g)) 
+                print(m["dict"]["Mission directory"][2].group(g)) 
+                print(m["dict"]["Mission id"][2].group(g)) 
+                print(m["dict"]["Mission finished"][2].group(1)) 
+            else: #is data between missions
+                print("#"*30)
+                #This data is usually not needed 
+                
     def pre_scan(self):
         self.EH.disabled = True
         logs = self.getLogs()
@@ -108,10 +124,10 @@ class readLog:
             ["Mission reading",         "^(Reading mission \.\.\.)"], #Reading mission ...
             ["Mission read",            "^(Mission read\.)"], #Mission read.
             ["Mission starting",        "^(Starting mission:)"], #Starting mission:
-            ["Mission file",            "^( Mission file: (.*) \((.*)\))"], # Mission file: becti_current (__cur_mp)
-            ["Mission world",           "^( Mission world: (.*))"], # Mission world: Altis
-            ["Mission directory",       "^( Mission directory: (.*))"], # Mission directory: mpmissions\__cur_mp.Altis\
-            ["Mission id",              "^( Mission id: (.*))"], # Mission id: a001eb0dc827137d84595a7706f2cdd937f95fa3
+            ["Mission file",            "^\s(Mission file: (.*) \((.*)\))"], # Mission file: becti_current (__cur_mp)
+            ["Mission world",           "^\s(Mission world: (.*))"], # Mission world: Altis
+            ["Mission directory",       "^\s(Mission directory: (.*))"], # Mission directory: mpmissions\__cur_mp.Altis\
+            ["Mission id",              "^\s(Mission id: (.*))"], # Mission id: a001eb0dc827137d84595a7706f2cdd937f95fa3
             ["Mission finished",        "^(Game finished\.)"], #Game finished.
             ["Mission started",         "^(Game started\.)"], #Game started.
         #player
@@ -169,7 +185,7 @@ class readLog:
                 
     def processMission(self, event, data): 
         #new mission is being started
-        if(event == "Mission reading"):
+        if(event == "Mission readname"):
             self.Missions.append(self.Missions_current)
             self.Missions_current = {"dict": {}, "data": []}
             
@@ -196,7 +212,6 @@ class readLog:
         else:
             return []
 
-    
     #returns timestamp and msg
     def splitTimestamp(self, log_line):
         #Default timeStampFormat
@@ -206,7 +221,6 @@ class readLog:
             return m.group(1), m.group(2)
         else:
             return None, log_line
-
 
     #this function will continusly scan a log for data entries. They are stored in self.dataRows
     def scanfile(self, name):
