@@ -24,7 +24,9 @@ from modules.core.utils import Event_Handler
 class readLog:
     def __init__(self, log_path):
         self.maxDataRows = 5000 #max amount of log lines stored in the buffer
-        self.maxMisisons = 20 #max amount of Missions stored in the buffer
+        self.maxMisisons = 20 #max amount of Missions stored in the buffer 
+                              #also contains datablock between the mission 
+                              #(e.g 2 missions --> 5 data blocks)
         self.skip_server_init = True #Skips the server loading stuff
         
         
