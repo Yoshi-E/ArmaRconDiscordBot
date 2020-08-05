@@ -38,6 +38,7 @@ class readLog:
         self.dataRows=deque(maxlen=self.maxDataRows)
         self.Missions=deque(maxlen=self.maxMisisons)
         self.Missions_current = {"dict": {}, "data": []}
+        self.Session_id = None
         self.skip = False
         self.define_line_types()
         
@@ -45,7 +46,7 @@ class readLog:
         
         self.pre_scan()
         
-        self.test_missions()
+        #self.test_missions()
         
         #Start Watchlog
         asyncio.ensure_future(self.watch_log())
@@ -62,7 +63,7 @@ class readLog:
                 print(m["dict"]["Mission world"][2].group(g)) 
                 print(m["dict"]["Mission directory"][2].group(g)) 
                 print(m["dict"]["Mission id"][2].group(g)) 
-                print(m["dict"]["Mission finished"][2].group(1)) 
+                print(m["dict"]["Mission finished"][2].group(1)) #--> should be missing for missions that crashed
             else: #is data between missions
                 print("#"*30)
                 #This data is usually not needed 
@@ -75,6 +76,7 @@ class readLog:
             print("[Warning]: No logs found in path '{}'".format(self.log_path))
         
         #scan most recent log. Until enough data is collected
+        #go from newest to oldest log until the data buffer is filled
         for log in reversed(logs):
             print("Pre-scanning: "+log)
             self.scanfile(log)
@@ -87,7 +89,12 @@ class readLog:
                 break
         self.dataRows = tempdataRows
         self.EH.disabled = False
-        
+    
+    #add custom regex based events to the log reader
+    def register_custom_log_event(self, event_name, regex):
+        self.EH.append(event_name)
+        self.events.append([event_name, regex])
+    
     def define_line_types(self):
         # Format: [name, regex]
         self.events = [
@@ -168,40 +175,44 @@ class readLog:
     def processLogLine(self, line):
         timestamp, msg = self.splitTimestamp(line)
         self.EH.check_Event("Log line", timestamp, msg)
-        event, m = self.check_log_events(msg, self.events)
-        if(m):
-            self.EH.check_Event(event, timestamp, *m.groups())
+        event, event_match = self.check_log_events(msg, self.events)
+        
+        if(event_match):
+            self.EH.check_Event(event, timestamp, *event_match.groups())
             if(self.skip_server_init and event=="Server sessionID"):    
                 self.skip = True
             elif(event=="Server online"):
                 self.skip = False
+                
             if("clutter" not in event):
-                self.dataRows.append((timestamp, msg, m))
-                self.processMission(event, (timestamp, msg, m))
-                    
-                self.EH.check_Event("Log line filtered", timestamp, msg, m)
+                self.dataRows.append((timestamp, msg, event_match))
+                self.processMission(event, (timestamp, msg, event_match))
+                self.EH.check_Event("Log line filtered", timestamp, msg, event_match)
         else:
             if(self.skip==False):
                 self.dataRows.append((timestamp, msg))
-                self.EH.check_Event("other", timestamp, msg)
-                
+                self.processMission("", (timestamp, msg, event_match))
+                self.EH.check_Event("Log line filtered", timestamp, msg)
+    
+    #builds mission blocks    
     def processMission(self, event, data): 
         #new mission is being started
         if(event == "Mission readname"):
             self.Missions.append(self.Missions_current)
-            self.Missions_current = {"dict": {}, "data": []}
-            
+            self.Missions_current = {"dict": {event: data}, "data": [data]}
+        elif(event == "Server sessionID"):
+            self.Missions_current["dict"]["Server sessionID"] = data[2].group(2)
+        
+        #mission is complete
+        elif(event == "Mission finished"): 
+            self.Missions.append(self.Missions_current)
+            self.Missions_current = {"dict": {event: data}, "data": [data]}
+        
         #process data within a mission
-        if("Mission" in event):
+        elif("Mission" in event):
             self.Missions_current["dict"][event] = data
         else:
             self.Missions_current["data"].append(data)
-            
-        #mission is complete
-        if(event == "Mission finished"):
-        
-            self.Missions.append(self.Missions_current)
-            self.Missions_current = {"dict": {}, "data": []}
             
     #get the log files from folder and sort them by oldest first
     def getLogs(self):

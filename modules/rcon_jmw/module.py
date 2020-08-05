@@ -36,9 +36,22 @@ class CommandJMW(commands.Cog):
             self.CommandArma = self.bot.cogs["CommandArma"]
             
             self.processLog = ProcessLog(self.CommandArma.readLog, self.cfg)
-            self.processLog.EH.add_Event("on_missionHeader", self.gameStart)
-            self.processLog.EH.add_Event("on_missionGameOver", self.gameEnd)
+            self.processLog.readLog.EH.add_Event("Mission readname", self.gameStart)
+            self.processLog.readLog.EH.add_Event("Mission finished", self.gameEnd)
+             
+            #self.processLog.EH.add_Event("on_missionHeader", self.gameStart)
+            #self.processLog.EH.add_Event("on_missionGameOver", self.gameEnd)
+           
             #self.processLog.readLog.pre_scan()
+            
+            # for i in range(2):
+                # try:
+                    # game = self.processLog.buildGameBlock(i)
+                    # game = self.processLog.processGameBlock(game)
+                    # print(game[:10])      
+                # except IndexError:
+                    # print("Game '{}' not found".format(i))
+            #print(self.processLog.readData(False, 0))
             
             self.playerMapGenerator = playerMapGenerator(self.cfg["data_path"])
         except Exception as e:

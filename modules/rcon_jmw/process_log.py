@@ -23,17 +23,17 @@ class ProcessLog:
         self.path = os.path.dirname(os.path.realpath(__file__))
         self.cfg_jmw = cfg_jmw
         
-        self.maxDataRows = 10000
-        self.dataRows=deque(maxlen=self.maxDataRows)
         self.databuilder = {}
-        self.active = False
+        #self.active = False
         
         self.define_EH()
-        #Add EventHandlers:
-        self.readLog.EH.add_Event("other", self.processLogLine)
+        self.EH.disabled = True
         
-        self.readLog.pre_scan()
-        self.active = True
+        #Add EventHandlers:
+        #self.readLog.EH.add_Event("other", self.checkforEnd)
+        
+        #self.readLog.pre_scan()
+        #self.active = True
     
     def define_EH(self):
         self.events = [
@@ -44,44 +44,6 @@ class ProcessLog:
         
         self.EH = Event_Handler(self.events)
         
-    # index: 0 = current game
-    # start = index is starts searching from
-    # returns false if not enough data to read log was present
-    def getGameEnd(self, start, index = None):
-        if(index == None):
-            index = 0
-        ends = 0
-        if(index == 0):
-            return start
-        for i in range(start, 0, -1):
-            try:
-                if(self.dataRows[i]["CTI_DataPacket"] == "GameOver"):
-                    ends += 1
-                    if(ends >= index):
-                        return i
-            except: #IndexError
-                pass
-        return False
-    
-
-    def getGameData(self, start, index=None):
-        if(index == None):
-            index = 0
-        #due to async scanning and the nature of deque,
-        #we need to make sure that the index of elements do not change while generating the game
-        #to do that we free one space in the queue
-        dl = len(self.dataRows)
-        if(dl>=self.maxDataRows):
-            self.dataRows.popleft()
-        #now we get the postion of our game in the queue
-        end = self.getGameEnd(dl, index)
-        if(end==False):
-            raise EOFError("Failed generating game #{}. End not found".format(index))
-        start = self.getGameEnd(dl, index+1)
-        if(start==False):
-            raise EOFError("Failed generating game #{}. Start not found".format(index))
-        return list(collections.deque(itertools.islice(self.dataRows, start+1, end+1)))
-  
     def processGameData(self, pdata):
         data = pdata.copy()
         last_time = 0
@@ -135,21 +97,20 @@ class ProcessLog:
     #might fail needs try catch
     #uses recent data entries to create a full game
     def readData(self, admin, gameindex):
-        meta, game = self.generateGame(len(self.dataRows), gameindex)
+        meta, game = self.generateGame(gameindex)
         return self.dataToGraph(meta, game, admin)
-     
+
     #generates a game from recent entries    
     # index: 0 = current game
-    def generateGame(self, start=None, index=None):
-        if(index == None):
-            index = 0
-        if(start==None):
-            start = len(self.dataRows)
-        data = self.getGameData(start, index)
-        meta, pdata = self.processGameData(data)
+    def generateGame(self, gameindex=None):
+        if(gameindex == None):
+            gameindex = 0
+
+        game = self.buildGameBlock(gameindex)
+        game = self.processGameBlock(game)
+        meta, pdata = self.processGameData(game)
         return [meta, pdata]
-        
-        
+
     def updateDicArray(self, parent, data):
         if("players" in parent and "players" in data):
             parent["CTI_DataPacket"] = data["CTI_DataPacket"]
@@ -157,7 +118,7 @@ class ProcessLog:
             return parent
         parent.update(data)
         return parent
-    
+
     # Conforms a log line array (string) into a valid Python dict
     def parseLine(self, msg):
         r = msg.rstrip() #remove /n
@@ -174,10 +135,51 @@ class ProcessLog:
         data = ast.literal_eval(r) #WARNING: Security risk
         #print(data)
         return dict(data)
-            
+
+    def checkforEnd(self, timestamp, line):
+        m = re.match('^(\[\["CTI_DataPacket","(.*?)"],.*])', line)
+        if(m):
+            type = m.group(2)
+            if(type == "GameOver"):
+                #Start generating game
+                print("END FOUND")
+                self.buildGameBlock()
+
+    def buildGameBlock(self, index=0):
+        current_index = 0
+        iterMission = iter(reversed(self.readLog.Missions))
+        try:
+            for i in range(self.readLog.maxMisisons):
+                game = None
+                #Get a Valid game block
+                while game == None:
+                    new_game = next(iterMission)
+                    if("Mission id" in new_game["dict"]):
+                        game = new_game
+                        game["crashed"] = 0
+                        
+                for mission in iterMission:
+                    if("Mission finished" in mission["dict"]):
+                        break
+                    elif("Mission id" in mission["dict"] and game["dict"]["Mission readname"] == mission["dict"]["Mission readname"] and game["dict"]["Mission world"] == mission["dict"]["Mission world"]):
+                        game["crashed"] += 1
+                        game["dict"].update(mission["dict"])
+                if(current_index == index):
+                    return game
+                current_index += 1
+        except StopIteration:
+            pass
+        raise IndexError("index '{}' OutofBounds for games with len({})".format(index, current_index-1))
+
+    def processGameBlock(self, game):
+        processed_game = []
+        for line in game["data"]:
+            data = self.processLogLine(*line[:2])
+            if(data):
+                processed_game.append(data)
+        return processed_game
+
     def processLogLine(self, timestamp, line):
-        if(self.active==None):
-            self.active=False
         #check if line contains a datapacket
         m = re.match('^(\[\["CTI_DataPacket","(.*?)"],.*])', line)
         if(m):
@@ -186,10 +188,8 @@ class ProcessLog:
                 datarow = self.parseLine(line) #convert string into array object
                 if(type == "Header"):
                     datarow["timestamp"] = timestamp
-                    self.dataRows.append(datarow)
-                    if(self.active):
-                        self.EH.check_Event("on_missionHeader", datarow)
-                if("Data_" in type):
+                    return datarow
+                elif("Data_" in type):
                     index = int(re.match('.*_([0-9]*)', type).group(1))
                     if(len(self.databuilder)>0):
                         index_db = int(re.match('.*_([0-9]*)', self.databuilder["CTI_DataPacket"]).group(1))
@@ -199,23 +199,20 @@ class ProcessLog:
                             #If last element "Data_EOD" is present, 
                             if("EOD" in type):
                                 self.databuilder["CTI_DataPacket"] = "Data"
-                                self.dataRows.append(self.databuilder.copy())
-                                if(self.active):
-                                    self.EH.check_Event("on_missionData", self.databuilder.copy())
+                                datarow = self.databuilder.copy()
                                 self.databuilder = {}
+                                return datarow
                     elif(type == "Data_1"):
                         #add first element
                         self.databuilder = self.updateDicArray(self.databuilder, datarow)
 
-                if(type == "EOF"):
+                elif(type == "EOF"):
                     pass
                     #raise Exception("Read mission EOF")
-                    #self.dataRows.append(datarow) #Append EOF (should usually never be called)
-                if(type == "GameOver"):
+                    #return datarow #return EOF (should usually never be called)
+                elif(type == "GameOver"):
                     datarow["timestamp"] = timestamp #finish time
-                    self.dataRows.append(datarow) #Append Gameover / End
-                    if(self.active):
-                        self.EH.check_Event("on_missionGameOver", datarow)
+                    return datarow #return Gameover / End
                 
             except Exception as e:
                 print(e)
