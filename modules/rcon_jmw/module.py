@@ -45,7 +45,8 @@ class CommandJMW(commands.Cog):
             #self.processLog.readLog.pre_scan()
            
             for m in self.processLog.readLog.Missions:
-                print(len(m["data"]), len(self.processLog.processGameBlock(m)), m["dict"]["Mission id"])
+                if("Mission id" in m["dict"]):
+                    print(len(m["data"]), len(self.processLog.processGameBlock(m)), m["dict"]["Mission id"])
             print(len(self.processLog.readLog.Missions_current["data"]), len(self.processLog.processGameBlock(self.processLog.readLog.Missions_current)), processLog.readLog.Missions_current["dict"]["Mission id"])
             
             #--> working correctly
