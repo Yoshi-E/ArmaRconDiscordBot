@@ -23,7 +23,7 @@ from modules.core.utils import Event_Handler
 
 class readLog:
     def __init__(self, log_path):
-        self.maxMisisons = 20 #max amount of Missions stored in the buffer 
+        self.maxMisisons = 80 #max amount of Missions stored in the buffer 
                               #also contains datablock between the mission 
                               #(e.g 2 missions --> 5 data blocks)
         self.skip_server_init = True #Skips the server loading stuff
@@ -35,7 +35,7 @@ class readLog:
         self.current_log = None
         #all data rows are stored in here, limited to prevent memory leaks
         self.Missions=deque(maxlen=self.maxMisisons)
-        self.Missions_current = {"dict": {}, "data": []}
+        self.Missions.append({"dict": {}, "data": []})
         self.Session_id = None
         self.skip = False
         self.define_line_types()
@@ -81,6 +81,7 @@ class readLog:
             if(len(tempdataMissions)+len(self.Missions) <= self.maxMisisons):
                 tempdataMissions.extendleft(reversed(self.Missions))
                 self.Missions = deque(maxlen=self.maxMisisons)
+                self.Missions.append({"dict": {}, "data": []})
             else:
                 break
             if(len(tempdataMissions)>=self.maxMisisons):
@@ -194,21 +195,19 @@ class readLog:
     def processMission(self, event, data): 
         #new mission is being started
         if(event == "Mission readname"):
-            self.Missions.append(self.Missions_current)
-            self.Missions_current = {"dict": {event: data}, "data": [data]}
+            self.Missions.append({"dict": {event: data}, "data": [data]})
         elif(event == "Server sessionID"):
-            self.Missions_current["dict"]["Server sessionID"] = data[2].group(2)
+            self.Missions[-1]["dict"]["Server sessionID"] = data[2].group(2)
         
         #mission is complete
         elif(event == "Mission finished"): 
-            self.Missions.append(self.Missions_current)
-            self.Missions_current = {"dict": {event: data}, "data": [data]}
+            self.Missions.append({"dict": {event: data}, "data": [data]})
         
         #process data within a mission
         elif("Mission" in event):
-            self.Missions_current["dict"][event] = data
+            self.Missions[-1]["dict"][event] = data
         else:
-            self.Missions_current["data"].append(data)
+            self.Missions[-1]["data"].append(data)
             
     #get the log files from folder and sort them by oldest first
     def getLogs(self):
@@ -233,7 +232,7 @@ class readLog:
 
     #this function will continusly scan a log for data entries. They are stored in self.dataRows
     def scanfile(self, name):
-        with open(self.log_path+name) as fp: 
+        with open(self.log_path+name, encoding='utf-8', errors='replace') as fp: 
             try:
                 line = fp.readline()
             except:
@@ -242,7 +241,9 @@ class readLog:
                 self.processLogLine(line)
                 try:
                     line = fp.readline()
-                except:
+                except Exception as e:
+                    traceback.print_exc()
+                    print(e)
                     line = None
                     
     async def watch_log(self):
