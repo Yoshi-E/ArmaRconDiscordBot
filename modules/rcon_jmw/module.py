@@ -44,7 +44,7 @@ class CommandJMW(commands.Cog):
            
             #self.processLog.readLog.pre_scan()
             for m in self.processLog.readLog.Missions:
-                print(len(m["data"]), len(self.processLog.processGameBlock(game)))
+                print(len(m["data"]), len(self.processLog.processGameBlock(m)))
             print("#"*20)
             game = self.processLog.readLog.Missions_current
             game = self.processLog.processGameBlock(game)
