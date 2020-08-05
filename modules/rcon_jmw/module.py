@@ -47,9 +47,13 @@ class CommandJMW(commands.Cog):
             for m in self.processLog.readLog.Missions:
                 print(len(m["data"]), len(self.processLog.processGameBlock(m)))
             print(len(self.processLog.readLog.Missions_current["data"]), len(self.processLog.processGameBlock(self.processLog.readLog.Missions_current)))
-            print("#"*20)
-            for e in list(self.processLog.readLog.dataRows)[-100:]:
-                print(e[1])
+            
+            #--> working correctly
+            # print("#"*20)
+            # for e in list(self.processLog.readLog.dataRows)[-100:]:
+                # print(e[1])
+                
+                
             # game = self.processLog.readLog.Missions_current
             # game = self.processLog.processGameBlock(game)
             # print(len(game))  

@@ -23,7 +23,6 @@ from modules.core.utils import Event_Handler
 
 class readLog:
     def __init__(self, log_path):
-        self.maxDataRows = 100000 #max amount of log lines stored in the buffer
         self.maxMisisons = 20 #max amount of Missions stored in the buffer 
                               #also contains datablock between the mission 
                               #(e.g 2 missions --> 5 data blocks)
@@ -35,7 +34,6 @@ class readLog:
         self.log_path = log_path
         self.current_log = None
         #all data rows are stored in here, limited to prevent memory leaks
-        self.dataRows=deque(maxlen=self.maxDataRows)
         self.Missions=deque(maxlen=self.maxMisisons)
         self.Missions_current = {"dict": {}, "data": []}
         self.Session_id = None
@@ -71,7 +69,7 @@ class readLog:
     def pre_scan(self):
         self.EH.disabled = True
         logs = self.getLogs()
-        tempdataRows = deque(maxlen=self.maxDataRows)
+        tempdataMissions = deque(maxlen=self.maxMisisons)
         if(len(logs)==0):
             print("[Warning]: No logs found in path '{}'".format(self.log_path))
         
@@ -80,14 +78,14 @@ class readLog:
         for log in reversed(logs):
             print("Pre-scanning: "+log)
             self.scanfile(log)
-            if(len(tempdataRows)+len(self.dataRows) <= self.maxDataRows):
-                tempdataRows.extendleft(reversed(self.dataRows))
-                self.dataRows = deque(maxlen=self.maxDataRows)
+            if(len(tempdataMissions)+len(self.Missions) <= self.maxMisisons):
+                tempdataMissions.extendleft(reversed(self.Missions))
+                self.Missions = deque(maxlen=self.maxMisisons)
             else:
                 break
-            if(len(tempdataRows)>=self.maxDataRows):
+            if(len(tempdataMissions)>=self.maxMisisons):
                 break
-        self.dataRows = tempdataRows
+        self.Missions = tempdataMissions
         self.EH.disabled = False
     
     #add custom regex based events to the log reader
@@ -185,12 +183,10 @@ class readLog:
                 self.skip = False
                 
             if("clutter" not in event):
-                self.dataRows.append((timestamp, msg, event_match))
                 self.processMission(event, (timestamp, msg, event_match))
                 self.EH.check_Event("Log line filtered", timestamp, msg, event_match)
         else:
             if(self.skip==False):
-                self.dataRows.append((timestamp, msg))
                 self.processMission("", (timestamp, msg, event_match))
                 self.EH.check_Event("Log line filtered", timestamp, msg)
     
