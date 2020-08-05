@@ -147,7 +147,7 @@ class ProcessLog:
 
     def buildGameBlock(self, index=0):
         current_index = 0
-        iterMission = iter( + reversed(self.readLog.Missions))
+        iterMission = iter(reversed(self.readLog.Missions))
         try:
             for i in range(self.readLog.maxMisisons):
                 if("Mission id" in self.readLog.Missions_current["dict"]):
