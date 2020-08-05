@@ -43,19 +43,21 @@ class CommandJMW(commands.Cog):
             #self.processLog.EH.add_Event("on_missionGameOver", self.gameEnd)
            
             #self.processLog.readLog.pre_scan()
+           
             for m in self.processLog.readLog.Missions:
                 print(len(m["data"]), len(self.processLog.processGameBlock(m)))
-            print("#"*20)
-            game = self.processLog.readLog.Missions_current
-            game = self.processLog.processGameBlock(game)
-            print(len(game))  
-            for i in range(8):
-                try:
-                    game = self.processLog.buildGameBlock(i)
-                    game = self.processLog.processGameBlock(game)
-                    print(len(game))      
-                except IndexError:
-                    print("Game '{}' not found".format(i))
+            print(len(self.processLog.readLog.Missions_current["data"]), len(self.processLog.processGameBlock(self.processLog.readLog.Missions_current)))
+            # print("#"*20)
+            # game = self.processLog.readLog.Missions_current
+            # game = self.processLog.processGameBlock(game)
+            # print(len(game))  
+            # for i in range(8):
+                # try:
+                    # game = self.processLog.buildGameBlock(i)
+                    # game = self.processLog.processGameBlock(game)
+                    # print(len(game))      
+                # except IndexError:
+                    # print("Game '{}' not found".format(i))
             #print(self.processLog.readData(False, 0))
             
             self.playerMapGenerator = playerMapGenerator(self.cfg["data_path"])
