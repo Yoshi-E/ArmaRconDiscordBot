@@ -150,10 +150,7 @@ class ProcessLog:
         iterMission = iter(reversed(self.readLog.Missions))
         try:
             for i in range(self.readLog.maxMisisons):
-                if("Mission id" in self.readLog.Missions_current["dict"]):
-                    game = self.readLog.Missions_current
-                else:
-                    game = None
+                game = None
                 #Get a Valid game block
                 while game == None:
                     new_game = next(iterMission)
