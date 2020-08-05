@@ -51,7 +51,7 @@ class CommandRconIngameComs(commands.Cog):
         
         self.RconCommandEngine = RconCommandEngine
         RconCommandEngine.cogs = self
-        RconCommandEngine.rate_limit_commands.append("afk")
+        #RconCommandEngine.rate_limit_commands.append("afk")
         #RconCommandEngine.admins.append("Yoshi_E") this simply bypasses cooldowns for cmds
         #RconCommandEngine.admins.append("[H] Tom")
         #RconCommandEngine.admins.append("zerty")

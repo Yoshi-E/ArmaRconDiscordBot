@@ -44,13 +44,13 @@ class CommandJMW(commands.Cog):
            
             #self.processLog.readLog.pre_scan()
             
-            # for i in range(2):
-                # try:
-                    # game = self.processLog.buildGameBlock(i)
-                    # game = self.processLog.processGameBlock(game)
-                    # print(game[:10])      
-                # except IndexError:
-                    # print("Game '{}' not found".format(i))
+            for i in range(8):
+                try:
+                    game = self.processLog.buildGameBlock(i)
+                    game = self.processLog.processGameBlock(game)
+                    print(len(game[:10]))      
+                except IndexError:
+                    print("Game '{}' not found".format(i))
             #print(self.processLog.readData(False, 0))
             
             self.playerMapGenerator = playerMapGenerator(self.cfg["data_path"])
