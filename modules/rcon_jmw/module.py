@@ -43,10 +43,10 @@ class CommandJMW(commands.Cog):
             #self.processLog.EH.add_Event("on_missionGameOver", self.gameEnd)
            
             #self.processLog.readLog.pre_scan()
-            print(len(self.processLog.readLog.Missions))
-            for m in self.processLog.readLog.Missions:
-                if("Mission id" in m["dict"]):
-                    print(len(m["data"]), len(self.processLog.processGameBlock(m)), m["dict"]["Mission id"])
+            # print(len(self.processLog.readLog.Missions))
+            # for m in self.processLog.readLog.Missions:
+                # if("Mission id" in m["dict"]):
+                    # print(len(m["data"]), len(self.processLog.processGameBlock(m)), m["dict"]["Mission id"])
             
             #--> working correctly
             # print("#"*20)
