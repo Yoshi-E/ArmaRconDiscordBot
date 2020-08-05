@@ -43,6 +43,9 @@ class CommandJMW(commands.Cog):
             #self.processLog.EH.add_Event("on_missionGameOver", self.gameEnd)
            
             #self.processLog.readLog.pre_scan()
+            for m in self.processLog.readLog.Missions:
+                print(len(m["data"]))
+            
             game = self.processLog.readLog.Missions_current
             game = self.processLog.processGameBlock(game)
             print(len(game))  
