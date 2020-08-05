@@ -167,7 +167,7 @@ class CommandJMW(commands.Cog):
                 self.user_data[user]["nextgame"] = False
         await self.set_user_data() #save changes
     
-    async def processGame(self, channel, admin=False, gameindex=1, sendraw=False):
+    async def processGame(self, channel, admin=False, gameindex=0, sendraw=False):
         if(self.bot.is_closed()):
             return False
         try:

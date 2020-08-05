@@ -25,7 +25,7 @@ class readLog:
     def __init__(self, log_path):
         self.maxMisisons = 50 #max amount of Missions stored in the buffer 
                               #also contains datablock between the mission 
-                              #(e.g 2 missions --> 5 data blocks)
+                              #(e.g 2 scenarios played --> 5 Missions blocks)
         self.skip_server_init = True #Skips the server loading stuff
         
         
@@ -188,26 +188,25 @@ class readLog:
                 self.EH.check_Event("Log line filtered", timestamp, msg, event_match)
         else:
             if(self.skip==False):
-                self.processMission("", (timestamp, msg, event_match))
+                self.processMission("", (timestamp, msg))
                 self.EH.check_Event("Log line filtered", timestamp, msg)
     
     #builds mission blocks    
     def processMission(self, event, data): 
         #new mission is being started
         if(event == "Mission readname"):
-            self.Missions.append({"dict": {event: data}, "data": [data]})
+            self.Missions.append({"dict": {event: data}, "data": []})
         elif(event == "Server sessionID"):
             self.Missions[-1]["dict"]["Server sessionID"] = data[2].group(2)
         
         #mission is complete
         elif(event == "Mission finished"): 
-            self.Missions.append({"dict": {event: data}, "data": [data]})
+            self.Missions.append({"dict": {event: data}, "data": []})
         
         #process data within a mission
         elif("Mission" in event):
             self.Missions[-1]["dict"][event] = data
-        else:
-            self.Missions[-1]["data"].append(data)
+        self.Missions[-1]["data"].append(data)
             
     #get the log files from folder and sort them by oldest first
     def getLogs(self):
