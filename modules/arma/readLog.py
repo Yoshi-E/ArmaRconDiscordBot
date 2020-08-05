@@ -23,7 +23,7 @@ from modules.core.utils import Event_Handler
 
 class readLog:
     def __init__(self, log_path):
-        self.maxMisisons = 80 #max amount of Missions stored in the buffer 
+        self.maxMisisons = 50 #max amount of Missions stored in the buffer 
                               #also contains datablock between the mission 
                               #(e.g 2 missions --> 5 data blocks)
         self.skip_server_init = True #Skips the server loading stuff

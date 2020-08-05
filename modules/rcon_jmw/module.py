@@ -216,7 +216,7 @@ class CommandJMW(commands.Cog):
     
 
 
-    async def gameEnd(self, data):
+    async def gameEnd(self, *args):
         if(self.bot.is_closed()):
             return False
         channel = self.bot.get_channel(int(self.cfg["post_channel"]))
@@ -224,7 +224,7 @@ class CommandJMW(commands.Cog):
         await self.processGame(channel)
         self.processLog.readData(True, 1) #Generate advaced data as well, for later use.  
         
-    async def gameStart(self, data):
+    async def gameStart(self, *args):
         if(self.bot.is_closed()):
             return False
         channel = self.bot.get_channel(int(self.cfg["post_channel"]))
