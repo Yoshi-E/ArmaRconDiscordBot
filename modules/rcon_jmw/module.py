@@ -48,7 +48,7 @@ class CommandJMW(commands.Cog):
                 try:
                     game = self.processLog.buildGameBlock(i)
                     game = self.processLog.processGameBlock(game)
-                    print(len(game[:10]))      
+                    print(len(game))      
                 except IndexError:
                     print("Game '{}' not found".format(i))
             #print(self.processLog.readData(False, 0))
