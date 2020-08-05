@@ -47,7 +47,7 @@ class CommandJMW(commands.Cog):
             for m in self.processLog.readLog.Missions:
                 if("Mission id" in m["dict"]):
                     print(len(m["data"]), len(self.processLog.processGameBlock(m)), m["dict"]["Mission id"])
-            print(len(self.processLog.readLog.Missions_current["data"]), len(self.processLog.processGameBlock(self.processLog.readLog.Missions_current)), processLog.readLog.Missions_current["dict"]["Mission id"])
+            print(len(self.processLog.readLog.Missions_current["data"]), len(self.processLog.processGameBlock(self.processLog.readLog.Missions_current)), self.processLog.readLog.Missions_current["dict"]["Mission id"])
             
             #--> working correctly
             # print("#"*20)
