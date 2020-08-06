@@ -97,7 +97,7 @@ class ProcessLog:
     #might fail needs try catch
     #uses recent data entries to create a full game
     def readData(self, admin, gameindex):
-        meta, game = self.generateGame(gameindex)
+        meta, game, dict = self.generateGame(gameindex)
         return self.dataToGraph(meta, game, admin)
 
     #generates a game from recent entries    
@@ -107,9 +107,9 @@ class ProcessLog:
             gameindex = 0
 
         game = self.buildGameBlock(gameindex)
-        game = self.processGameBlock(game)
+        dict, game = self.processGameBlock(game)
         meta, pdata = self.processGameData(game)
-        return [meta, pdata]
+        return [meta, pdata, dict]
 
     def updateDicArray(self, parent, data):
         if("players" in parent and "players" in data):
@@ -177,7 +177,7 @@ class ProcessLog:
             data = self.processLogLine(*line[:2])
             if(data):
                 processed_game.append(data)
-        return processed_game
+        return game["dict"], processed_game
 
     def processLogLine(self, timestamp, line):
         #check if line contains a datapacket

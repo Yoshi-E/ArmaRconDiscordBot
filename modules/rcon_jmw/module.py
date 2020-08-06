@@ -78,7 +78,7 @@ class CommandJMW(commands.Cog):
     async def task_setStatus(self):
         while True:
             try:
-                await asyncio.sleep(50)
+                await asyncio.sleep(60)
                 await self.setStatus()
             except (KeyboardInterrupt, asyncio.CancelledError):
                 print("[asyncio] exiting", task_setStatus)
@@ -100,7 +100,7 @@ class CommandJMW(commands.Cog):
             return
         #get current Game data
         try:
-            meta, game = self.processLog.generateGame()
+            meta, game, dict = self.processLog.generateGame()
         except EOFError:
             return #No valid logs found, just return
             
@@ -111,29 +111,39 @@ class CommandJMW(commands.Cog):
                 break
         
         #fetch data
-        players = 0
-        if(last_packet != None and "players" in last_packet):
-            players = len(packet["players"])
-        time = 0
+        time_running = 0
         if(last_packet != None and "time" in last_packet and packet["time"] > 0):
-            time = round(packet["time"]/60)    
+            time_running = round(packet["time"]/60)    
         winner = "currentGame"
         if("winner" in meta):
             winner = meta["winner"]   
+        
+        #Get players
+        players = 0
+        if(last_packet != None and "players" in last_packet):
+            players = len(packet["players"])
+        
+        #Get Map
         map = "unknown"
+        starting_time = None
         if("map" in meta):
             map = meta["map"]
-            
+        elif("Mission world" in dict):
+            map = dict["Mission world"][2].group(2)
+        
+            #Get Starting time
+            starting_time = dict["Mission world"][0]
+        
         #set checkRcon status
         game_name = "..."
         if("CommandRcon" in self.bot.cogs):
             if(self.CommandRcon.arma_rcon.disconnected==False):
                 status = discord.Status.online
                 
-                if(winner!="currentGame" or last_packet == None or game[-1]["CTI_DataPacket"]=="GameOver"):
+                if(winner!="currentGame" or last_packet == None or game[-1]["CTI_DataPacket"]=="GameOver" or "Mission starting" not in Missions[-1]["dict"]):
                     game_name = "Lobby"
                 else:
-                    game_name = "{} {}min {}".format(map, time, players)
+                    game_name = "{} {}min {}".format(map, time_running, players)
                     if(players!=1):
                         game_name+="players"
                     else:
