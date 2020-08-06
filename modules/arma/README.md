@@ -20,10 +20,12 @@ https://github.com/Yoshi-E/Python-BEC-RCon
 
 ## Core Events
 
- * 
+ * Log new: Triggered when a new log file is created and used.1
+ * Log line: Triggered whenever a log line is read
+ * Log line filtered: Triggered whenever a non "cluttered" log line is read
  
 ## Arma 3 features
-Provides recent mission data in a list grouped by misson:
+Provides recent mission data in a list grouped by mission:
 
  * Mission readname: contains Mission name in group 2
  * Mission roles assigned
@@ -37,6 +39,36 @@ Provides recent mission data in a list grouped by misson:
  * Mission started
  * Mission finished
 
+Additionally the following events are used:<br> 
+Server info:
+
+ * Server sessionID
+ * Server online       
+ * Server port         
+ * Server waiting for game
+ 
+Player info: 
+
+ * Player modified data file
+ * Player disconnected
+ * Player connecting
+ * Player connected
+ * Player xml parse error
+
+Battleye:
+
+ * BattlEye initialized
+ * BattlEye registering player
+ * BattlEye chat message
+ * BattlEye player connected
+ * BattlEye player disconnected
+ * BattlEye player guid
+ * BattlEye player guid verified
+ * BattlEye player kicked
+ * BattlEye rcon admin login
+ * BattlEye chat direct message
+
+ 
 ## Monetization
 This Bot (or code that I own inside) __cannot__ be used in a monetization process.
 However you can ask for permission.

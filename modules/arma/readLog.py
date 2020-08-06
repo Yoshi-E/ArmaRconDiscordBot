@@ -238,7 +238,7 @@ class readLog:
 #####                                    File reading                                          ####
 ################################################################################################### 
  
-    #this function will continusly scan a log for data entries. They are stored in self.dataRows
+    #this function will continuously scan a log for data entries. They are stored in self.dataRows
     def scanfile(self, name):
         with open(self.log_path+name, encoding='utf-8', errors='replace') as fp: 
             try:
@@ -253,7 +253,8 @@ class readLog:
                     traceback.print_exc()
                     print(e)
                     line = None
-                    
+    
+    #follows the current log and switches to a new log, should one be created
     async def watch_log(self):
         await asyncio.sleep(60)
         try:
