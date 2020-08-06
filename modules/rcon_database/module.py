@@ -44,7 +44,10 @@ class CommandRconDatabase(commands.Cog):
             try:
                 if(self.CommandRcon.arma_rcon.disconnected==True):
                     continue
-                players = await self.CommandRcon.arma_rcon.getPlayersArray()
+                try:
+                    players = await self.CommandRcon.arma_rcon.getPlayersArray()
+                except Exception as e:
+                    continue
                 self.player_db.save = False 
                 
                 
