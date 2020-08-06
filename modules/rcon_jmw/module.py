@@ -140,7 +140,7 @@ class CommandJMW(commands.Cog):
             if(self.CommandRcon.arma_rcon.disconnected==False):
                 status = discord.Status.online
                 
-                if(winner!="currentGame" or last_packet == None or game[-1]["CTI_DataPacket"]=="GameOver" or "Mission starting" not in Missions[-1]["dict"]):
+                if(winner!="currentGame" or last_packet == None or game[-1]["CTI_DataPacket"]=="GameOver" or "Mission starting" not in self.processLog.readLog.Missions[-1]["dict"]):
                     game_name = "Lobby"
                 else:
                     game_name = "{} {}min {}".format(map, time_running, players)
