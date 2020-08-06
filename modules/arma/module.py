@@ -86,7 +86,21 @@ class CommandArma(commands.Cog):
     async def stop_all(self, ctx):
         self.CommandRcon.autoReconnect = False
         self.stop_all_server()
-        await ctx.send("Stop all Servers.")  
+        await ctx.send("Stop all Servers.")      
+        
+    @CommandChecker.command(name='history',
+            brief="Returns recently played missions",
+            pass_context=True)
+    async def history(self, ctx):
+        mlist = []
+        for mission in reversed(self.readLog.Missions):
+            if "Mission starting" in mission["dict"]:
+                mlist.append("{} {} {}".format(  mission["dict"]["Mission starting"][0], 
+                                                mission["dict"]["Mission world"][2].group(2), 
+                                                mission["dict"]["Mission file"][2].group(2)))
+        msg = "Recently played missions (new to old)\n"
+        msg += "\n".join(mlist)
+        await ctx.send(msg)  
   
 
 def setup(bot):
