@@ -51,49 +51,12 @@ class readLog:
     
     def test(self, *args):
         print(args)
+
+###################################################################################################
+#####                                       Events                                             ####
+###################################################################################################     
     
-    def test_missions(self):
-        for m in self.Missions:
-            if("Mission readname" in m["dict"]):
-                g = 2
-                print(m["dict"]["Mission readname"][2].group(g)) 
-                print(m["dict"]["Mission file"][2].group(g)) 
-                print(m["dict"]["Mission world"][2].group(g)) 
-                print(m["dict"]["Mission directory"][2].group(g)) 
-                print(m["dict"]["Mission id"][2].group(g)) 
-                print(m["dict"]["Mission finished"][2].group(1)) #--> should be missing for missions that crashed
-            else: #is data between missions
-                print("#"*30)
-                #This data is usually not needed 
-                
-    def pre_scan(self):
-        self.EH.disabled = True
-        logs = self.getLogs()
-        tempdataMissions = deque(maxlen=self.maxMisisons)
-        if(len(logs)==0):
-            print("[Warning]: No logs found in path '{}'".format(self.log_path))
-        
-        #scan most recent log. Until enough data is collected
-        #go from newest to oldest log until the data buffer is filled
-        for log in reversed(logs):
-            print("Pre-scanning: "+log)
-            self.scanfile(log)
-            if(len(tempdataMissions)+len(self.Missions) <= self.maxMisisons):
-                tempdataMissions.extendleft(reversed(self.Missions))
-                self.Missions = deque(maxlen=self.maxMisisons)
-                self.Missions.append({"dict": {}, "data": []})
-            else:
-                break
-            if(len(tempdataMissions)>=self.maxMisisons):
-                break
-        self.Missions = tempdataMissions
-        self.EH.disabled = False
-    
-    #add custom regex based events to the log reader
-    def register_custom_log_event(self, event_name, regex):
-        self.EH.append(event_name)
-        self.events.append([event_name, regex])
-    
+    #configure the event listern regex
     def define_line_types(self):
         # Format: [name, regex]
         self.events = [
@@ -142,8 +105,8 @@ class readLog:
             ["Player modified data file",   "^((.*) uses modified data file)"], #KKD | dawkar3152 uses modified data file
             ["Player disconnected",         "^(Player (.*) disconnected.)"], #Player ARMATA disconnected.
             ["Player connecting",           "^(Player (.*) connecting.)"], #Player Celis connecting.
-            ["Player connected",            "^(Player (.*) connected \(id=([0-9]*)\)\.)"], #Player Fritz connected (id=76561198017145527).
-            ["Player xml parse error",      "^(Warning: Could not parse squad\.xml for Player\[(.*)\], Squad\[(.*)\])"], #Warning: Could not parse squad.xml for Player[Hptm.v.Kriegern], Squad[https://armasquads.de/user/squads/xml/gvy2AxinZc2O1N2oU0OR6PWblHFr3Tte/squad.xml]
+            ["Player connected",            "^(Player (.*) connected \(id=([0-9]*)\)\.)"], #Player Fritz connected (id=76561198117145527).
+            ["Player xml parse error",      "^(Warning: Could not parse squad\.xml for Player\[(.*)\], Squad\[(.*)\])"], #Warning: Could not parse squad.xml for Player[Hptm.v.Kriegern], Squad[https://armasquads.de/user/squads/xml/gvy2AxinZc2O1N2oU00R6PWblHFr3Tte/squad.xml]
         #BattlEye
             ["BattlEye initialized",            "^(BattlEye Server: Initialized \((.*)\))"], #BattlEye Server: Initialized (v1.217)
             ["BattlEye registering player",     "^(BEServer: registering a new player #([0-9]*))"], #BEServer: registering a new player #989446346
@@ -151,7 +114,7 @@ class readLog:
             ["BattlEye player connected",       "^(BattlEye Server: Player #([0-9]*) (.*) \(([0-9]*\.[0-9]*\.[0-9]*\.[0-9]*):([0-9]*)\) connected)"], #BattlEye Server: Player #36 Master (88.196.232.197:2304) connected
             ["BattlEye player disconnected",    "^(BattlEye Server: Player #([0-9]*) (.*) disconnected)"], #BattlEye Server: Player #4 Ztppp disconnected
             ["BattlEye player guid",            "^(BattlEye Server: Player #(.*) (.*) - GUID: (.*))"], #BattlEye Server: Player #38 Fritz - GUID: 54333f4dbe1d3c73b227c8a3ed7b663c
-            ["BattlEye player guid verified",   "^(BattlEye Server: Verified GUID \((.*)\) of player #([0-9]*) (.*))"], #BattlEye Server: Verified GUID (2854515fa6c84ca6657cd55fa8c145cb) of player #8 Sgt. Gonzalez
+            ["BattlEye player guid verified",   "^(BattlEye Server: Verified GUID \((.*)\) of player #([0-9]*) (.*))"], #BattlEye Server: Verified GUID (2844515fa6c84ca6647cd55fa8c145cb) of player #8 Sgt. Gonzalez
             ["BattlEye player kicked",          "^(Player (.*) kicked off by BattlEye: (.*))"],  #Player MM Leon kicked off by BattlEye: Admin Kick (AFK too long (user_check by Ztppp))
             ["BattlEye rcon admin login",       "^(BattlEye Server: RCon admin #([0-9]*) \((.*):(.*)\) logged in)"],  #BattlEye Server: RCon admin #0 (90.92.59.82:59806) logged in
             ["BattlEye chat direct message",    "^(BattlEye Server: RCon admin #([0-9]*): \(To (.*)\) (.*))"]  #BattlEye Server: RCon admin #1: (To MM Leon) 
@@ -170,7 +133,45 @@ class readLog:
             if m:
                 return event[0], m
         return None, None
+      
+    #add custom regex based events to the log reader
+    def register_custom_log_event(self, event_name, regex):
+        self.EH.append(event_name)
+        self.events.append([event_name, regex])
     
+
+###################################################################################################
+#####                                 Line processing                                          ####
+################################################################################################### 
+
+    #Scan already written logs
+    #because the logs are being scanned from newest to oldest
+    #it is nececarry to rearange the data to ensure they stay in order.
+    def pre_scan(self):
+        #disable Event handlers, so they dont trigger
+        self.EH.disabled = True 
+        
+        logs = self.getLogs()
+        tempdataMissions = deque(maxlen=self.maxMisisons)
+        if(len(logs)==0):
+            print("[Warning]: No logs found in path '{}'".format(self.log_path))
+        
+        #scan most recent log. Until enough data is collected
+        #go from newest to oldest log until the data buffer is filled
+        for log in reversed(logs):
+            print("Pre-scanning: "+log)
+            self.scanfile(log)
+            if(len(tempdataMissions)+len(self.Missions) <= self.maxMisisons):
+                tempdataMissions.extendleft(reversed(self.Missions))
+                self.Missions = deque(maxlen=self.maxMisisons)
+                self.Missions.append({"dict": {}, "data": []})
+            else:
+                break
+            if(len(tempdataMissions)>=self.maxMisisons):
+                break
+        self.Missions = tempdataMissions
+        self.EH.disabled = False
+
     def processLogLine(self, line):
         timestamp, msg = self.splitTimestamp(line)
         self.EH.check_Event("Log line", timestamp, msg)
@@ -207,7 +208,11 @@ class readLog:
         elif("Mission" in event):
             self.Missions[-1]["dict"][event] = data
         self.Missions[-1]["data"].append(data)
-            
+
+###################################################################################################
+#####                                       Utils                                              ####
+###################################################################################################  
+         
     #get the log files from folder and sort them by oldest first
     def getLogs(self):
         if(os.path.exists(self.log_path)):
@@ -229,6 +234,10 @@ class readLog:
         else:
             return None, log_line
 
+###################################################################################################
+#####                                    File reading                                          ####
+################################################################################################### 
+ 
     #this function will continusly scan a log for data entries. They are stored in self.dataRows
     def scanfile(self, name):
         with open(self.log_path+name, encoding='utf-8', errors='replace') as fp: 
@@ -283,7 +292,3 @@ class readLog:
                     await asyncio.sleep(10*60)
         except (KeyboardInterrupt, asyncio.CancelledError):
             print("[asyncio] exiting", watch_log)
-    
-
-
-#RL = readLog("D:/Dokumente/_Git/_ArmaGit/ArmaRconDiscordBot/modules/rcon_jmw/")
