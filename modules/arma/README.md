@@ -24,7 +24,7 @@ https://github.com/Yoshi-E/Python-BEC-RCon
 reader = readLog("D:/Server/Arma/Logs/", maxMisisons=25)
 reader.register_custom_log_event(event_name="clutter", regex="^(Overflow)") #register custom revents
 reader.EH.add_Event("clutter", someFunction) #Calls "someFunction" when a log line of type "clutter" is read
-											 #Passed arguments are: timestamp, msg, [regexMatch]
+                                             #Passed arguments are: timestamp, msg, [regexMatch]
 reader.pre_scan() #Scan existing log files, does not fire EventHandlers
 asyncio.ensure_future(self.readLog.watch_log()) #Read Logs in real time
 ```
@@ -48,30 +48,30 @@ All data is stored in readLog.Missions in the following format:
 # index = -1 the latest, currently running mission
 readLog.Missions[index]["dict"] = {"Server sessionID": server_sessionID} 
 readLog.Missions[index]["data"] = [ [timestamp, msg, regexMatch],
-									[timestamp, msg],
-									[timestamp, msg],
-									[timestamp, msg, regexMatch],
-									...
-								]
+                                    [timestamp, msg],
+                                    [timestamp, msg],
+                                    [timestamp, msg, regexMatch],
+                                    ...
+                                ]
 
 
 
 # The mission block is almost identical, just contains additional information about the mission in the header:
 readLog.Missions[index]["dict"] = {"Server sessionID": server_sessionID,
-									"Mission readname",
-									"Mission roles assigned",
-									"Mission reading",
-									"Mission starting",
-									"Mission file",
-									...
-								}
+                                    "Mission readname",
+                                    "Mission roles assigned",
+                                    "Mission reading",
+                                    "Mission starting",
+                                    "Mission file",
+                                    ...
+                                }
 readLog.Missions[index]["data"] = [ [timestamp, msg, regexMatch],
-									[timestamp, msg],
-									[timestamp, msg],
-									[timestamp, msg, regexMatch],
-									...
-								]
-								
+                                    [timestamp, msg],
+                                    [timestamp, msg],
+                                    [timestamp, msg, regexMatch],
+                                    ...
+                                ]
+                                
 #To differentiate the block types simply check if the "dict" contains "Mission readname".
 The "Server sessionID" identifies all blocks from the same log file.
 ```
