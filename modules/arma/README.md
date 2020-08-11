@@ -80,9 +80,9 @@ readLog.Missions[index]["data"] = [ [timestamp, msg, regexMatch],
 ```
 ## Core Events
 
- * Log new: Triggered when a new log file is created and used.1
- * Log line: Triggered whenever a log line is read
- * Log line filtered: Triggered whenever a non "cluttered" log line is read
+ * Log new: Triggered when a new log file is created and used. Gives old and new log.
+ * Log line: Triggered whenever a log line is read. Gives timestamp and message.
+ * Log line filtered: Triggered whenever a non "cluttered" log line is read. Gives timestamp, message and regexMatch.
  
 ## Arma 3 features
 Provides recent mission data in a list grouped by mission.<br>
