@@ -95,9 +95,10 @@ class CommandArma(commands.Cog):
         mlist = []
         for mission in reversed(self.readLog.Missions):
             if "Mission starting" in mission["dict"]:
-                mlist.append("{} {} {}".format(  mission["dict"]["Mission starting"][0], 
+                mlist.append("{} {} {} ({} entries)".format(  mission["dict"]["Mission starting"][0], 
                                                 mission["dict"]["Mission world"][2].group(2), 
-                                                mission["dict"]["Mission file"][2].group(2)))
+                                                mission["dict"]["Mission file"][2].group(2),
+                                                len(mission["data"])))
         msg = "Recently played missions (new to old)\n"
         msg += "\n".join(mlist)
         await ctx.send(msg)  

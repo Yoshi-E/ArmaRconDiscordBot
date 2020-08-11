@@ -22,14 +22,11 @@ from modules.core.utils import Event_Handler
 #https://community.bistudio.com/wiki/server.cfg
 
 class readLog:
-    def __init__(self, log_path):
-        self.maxMisisons = 50 #max amount of Missions stored in the buffer 
+    def __init__(self, log_path, maxMisisons=20):
+        self.maxMisisons = maxMisisons #max amount of Missions stored in the buffer 
                               #also contains datablock between the mission 
-                              #(e.g 2 scenarios played --> 5 Missions blocks)
-        self.skip_server_init = True #Skips the server loading stuff
+                              #(e.g 2 scenarios played --> 5 Missions blocks)        
         
-        
-        #Internal vars:
         self.path = os.path.dirname(os.path.realpath(__file__))
         self.log_path = log_path
         self.current_log = None
@@ -148,6 +145,8 @@ class readLog:
     #because the logs are being scanned from newest to oldest
     #it is nececarry to rearange the data to ensure they stay in order.
     def pre_scan(self):
+        if(self.maxMisisons <= 0):
+            return
         #disable Event handlers, so they dont trigger
         self.EH.disabled = True 
         
@@ -179,30 +178,25 @@ class readLog:
         
         if(event_match):
             self.EH.check_Event(event, timestamp, *event_match.groups())
-            if(self.skip_server_init and event=="Server sessionID"):    
-                self.skip = True
-            elif(event=="Server online"):
-                self.skip = False
-                
             if("clutter" not in event):
                 self.processMission(event, (timestamp, msg, event_match))
                 self.EH.check_Event("Log line filtered", timestamp, msg, event_match)
         else:
-            if(self.skip==False):
-                self.processMission("", (timestamp, msg))
-                self.EH.check_Event("Log line filtered", timestamp, msg)
+            self.processMission("", (timestamp, msg))
+            self.EH.check_Event("Log line filtered", timestamp, msg)
     
     #builds mission blocks    
     def processMission(self, event, data): 
         #new mission is being started
         if(event == "Mission readname"):
-            self.Missions.append({"dict": {event: data}, "data": []})
+            self.Missions.append({"dict": {"Server sessionID": self.server_sessionID, event: data}, "data": []})
         elif(event == "Server sessionID"):
-            self.Missions[-1]["dict"]["Server sessionID"] = data[2].group(2)
+            self.server_sessionID = data[2].group(2)
         
-        #mission is complete
+        #mission is complete, switching to between mission block
         elif(event == "Mission finished"): 
-            self.Missions.append({"dict": {event: data}, "data": []})
+            self.Missions[-1]["dict"][event] = data
+            self.Missions.append({"dict": {}, "data": []})
         
         #process data within a mission
         elif("Mission" in event):
