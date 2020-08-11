@@ -182,7 +182,7 @@ class readLog:
         #mission is complete, switching to between mission block
         elif(event == "Mission finished"): 
             self.Missions[-1]["dict"][event] = data
-            self.Missions.append({"dict": {}, "data": []})
+            self.Missions.append({"dict": {"Server sessionID": self.server_sessionID}, "data": []})
         
         #process data within a mission
         elif("Mission" in event):

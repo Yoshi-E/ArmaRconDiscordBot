@@ -23,10 +23,58 @@ https://github.com/Yoshi-E/Python-BEC-RCon
 ```python
 reader = readLog("D:/Server/Arma/Logs/", maxMisisons=25)
 reader.register_custom_log_event(event_name="clutter", regex="^(Overflow)") #register custom revents
-reader.pre_scan() #Scan exsiting files
+reader.EH.add_Event("clutter", someFunction) #Calls "someFunction" when a log line of type "clutter" is read
+											 #Passed arguments are: timestamp, msg, [regexMatch]
+reader.pre_scan() #Scan existing log files, does not fire EventHandlers
 asyncio.ensure_future(self.readLog.watch_log()) #Read Logs in real time
 ```
 
+All data is stored in readLog.Missions in the following format:
+```python
+[Server Init] # Index 0
+[Mission 1]
+[between Mission data]
+[Mission 2]
+[between Mission data]
+[Mission 3]
+# Crash
+[Server Init]
+[Mission 4]
+[between Mission data]
+...
+
+# Server init and between Mission data look like this:
+# 0 <= index < maxMisisons
+# index = -1 the latest, currently running mission
+readLog.Missions[index]["dict"] = {"Server sessionID": server_sessionID} 
+readLog.Missions[index]["data"] = [ [timestamp, msg, regexMatch],
+									[timestamp, msg],
+									[timestamp, msg],
+									[timestamp, msg, regexMatch],
+									...
+								]
+
+
+
+# The mission block is almost identical, just contains additional information about the mission in the header:
+readLog.Missions[index]["dict"] = {"Server sessionID": server_sessionID,
+									"Mission readname",
+									"Mission roles assigned",
+									"Mission reading",
+									"Mission starting",
+									"Mission file",
+									...
+								}
+readLog.Missions[index]["data"] = [ [timestamp, msg, regexMatch],
+									[timestamp, msg],
+									[timestamp, msg],
+									[timestamp, msg, regexMatch],
+									...
+								]
+								
+#To differentiate the block types simply check if the "dict" contains "Mission readname".
+The "Server sessionID" identifies all blocks from the same log file.
+```
 ## Core Events
 
  * Log new: Triggered when a new log file is created and used.1
@@ -34,7 +82,8 @@ asyncio.ensure_future(self.readLog.watch_log()) #Read Logs in real time
  * Log line filtered: Triggered whenever a non "cluttered" log line is read
  
 ## Arma 3 features
-Provides recent mission data in a list grouped by mission:
+Provides recent mission data in a list grouped by mission.<br>
+Mission events are ordered by the order they occur in the log:
 
  * Mission readname: contains Mission name in group 2
  * Mission roles assigned
