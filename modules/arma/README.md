@@ -31,7 +31,8 @@ asyncio.ensure_future(self.readLog.watch_log()) #Read Logs in real time
 
 All data is stored in readLog.Missions in the following format:
 ```python
-[Server Init] # Index 0
+# readLog.Missions is split into the following entries:
+[Server Init]
 [Mission 1]
 [between Mission data]
 [Mission 2]
@@ -42,8 +43,10 @@ All data is stored in readLog.Missions in the following format:
 [Mission 4]
 [between Mission data]
 ...
+[currently running Mission]
 
-# Server init and between Mission data look like this:
+
+# Server init and between Mission data look like this.
 # 0 <= index < maxMisisons
 # index = -1 the latest, currently running mission
 readLog.Missions[index]["dict"] = {"Server sessionID": server_sessionID} 
@@ -72,8 +75,8 @@ readLog.Missions[index]["data"] = [ [timestamp, msg, regexMatch],
                                     ...
                                 ]
                                 
-#To differentiate the block types simply check if the "dict" contains "Mission readname".
-The "Server sessionID" identifies all blocks from the same log file.
+# To differentiate the block types simply check if the "dict" contains "Mission readname".
+# The "Server sessionID" identifies all blocks from the same log file.
 ```
 ## Core Events
 
