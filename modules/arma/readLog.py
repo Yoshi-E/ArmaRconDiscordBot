@@ -1,19 +1,8 @@
-#pip install matplotlib
-
-import matplotlib.pyplot as plt
-import ast
 import os
-from datetime import datetime
-import json
-import logging
 import re
 from collections import deque
-import collections
 import traceback
-import sys
-import itertools
 import asyncio
-import inspect
 
 from modules.core.utils import Event_Handler
 
@@ -33,18 +22,14 @@ class readLog:
         #all data rows are stored in here, limited to prevent memory leaks
         self.Missions=deque(maxlen=self.maxMisisons)
         self.Missions.append({"dict": {}, "data": []})
-        self.Session_id = None
-        self.skip = False
+        
         self.define_line_types()
-        
         #self.EH.add_Event("Log line", self.test)
-        
-        self.pre_scan()
-        
+        #self.pre_scan()
         #self.test_missions()
         
         #Start Watchlog
-        asyncio.ensure_future(self.watch_log())
+        #asyncio.ensure_future(self.watch_log())
     
     def test(self, *args):
         print(args)
@@ -54,7 +39,7 @@ class readLog:
 ###################################################################################################     
     
     #configure the event listern regex
-    def define_line_types(self):
+    def define_line_types(self, additonal_defintions=None):
         # Format: [name, regex]
         self.events = [
         #Clutter
@@ -144,6 +129,7 @@ class readLog:
     #Scan already written logs
     #because the logs are being scanned from newest to oldest
     #it is nececarry to rearange the data to ensure they stay in order.
+    #Limited by Mission count
     def pre_scan(self):
         if(self.maxMisisons <= 0):
             return
@@ -169,8 +155,8 @@ class readLog:
             if(len(tempdataMissions)>=self.maxMisisons):
                 break
         self.Missions = tempdataMissions
-        self.EH.disabled = False
-
+        self.EH.disabled = False    
+    
     def processLogLine(self, line):
         timestamp, msg = self.splitTimestamp(line)
         self.EH.check_Event("Log line", timestamp, msg)

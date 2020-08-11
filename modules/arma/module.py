@@ -31,7 +31,11 @@ class CommandArma(commands.Cog):
         
         self.cfg = CoreConfig.modules["modules/arma"]["general"]
         
-        self.readLog = readLog(self.cfg["log_path"])
+        #read the Log files
+        self.readLog = readLog(self.cfg["log_path"], maxMisisons=25)
+        self.readLog.define_line_types()
+        self.readLog.pre_scan()
+        asyncio.ensure_future(self.readLog.watch_log())
         
         self.server_pid = None
         asyncio.ensure_future(self.on_ready())

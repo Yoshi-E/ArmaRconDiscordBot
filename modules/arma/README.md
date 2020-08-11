@@ -18,6 +18,15 @@ https://github.com/Yoshi-E/Python-BEC-RCon
 
 [![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://paypal.me/TeamYoshiE)
 
+## Usage
+
+```python
+reader = readLog("D:/Server/Arma/Logs/", maxMisisons=25)
+reader.register_custom_log_event(event_name="clutter", regex="^(Overflow)") #register custom revents
+reader.pre_scan() #Scan exsiting files
+asyncio.ensure_future(self.readLog.watch_log()) #Read Logs in real time
+```
+
 ## Core Events
 
  * Log new: Triggered when a new log file is created and used.1
