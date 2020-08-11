@@ -5,9 +5,6 @@ ReadLog is a python script designed to be a flexible interface of reading all ki
 It's main purpose is to listen to a servers log file and wait for certain events to happen.
 <br><br>
 In the current configuration it is optimized for Arma 3 log entries.
-## Related:
-This Bot directly works with my RCon API:
-https://github.com/Yoshi-E/Python-BEC-RCon
 
 ## Features:
  * Read Logs in real time
