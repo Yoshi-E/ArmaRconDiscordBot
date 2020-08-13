@@ -18,7 +18,7 @@ class CommandJoinMSG(commands.Cog):
         self.bot = bot
         self.path = os.path.dirname(os.path.realpath(__file__))
         
-        self.cfg = CoreConfig.modules["modules/rcon_join_msg"]["general"]
+        self.cfg = CoreConfig.modules["modules/rcon_msgs"]["general"]
         
         
         asyncio.ensure_future(self.on_ready())
