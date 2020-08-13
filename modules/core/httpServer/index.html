@@ -72,6 +72,16 @@ input[type="text"] {
 }
 
 
+
+.module_title_container {
+	background: lightgray;
+	color: #222;
+}
+
+.module_title_load {
+	width: 10%;
+}
+
 .module_title {
 	font-size: 1em;
     color: #222;
@@ -81,7 +91,7 @@ input[type="text"] {
 	background-color: #777;
 	color: white;
 	cursor: pointer;
-	width: 100%;
+	width: 89%;
 	border: none;
 	text-align: left;
 	outline: none;
@@ -338,20 +348,43 @@ $.post('/get_module_settings.json', {
 			var main_div = document.createElement("div");
 			main_div.className ="module_setting";
 			main_div_p.appendChild(main_div);
-			//Create Title
-			var element = document.createElement("button");
-			element.className = "module_title";
-			element.innerHTML = key1;
-			element.addEventListener("click", function() {
+			
+			
+			var title_box = document.createElement("div");
+			title_box.className = "module_title_container";
+			//Load_Module
+			var element = document.createElement("input");
+			console.log(key1);
+			element.type = "checkbox";
+			element.checked = val1["general"]["load_module"];
+			element.className = "module_title_load";
+			element.value = true;
+			element.name = key1+".general.load_module";
+			element.id = element.name;
+			if(key1 == "modules/core") {
+				element.disabled = true;
+			}
+			element.oninput = debounce(setting_changed,500);
+			title_box.appendChild(element);
+			
+			//title
+			var title = document.createElement("button");
+			
+			
+			
+			title.className = "module_title";
+			title.innerHTML += key1;
+			title.addEventListener("click", function() {
 				this.classList.toggle("active");
-				var content = this.nextElementSibling;
+				var content = this.parentElement.nextElementSibling;
 				if (content.style.maxHeight){
 				  content.style.maxHeight = null;
 				} else {
 				  content.style.maxHeight = content.scrollHeight + "px";
 				}
 			  });
-			main_div.appendChild(element);  
+			title_box.appendChild(title);  
+			main_div.appendChild(title_box);
 			
 			var inner_container = document.createElement("div");
 			inner_container.className ="module_content";
@@ -365,33 +398,35 @@ $.post('/get_module_settings.json', {
 				element.className = "setting_title";
 				element.innerHTML = key2;
 				div.appendChild(element);
-				//Create Otions
+				//Create Options
 				jQuery.each(data[key1][key2], function(key3, val3) {
-					var element = document.createElement("label");
-					element.innerHTML = key3+": ";
-					inner_container.appendChild(element);  
-					
-					var element = document.createElement("input");
-					//console.log(data);
-					console.log(typeof val3);
-					if (typeof val3 === "boolean"){
-						element.type = "checkbox";
-						element.checked = val3;
-						element.className = "checkmark";
-						element.value = true;
-						element.name = key1+"."+key2+"."+key3;
+					if(key3 != "load_module") {
+						var element = document.createElement("label");
+						element.innerHTML = key3+": ";
+						inner_container.appendChild(element);  
 						
-					} else {
-						element.type = "text";
-						element.value = val3;
+						var element = document.createElement("input");
+						//console.log(data);
+						console.log(typeof val3);
+						if (typeof val3 === "boolean"){
+							element.type = "checkbox";
+							element.checked = val3;
+							element.className = "checkmark";
+							element.value = true;
+							element.name = key1+"."+key2+"."+key3;
+							
+						} else {
+							element.type = "text";
+							element.value = val3;
+						}
+						element.id = key1+"."+key2+"."+key3;
+						element.name = key1+"."+key2+"."+key3;
+						//element.oninput = setting_changed;
+						element.oninput = debounce(setting_changed,500);
+						inner_container.appendChild(element);  
+						var element = document.createElement("br");
+						inner_container.appendChild(element); 
 					}
-					element.id = key1+"."+key2+"."+key3;
-					element.name = key1+"."+key2+"."+key3;
-					//element.oninput = setting_changed;
-					element.oninput = debounce(setting_changed,500);
-					inner_container.appendChild(element);  
-					var element = document.createElement("br");
-					inner_container.appendChild(element); 
 				});
 		    });
 		});
