@@ -5,7 +5,7 @@
     "password_description": "Your RCon password.",
     "port": 2302,
     "timeoutSec": 25,
-    "timeoutSec_description": "Timeout in seconds before the RCon connection will be assumed lost.",
+    "timeoutSec_description": "Timeout in seconds before the RCon connection will be assumed lost. It is not recommended to change this value.",
     "max_reconnects_per_minute": 2,
 	"max_reconnects_per_minute_description": "Limit the number of RCon reconnects, should the connection be lost.<br>A reconnect takes about 10 seconds. With 'max_reconnects_per_minute' >= 7 the bot will forver try to reconnect. You can also manually re-connect with the bot commands." 
 }
