@@ -128,7 +128,7 @@ class readLog:
 
     #Scan already written logs
     #because the logs are being scanned from newest to oldest
-    #it is nececarry to rearange the data to ensure they stay in order.
+    #it is necessary to rearrange the data to ensure they stay in order.
     #Limited by Mission count
     def pre_scan(self):
         if(self.maxMisisons <= 0):

@@ -1,6 +1,10 @@
 {
 	"load_module": true,
     "start_server": "'D:/Server/arma/Arma3server_x64.exe' -port=2303 '-config=D:/Server/Arma3/TADST/default/TADST_config.cfg' '-cfg=D:/Server/Arma3/TADST/default/TADST_basic.cfg' '-profiles=D:/Server/Arma3/TADST/default' -name=default -filePatching",
+    "start_server_description": "Used for the command 'start_server'. Path to the binary of the server (e.g. 'D:/Server/arma/Arma3server_x64.exe' -port=2303)",
     "stop_server": "arma3server_x64.exe",
-    "log_path": "D:/Server/Arma3/TADST/default"
+    "stop_server_description": "Used for the command 'stop_server'. Kills all tasks with the given name (e.g. arma3server_x64.exe)",
+    "log_path": "D:/Server/Arma3/TADST/default",
+    "log_path_description": "Path to the server log files (e.g. D:/Server/Arma3/TADST/default)",
+	"module_description": "This module is scanning Arma 3 log files, and provides the information to other modules. You can also use it to start, and terminate the Arma 3 server."
 }

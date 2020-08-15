@@ -242,15 +242,16 @@ class CommandRcon(commands.Cog):
             if(channel in msg):
                 return True
         return False
-        
-    def playerTypesMessage(self, player_name):
+    
+    #check if there was chat activity by the player in the last [min] minutes
+    def playerTypesMessage(self, player_name, min=25):
         data = self.arma_rcon.serverMessage.copy()
         data.reverse()
         for pair in data: #checks all recent chat messages
             msg = pair[1]
             diff = datetime.datetime.now() - pair[0]
             #cancel search if chat is older than 25min
-            if(diff.total_seconds() > 0 and diff.total_seconds()/60 >= 25): 
+            if(diff.total_seconds() > 0 and diff.total_seconds()/60 >= min): 
                 break
             msg_player = self.getPlayerFromMessage(msg)
             if(msg_player != False and player_name == msg_player or 
@@ -454,10 +455,10 @@ class CommandRcon(commands.Cog):
             if(i <= limit):
                 id,ip,ping,guid,name = player
                 
-                if(self.playerTypesMessage(player_name)):
+                if(self.playerTypesMessage(name)):
                     active = ":green_circle:"
                 else:
-                    active = ":red_circle:"
+                    active = ":white_circle:"
                 #fetch country
                 response = self.ipReader.country(ip.split(":")[0])
                 region = str(response.country.iso_code).lower()

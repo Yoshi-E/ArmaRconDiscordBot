@@ -1,3 +1,4 @@
 {
-    "load_module": false
+    "load_module": false,
+	"module_description": "This module just handles and formats errors that occur during the usage of discord commands. It is recommended to leave this module enabled."
 }

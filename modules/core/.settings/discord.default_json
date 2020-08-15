@@ -1,5 +1,8 @@
 {
     "TOKEN": "enter_token_here",
+    "TOKEN_description": "Discord Token required for the functioning of this bot. <a href='https://github.com/reactiflux/discord-irc/wiki/Creating-a-discord-bot-&-getting-a-token' target='_blank'>How to get a Token</a>.",
     "BOT_PREFIX": "!",
-    "post_channel": 123
+    "BOT_PREFIX_description": "Prefix used for the discord commands (e.g. ! --> !help)",
+    "post_channel": 0,
+    "post_channel_description": "Can be left empty. Debug information is posted to this <a href='https://support.discord.com/hc/en-us/articles/206346498-Where-can-I-find-my-User-Server-Message-ID-' target='_blank'>discord channel</a>.<br>Leave empty to disable it."
 }

@@ -13,6 +13,8 @@ class Config():
         self.cfg_path = cfg_path
         self.default_cfg_path = default_cfg_path
         self.save = True
+        
+        self.ignored = ["description"] #any item, will not be carried outside the default_cfg
         if(default_cfg_path):
             try:
                 self.cfg_default = json.load(open(self.default_cfg_path,"r"))
@@ -26,6 +28,17 @@ class Config():
     def load(self):
         self.cfg = self.json_load()
     
+    def remove_ignored(self, tdic):
+        dic = tdic.copy()
+        remove_keys = []
+        for key in dic.keys():
+            for i in self.ignored:
+                if(i in key):
+                    remove_keys.append(key)
+        for key in remove_keys:
+            del dic[key]
+        return dic
+    
     def json_load(self):
         try:
             cfg = None
@@ -34,14 +47,16 @@ class Config():
                 if(self.default_cfg_path):
                     cfg = self.cfg_default.copy()
                     cfg.update(cfg_t)
+                    #TODO: remove description etc
                     with open(self.cfg_path, 'w') as outfile:
-                        json.dump(cfg, outfile, indent=4, separators=(',', ': '), default=serialize)  
+                        json.dump(self.remove_ignored(cfg), outfile, indent=4, separators=(',', ': '), default=serialize)  
                 else:
                     cfg = cfg_t
             else:
                 if(self.default_cfg_path):
                     with open(self.cfg_path, 'w') as outfile:
-                        json.dump(self.cfg_default, outfile, indent=4, separators=(',', ': '), default=serialize)
+                        #TODO: remove description etc
+                        json.dump(self.remove_ignored(self.cfg_default), outfile, indent=4, separators=(',', ': '), default=serialize)
                     cfg = self.cfg_default
             if(cfg == None):
                 return {}

@@ -1,4 +1,6 @@
 {
     "load_module": false,
-	"post_channel": 1
+	"post_channel": 0,
+	"post_channel_description": "Ban messages are send to this <a href='https://support.discord.com/hc/en-us/articles/206346498-Where-can-I-find-my-User-Server-Message-ID-' target='_blank'>discord channel</a>.<br>Leave empty to disable it.",
+	"module_description": "This module is sends a message to the given channel, whenever a users is banned or unbanned."
 }

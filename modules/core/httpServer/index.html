@@ -121,7 +121,41 @@ input[type="text"] {
   transition: max-height 0.2s ease-out;
 }
 
+.description {
+	padding: 5px;
+	padding-bottom: 15px;
+	font-size: 0.8em;
+}
 
+
+/* Tooltip */
+
+.tooltip {
+  width: 100%;
+  position: relative;
+  display: inline-block;
+}
+
+.tooltip .tooltiptext {
+  visibility: hidden;
+  width: 100%;
+  background-color: black;
+  color: #fff;
+  text-align: center;
+  border-radius: 6px;
+  padding: 5px 0;
+  
+  /* Position the tooltip */
+  position: absolute;
+  z-index: 1;
+  bottom: 100%;
+  left: 10%;
+  margin-left: -60px;
+}
+
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+}
 
 </style>
 </head>
@@ -398,12 +432,32 @@ $.post('/get_module_settings.json', {
 				element.className = "setting_title";
 				element.innerHTML = key2;
 				div.appendChild(element);
+				
+				
+				//description
+				if("module_description" in val2) {
+					var element = document.createElement("div");
+					element.className = "description";
+					element.innerHTML = "Description: "+val2["module_description"];
+					div.appendChild(element);
+				}
+				
+				
 				//Create Options
 				jQuery.each(data[key1][key2], function(key3, val3) {
-					if(key3 != "load_module") {
-						var element = document.createElement("label");
+					if(!["load_module"].includes(key3) && !key3.includes("description")) {
+						var element = document.createElement("div");
 						element.innerHTML = key3+": ";
 						inner_container.appendChild(element);  
+						
+						//Tooltip
+						if(key3+"_description" in data[key1][key2]) {
+							element.className = "tooltip";
+							var tooltip = document.createElement("span");
+							tooltip.innerHTML = data[key1][key2][key3+"_description"];
+							tooltip.className = "tooltiptext";
+							element.appendChild(tooltip);  
+						}
 						
 						var element = document.createElement("input");
 						//console.log(data);
@@ -411,7 +465,7 @@ $.post('/get_module_settings.json', {
 						if (typeof val3 === "boolean"){
 							element.type = "checkbox";
 							element.checked = val3;
-							element.className = "checkmark";
+							
 							element.value = true;
 							element.name = key1+"."+key2+"."+key3;
 							
