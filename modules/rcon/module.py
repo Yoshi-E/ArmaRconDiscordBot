@@ -453,6 +453,11 @@ class CommandRcon(commands.Cog):
         for player in players:
             if(i <= limit):
                 id,ip,ping,guid,name = player
+                
+                if(self.playerTypesMessage(player_name)):
+                    active = ":green_circle:"
+                else:
+                    active = ":red_circle:"
                 #fetch country
                 response = self.ipReader.country(ip.split(":")[0])
                 region = str(response.country.iso_code).lower()
@@ -460,7 +465,7 @@ class CommandRcon(commands.Cog):
                     flag = ":question:" #symbol if no country was found
                 else:
                     flag = ":flag_{}:".format(region)
-                msg+= "#{} | {} {}".format(id, flag, name)+"\n"
+                msg+= "{}#{} | {} {}".format(active, id, flag, name)+"\n"
 
         await utils.sendLong(ctx, msg)
         
