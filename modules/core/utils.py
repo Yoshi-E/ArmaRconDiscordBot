@@ -57,7 +57,7 @@ class Event_Handler(object):
         else:
             raise Exception("Failed to add unknown event: "+name)
 
-    def remove_Event(name: str, func):
+    def remove_Event(self, name: str, func):
         for event in self.Events:
             if(name == event[0] and func==event[0]):
                 del event
