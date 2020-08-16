@@ -830,8 +830,6 @@ class CommandRcon(commands.Cog):
         await asyncio.sleep(5)
         await self.arma_rcon.monitords(0)
         self.readLog.EH.remove_Event("Server load", sendLoad)
-            
-        
         
     @CommandChecker.command(name='goVote',
         brief="Users can vote for the mission selection.",
