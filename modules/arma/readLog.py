@@ -19,6 +19,10 @@ class readLog:
         self.path = os.path.dirname(os.path.realpath(__file__))
         self.log_path = log_path
         self.current_log = None
+        
+        if(len(self.getLogs()) == 0):
+            print("[WARNNING] No log files found in '{}'".format(self.log_path))
+            
         #all data rows are stored in here, limited to prevent memory leaks
         self.Missions=deque(maxlen=self.maxMisisons)
         self.Missions.append({"dict": {}, "data": []})
@@ -138,8 +142,6 @@ class readLog:
         
         logs = self.getLogs()
         tempdataMissions = deque(maxlen=self.maxMisisons)
-        if(len(logs)==0):
-            print("[Warning]: No logs found in path '{}'".format(self.log_path))
         
         #scan most recent log. Until enough data is collected
         #go from newest to oldest log until the data buffer is filled
