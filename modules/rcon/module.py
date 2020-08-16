@@ -827,7 +827,7 @@ class CommandRcon(commands.Cog):
  
         self.readLog.EH.add_Event("Server load", sendLoad)
         await self.arma_rcon.monitords(1)
-        await asyncio.sleep(10)
+        await asyncio.sleep(5)
         await self.arma_rcon.monitords(0)
         self.readLog.EH.remove_Event("Server load", sendLoad)
             
