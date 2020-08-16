@@ -242,7 +242,6 @@ class readLog:
     
     #follows the current log and switches to a new log, should one be created
     async def watch_log(self):
-        await asyncio.sleep(60)
         try:
             while(True): #Wait till a log file exsists
                 logs = self.getLogs()
