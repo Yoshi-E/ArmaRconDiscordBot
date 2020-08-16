@@ -9,16 +9,11 @@ This Bot (or code that I own inside) __cannot__ be used in a monetization proces
 
 This project is not affiliated or authorized by Discord or Bohemia Interactive a.s. Bohemia Interactive, ARMA, DAYZ and all associated logos and designs are trademarks or registered trademarks of Bohemia Interactive a.s. 
 
-## Credits:
-- 
-
-
 ## Examples
 
 You can use this bot to analyse the performance of your mission on your server.<br>
 <img src="https://github.com/Yoshi-E/jmwBOT/blob/dev/examples/2018-10-27_3-32-27562-ADV.png" height="500"/><br>
 Or use it to look at the current balance of the game in a detailed graph.<br>
-<img src="https://github.com/Yoshi-E/jmwBOT/blob/dev/examples/2018-10-27_22-22-34235-CUR-ADV.png" height="500"/><br>
 Promoting the mission with it as a summary is also possible<br>
 <img src="https://github.com/Yoshi-E/jmwBOT/blob/dev/examples/discord_usage_example.PNG" height="400"/>
 
@@ -40,6 +35,11 @@ These entries have to generated server side and for this version can be found he
 Right now it is very important that the data array is logged in a format that can be interpreted by python as a valid data structure.
 Valid: [{"Data1": 10}, {"Data1": "String"}, ["Data2"]]
 Invalid: ["Data": String]
+
+## Data Analysis
+Analyse tracked data with heatmaps and more!<br>
+<img src="https://cdn.discordapp.com/attachments/621800377515376640/727979266020474920/unknown.png" height="400"/>
+<img src="https://cdn.discordapp.com/attachments/621800377515376640/727915131341766666/heatmap.jpg" height="400"/>
 
 ## Donate
 

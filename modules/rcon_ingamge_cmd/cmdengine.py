@@ -26,11 +26,13 @@ class RateBucketLimit():
                 self.functions[func_name] = RateBucketLimit(False, self.limit)
             return self.functions[func_name].check(func_name)
         else:    
-            if((time.time()-self.last) >= self.limit):
-                self.last = time.time()
-                return True
-            else:
+            if((time.time()-self.last) < self.limit):
                 return "You have to wait {} seconds before you can use this command again.".format(round(abs(time.time()-self.last-self.limit)))
+        return True
+        
+    def update(self):
+        if((time.time()-self.last) >= self.limit):
+            self.last = time.time()
 
 class RconCommandEngine(object):
 
@@ -149,9 +151,13 @@ class RconCommandEngine(object):
                                 return ctx
                     
                     if(len(parameters) > 0):
-                        await func(ctx, *ctx.args)
+                        result = await func(ctx, *ctx.args)
                     else:
-                        await func(ctx)
+                        result = await func(ctx)
+                    
+                    if result: #only update if the command was executed correctly (returned True)
+                         RconCommandEngine.users[ctx.user].update()
+                         
                     ctx.executed = True
                     RconCommandEngine.log_s(ctx)
                     return ctx
@@ -170,7 +176,7 @@ class RconCommandEngine(object):
                 RconCommandEngine.log_s("Error in: {}".format(ctx))
                 return ctx
         #Command not found
-        if(len(ctx.command) > 0 and ctx.command[0] != "?" and ctx.command != "" and ctx.command != None):
+        if(len(ctx.command) > 0 and ctx.command[0] != RconCommandEngine.command_prefix and ctx.command != "" and ctx.command != None):
             ctx.error = "Command '{}' not found".format(ctx.command)
             ctx.executed = False
             RconCommandEngine.log_s(ctx)

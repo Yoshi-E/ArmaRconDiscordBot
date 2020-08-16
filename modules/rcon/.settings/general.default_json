@@ -1,3 +1,5 @@
 {
-    "load_module": true
+    "load_module": false,
+	"module_description": "This module uses Rcon to connect to a server. It offers access to a large variety of <a href='https://github.com/Yoshi-E/ArmaRconDiscordBot/tree/master/modules/rcon' target='_blank'>commands</a>."
 }
+

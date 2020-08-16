@@ -20,10 +20,9 @@ import psutil
 
 import bec_rcon
 
-from modules.rcon import readLog
 from modules.core.utils import CommandChecker, RateBucket, CoreConfig
 import modules.core.utils as utils
-
+from modules.arma.readLog import readLog
 
 class CommandArma(commands.Cog):
     def __init__(self, bot):
@@ -31,6 +30,12 @@ class CommandArma(commands.Cog):
         self.path = os.path.dirname(os.path.realpath(__file__))
         
         self.cfg = CoreConfig.modules["modules/arma"]["general"]
+        
+        #read the Log files
+        self.readLog = readLog(self.cfg["log_path"], maxMisisons=self.cfg["buffer_maxMisisons"])
+        self.readLog.define_line_types()
+        self.readLog.pre_scan()
+        asyncio.ensure_future(self.readLog.watch_log())
         
         self.server_pid = None
         asyncio.ensure_future(self.on_ready())
@@ -85,7 +90,22 @@ class CommandArma(commands.Cog):
     async def stop_all(self, ctx):
         self.CommandRcon.autoReconnect = False
         self.stop_all_server()
-        await ctx.send("Stop all Servers.")  
+        await ctx.send("Stop all Servers.")      
+        
+    @CommandChecker.command(name='history',
+            brief="Returns recently played missions",
+            pass_context=True)
+    async def history(self, ctx):
+        mlist = []
+        for mission in reversed(self.readLog.Missions):
+            if "Mission starting" in mission["dict"]:
+                mlist.append("{} {} {} ({} entries)".format(  mission["dict"]["Mission starting"][0], 
+                                                mission["dict"]["Mission world"][2].group(2), 
+                                                mission["dict"]["Mission file"][2].group(2),
+                                                len(mission["data"])))
+        msg = "Recently played missions (new to old)\n"
+        msg += "\n".join(mlist)
+        await ctx.send(msg)  
   
 
 def setup(bot):

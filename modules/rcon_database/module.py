@@ -34,6 +34,10 @@ class CommandRconDatabase(commands.Cog):
 
     async def on_ready(self):
         await self.bot.wait_until_ready()
+        if("CommandRcon" not in self.bot.cogs):
+            print("[module] 'CommandRcon' required, but not found in '{}'. Module unloaded".format(type(self).__name__))
+            del self
+            return
         self.CommandRcon = self.bot.cogs["CommandRcon"]
         asyncio.ensure_future(self.fetch_player_data_loop())
         #self.check_all_users()
@@ -44,7 +48,10 @@ class CommandRconDatabase(commands.Cog):
             try:
                 if(self.CommandRcon.arma_rcon.disconnected==True):
                     continue
-                players = await self.CommandRcon.arma_rcon.getPlayersArray()
+                try:
+                    players = await self.CommandRcon.arma_rcon.getPlayersArray()
+                except Exception as e:
+                    continue
                 self.player_db.save = False 
                 
                 

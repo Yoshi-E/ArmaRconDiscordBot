@@ -1,7 +1,11 @@
 {
     "load_module": false,
-    "post_channel": 1,
+    "post_channel": 0,
+    "post_channel_description": "<a href='https://support.discord.com/hc/en-us/articles/206346498-Where-can-I-find-my-User-Server-Message-ID-' target='_blank'>Discord channel</a> used to post mission results and stats.<br>Leave empty to disable it.",
 	"data_path": "",
+	"data_path_description": "Folder path where replay files will be saved.",
 	"image_path": "",
-	"set_custom_status": false
+	"image_path_description": "Folder path where images of replay stats will be saved.",
+	"set_custom_status": false,
+	"module_description": "This module is to be used exclusively with BECTI JMW missions.<br>For more information about the mission format required, go to our <a href='https://github.com/Yoshi-E/ArmaRconDiscordBot/tree/master/modules/rcon_jmw' target='_blank'>Github</a> or our <a href='https://discordapp.com/invite/YhBUUSr' target='_blank'>Discord</a>."
 }

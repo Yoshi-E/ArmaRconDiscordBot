@@ -44,7 +44,36 @@ async def sendLong(ctx, msg: str, enclosed=False, hard_post_limit=4):
                 await ctx.send(msg)
             msg = ""
 
+class Event_Handler(object):
+    def __init__(self, events):
+        self.events = events
+        self.events.append("other")
+        self.Events = []
+        self.disabled = False
+        
+    def add_Event(self, name: str, func):
+        if(name in self.events):
+            self.Events.append([name,func])
+        else:
+            raise Exception("Failed to add unknown event: "+name)
 
+    def check_Event(self, parent, *args):
+        if(self.disabled):
+            return
+        for event in self.Events:
+            func = event[1]
+            if(event[0]==parent):
+                if(inspect.iscoroutinefunction(func)): #is async
+                    if(len(args)>0):
+                        asyncio.ensure_future(func(*args))
+                    else:
+                        asyncio.ensure_future(func())
+                else:
+                    if(len(args)>0):
+                        func(*args)
+                    else:
+                        func()
+                        
 class Modules(object):
     settings_dir = ".settings/"
     general_settings_file = "general"
@@ -101,13 +130,6 @@ class Modules(object):
                     cmd.params = signature.parameters.copy() 
                     break
                     
-
-
-
-
-
-
-
 
 class Tools():
     @staticmethod

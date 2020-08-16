@@ -1,0 +1,8 @@
+{
+    "load_module": false,
+	"post_channel": 0,
+	"post_channel_description": "The messages will be send to this <a href='https://support.discord.com/hc/en-us/articles/206346498-Where-can-I-find-my-User-Server-Message-ID-' target='_blank'>discord channel</a>.<br>Leave empty to disable it.",
+	"module_description": "This module using other modules to send discord messages on certain Events.<br>Each function can be enabled individually.",
+	"send_player_connect_msg": false,
+	"send_player_connect_msg_description": "Sends a message 'This_Player connected' to 'post_channel'"
+}

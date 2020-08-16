@@ -20,7 +20,6 @@ import psutil
 
 import bec_rcon
 
-from modules.rcon import readLog
 from modules.core.utils import CommandChecker, RateBucket, CoreConfig
 import modules.core.utils as utils
 
@@ -174,15 +173,16 @@ class CommandRcon(commands.Cog):
         self.lastReconnect = deque()
         self.ipReader = geoip2.database.Reader(self.path+"/GeoLite2-Country.mmdb")
         
-        self.log_reader = readLog(CoreConfig.modules["modules/arma"]["general"])
         
         asyncio.ensure_future(self.on_ready())
         
     async def on_ready(self):
         await self.bot.wait_until_ready()
-        self.CommandRconSettings = self.bot.cogs["CommandRconSettings"]
-        
+        self.CommandRconSettings = self.bot.cogs["CommandRconSettings"]        
         self.RateBucket = RateBucket(self.streamMsg)
+        
+        self.CommandArma = self.bot.cogs["CommandArma"]
+        self.readLog = self.CommandArma.readLog
         
         if("streamChat" in self.rcon_settings and self.rcon_settings["streamChat"] != None):
             self.streamChat = self.bot.get_channel(self.rcon_settings["streamChat"])
@@ -242,15 +242,16 @@ class CommandRcon(commands.Cog):
             if(channel in msg):
                 return True
         return False
-        
-    def playerTypesMessage(self, player_name):
+    
+    #check if there was chat activity by the player in the last [min] minutes
+    def playerTypesMessage(self, player_name, min=25):
         data = self.arma_rcon.serverMessage.copy()
         data.reverse()
         for pair in data: #checks all recent chat messages
             msg = pair[1]
             diff = datetime.datetime.now() - pair[0]
             #cancel search if chat is older than 25min
-            if(diff.total_seconds() > 0 and diff.total_seconds()/60 >= 25): 
+            if(diff.total_seconds() > 0 and diff.total_seconds()/60 >= min): 
                 break
             msg_player = self.getPlayerFromMessage(msg)
             if(msg_player != False and player_name == msg_player or 
@@ -453,6 +454,11 @@ class CommandRcon(commands.Cog):
         for player in players:
             if(i <= limit):
                 id,ip,ping,guid,name = player
+                
+                if(self.playerTypesMessage(name)):
+                    active = ":green_circle:"
+                else:
+                    active = ":white_circle:"
                 #fetch country
                 response = self.ipReader.country(ip.split(":")[0])
                 region = str(response.country.iso_code).lower()
@@ -460,7 +466,7 @@ class CommandRcon(commands.Cog):
                     flag = ":question:" #symbol if no country was found
                 else:
                     flag = ":flag_{}:".format(region)
-                msg+= "#{} | {} {}".format(id, flag, name)+"\n"
+                msg+= "{}#{} | {} {}".format(active, id, flag, name)+"\n"
 
         await utils.sendLong(ctx, msg)
         
@@ -820,10 +826,10 @@ class CommandRcon(commands.Cog):
             await self.arma_rcon.monitords(1)
             await asyncio.sleep(2)
             for i in range(0,5):
-                if(len(self.log_reader.dataRows)==0):
-                    await ctx.send("Failed to acquire data. Current path: '{}', log: '{}'".format(CoreConfig.modules["modules/arma"]["general"]['log_path'], self.log_reader.current_log))
+                if(len(self.readLog.dataRows)==0):
+                    await ctx.send("Failed to acquire data. Current path: '{}'".format(CoreConfig.modules["modules/arma"]["general"]['log_path']))
                     break
-                await ctx.send(self.log_reader.dataRows[-1])
+                await ctx.send(self.readLog.dataRows[-1])
                 await asyncio.sleep(1.1)
             await self.arma_rcon.monitords(0)
         else:

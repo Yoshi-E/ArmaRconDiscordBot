@@ -20,7 +20,6 @@ import psutil
 import inspect
 import time
 
-from modules.rcon import readLog
 from modules.core.utils import CommandChecker, sendLong, CoreConfig, Tools
 from .cmdengine import RconCommandEngine
 
@@ -36,6 +35,10 @@ class CommandRconTaskScheduler(commands.Cog):
         
     async def on_ready(self):
         await self.bot.wait_until_ready()
+        if("CommandRcon" not in self.bot.cogs):
+            print("[module] 'CommandRcon' required, but not found in '{}'. Module unloaded".format(type(self).__name__))
+            del self
+            return
         self.CommandRcon = self.bot.cogs["CommandRcon"]
 
 
@@ -52,7 +55,7 @@ class CommandRconIngameComs(commands.Cog):
         
         self.RconCommandEngine = RconCommandEngine
         RconCommandEngine.cogs = self
-        RconCommandEngine.rate_limit_commands.append("afk")
+        #RconCommandEngine.rate_limit_commands.append("afk")
         #RconCommandEngine.admins.append("Yoshi_E") this simply bypasses cooldowns for cmds
         #RconCommandEngine.admins.append("[H] Tom")
         #RconCommandEngine.admins.append("zerty")

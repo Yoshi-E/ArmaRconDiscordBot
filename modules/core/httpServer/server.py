@@ -220,7 +220,10 @@ class WebServer():
                 else:
                     new_val = False
             elif(isinstance(old_val, int)):
-                new_val = int(new_val)
+                if(new_val == ""):
+                    new_val = 0
+                else:
+                    new_val = int(new_val)
             else:
                 raise Exception("Unkown datatype '{}'".format(type(value)))
             utils.CoreConfig.modules[keys[0]][keys[1]][keys[2]] = new_val

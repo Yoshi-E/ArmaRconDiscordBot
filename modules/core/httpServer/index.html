@@ -10,7 +10,6 @@
 
 html, button, input, select, textarea,
 .pure-g [class *= "pure-u"] {
-
     font-family: arial, sans-serif;
 }
 
@@ -47,31 +46,20 @@ input[type="text"] {
 .module_setting {
 	width: 700px;
 	margin: 15px;
-	padding: 5px;
-	border: 1px;
-	border-style: groove;
+}
 
+.module_setting_element {
+	display: inline-block;
 }
 
 
-.module-title {
-    font-size: 1.4em;
-    color: #222;
-    font-weight: bold;
-	margin: 0px;
-	background: lightgray;
-}
-.module-title:hover{
-    text-decoration: none;
-}
-
-.setting-title {
+.setting_title {
     font-size: 1.1em;
     color: #222;
     font-weight: bold;
 	margin: 5px;
 }
-.setting-title:hover{
+.setting_title:hover{
     text-decoration: none;
 }
 
@@ -80,34 +68,126 @@ input[type="text"] {
 }
 
 
-.yoshi-coin {
+.yoshi_coin {
 	position:absolute;
 	right: 0;
 	top: 0;
 	width:42px;
 }
 
+
+
+.module_title_container {
+	background: lightgray;
+	color: #222;
+}
+
+.module_title_load {
+	width: 10%;
+}
+
+.module_title {
+	font-size: 1em;
+    color: #222;
+    font-weight: bold;
+
+	padding: 18px;
+	background-color: #777;
+	color: white;
+	cursor: pointer;
+	width: 89%;
+	border: none;
+	text-align: left;
+	outline: none;
+}
+
+.module_title:after {
+	content: "\02795"; /* Unicode character for "plus" sign (+) */
+	font-size: 13px;
+	color: white;
+	float: right;
+	margin-left: 5px;
+}
+
+.active, .module_title:hover {
+	background-color: #383838;
+}
+
+.active:after {
+	content: "\2796"; /* Unicode character for "minus" sign (-) */
+}
+
+.module_content {
+	display: inline-block;
+	padding: 0 18px;
+	background-color: white;
+	max-height: 0;
+	width: 100%;
+	overflow: hidden;
+	transition: max-height 0.2s ease-out;
+}
+
+.description {
+	padding: 5px;
+	padding-bottom: 15px;
+	font-size: 0.8em;
+}
+
+
+/* Tooltip */
+
+.tooltip {
+  position: relative;
+  display: inline-block;
+}
+
+.tooltip .tooltiptext {
+  font-size: 0.8em;
+  visibility: hidden;
+  min-width: 500px;
+  background-color: black;
+  color: #fff;
+  text-align: left;
+  border-radius: 6px;
+  padding: 5px;
+  
+  /* Position the tooltip */
+  position: absolute;
+  z-index: 1;
+  bottom: 100%;
+  left: 50px;
+  margin-left: -60px;
+}
+
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+}
+
+.error {color: #FF0000;}
 </style>
 </head>
 <body>
 
-<h2>RCON Settings</h2>
+<h2>Discord Bot Settings</h2>
 
 
 <form action="/terminate_bot.json" method="post">
   <input type="submit" value="Shutdown Bot" onclick="return confirm('Are you sure?')">
 </form>
-<form action="/restart_bot.json" method="post">
-  <input type="submit" value="Restart Bot" onclick="return confirm('Are you sure?')">
-</form>
+<!-- <form action="/restart_bot.json" method="post"> -->
+  <!-- <input type="submit" value="Restart Bot" onclick="return confirm('Are you sure?')"> -->
+<!-- </form> -->
 <br>
 
 
 <a href="https://github.com/Yoshi-E/ArmaRconDiscordBot">
-<img src="images/yoshi_coin.png" alt="yoshi coin" class="yoshi-coin">
+<img src="images/yoshi_coin.png" alt="yoshi coin" class="yoshi_coin">
 </a>
 
-
+<div class="description">
+It is recommended to restart the bot after changing settings.<br>
+Settings are saved automatically. 
+</div>
 <div id="module_settings">
 
 </div>
@@ -137,6 +217,20 @@ input[type="text"] {
 
 permission_settings = document.getElementById("permission_settings");
 
+var coll = document.getElementsByClassName("module_setting");
+var i;
+
+for (i = 0; i < coll.length; i++) {
+  coll[i].addEventListener("click", function() {
+    this.classList.toggle("active");
+    var content = this.nextElementSibling;
+    if (content.style.display === "block") {
+      content.style.display = "none";
+    } else {
+      content.style.display = "block";
+    }
+  });
+}
 
 function generateTableHead(table, data) {
 	data.unshift("Command");
@@ -298,48 +392,107 @@ $.post('/get_module_settings.json', {
 			var main_div = document.createElement("div");
 			main_div.className ="module_setting";
 			main_div_p.appendChild(main_div);
-			//Create Title
-			var element = document.createElement("h2");
-			element.className = "module-title";
-			element.innerHTML = key1;
-			main_div.appendChild(element);  
 			
+			
+			var title_box = document.createElement("div");
+			title_box.className = "module_title_container";
+			//Load_Module
+			var element = document.createElement("input");
+			console.log(key1);
+			element.type = "checkbox";
+			element.checked = val1["general"]["load_module"];
+			element.className = "module_title_load";
+			element.value = true;
+			element.name = key1+".general.load_module";
+			element.id = element.name;
+			if(key1 == "modules/core") {
+				element.disabled = true;
+			}
+			element.oninput = debounce(setting_changed,500);
+			title_box.appendChild(element);
+			
+			//title
+			var title = document.createElement("button");
+			
+			
+			
+			title.className = "module_title";
+			title.innerHTML += key1;
+			title.addEventListener("click", function() {
+				this.classList.toggle("active");
+				var content = this.parentElement.nextElementSibling;
+				if (content.style.maxHeight){
+				  content.style.maxHeight = null;
+				} else {
+				  content.style.maxHeight = content.scrollHeight + "px";
+				}
+			  });
+			title_box.appendChild(title);  
+			main_div.appendChild(title_box);
+			
+			var inner_container = document.createElement("div");
+			inner_container.className ="module_content";
+			main_div.appendChild(inner_container);
 			//create subgroup
 			jQuery.each(data[key1], function(key2, val2) {
 				var div = document.createElement("div");
-				main_div.appendChild(div); 
+				inner_container.appendChild(div); 
 				
 				var element = document.createElement("h3");
-				element.className = "setting-title";
+				element.className = "setting_title";
 				element.innerHTML = key2;
 				div.appendChild(element);
-				//Create Otions
+				
+				
+				//description
+				if("module_description" in val2) {
+					var element = document.createElement("div");
+					element.className = "description";
+					element.innerHTML = "Description: "+val2["module_description"];
+					div.appendChild(element);
+				}
+				
+				
+				//Create Options
 				jQuery.each(data[key1][key2], function(key3, val3) {
-					var element = document.createElement("label");
-					element.innerHTML = key3+": ";
-					main_div.appendChild(element);  
-					
-					var element = document.createElement("input");
-					//console.log(data);
-					console.log(typeof val3);
-					if (typeof val3 === "boolean"){
-						element.type = "checkbox";
-						element.checked = val3;
-						element.className = "checkmark";
-						element.value = true;
-						element.name = key1+"."+key2+"."+key3;
+					if(!["load_module"].includes(key3) && !key3.includes("description")) {
+						var element = document.createElement("div");
+						element.innerHTML = key3+": ";
+						inner_container.appendChild(element);  
 						
-					} else {
-						element.type = "text";
-						element.value = val3;
+						//Tooltip
+						if(key3+"_description" in data[key1][key2]) {
+							element.className = "tooltip";
+							var tooltip = document.createElement("span");
+							tooltip.innerHTML = data[key1][key2][key3+"_description"];
+							tooltip.className = "tooltiptext";
+							element.appendChild(tooltip);  
+						} else {
+							element.className = "module_setting_element";
+						};
+						
+						var element = document.createElement("input");
+						//console.log(data);
+						console.log(typeof val3);
+						if (typeof val3 === "boolean"){
+							element.type = "checkbox";
+							element.checked = val3;
+							
+							element.value = true;
+							element.name = key1+"."+key2+"."+key3;
+							
+						} else {
+							element.type = "text";
+							element.value = val3;
+						}
+						element.id = key1+"."+key2+"."+key3;
+						element.name = key1+"."+key2+"."+key3;
+						//element.oninput = setting_changed;
+						element.oninput = debounce(setting_changed,500);
+						inner_container.appendChild(element);  
+						var element = document.createElement("br");
+						inner_container.appendChild(element); 
 					}
-					element.id = key1+"."+key2+"."+key3;
-					element.name = key1+"."+key2+"."+key3;
-					//element.oninput = setting_changed;
-					element.oninput = debounce(setting_changed,500);
-					main_div.appendChild(element);  
-					var element = document.createElement("br");
-					main_div.appendChild(element); 
 				});
 		    });
 		});
