@@ -822,8 +822,8 @@ class CommandRcon(commands.Cog):
         brief="Shows performance information in the dedicated server console. Interval 0 means to stop monitoring.",
         pass_context=True)
     async def monitords(self, ctx, interval = 1): 
-        def sendLoad(event, timestamp, event_match):
-            ctx.send(event_match.group(0))
+        def sendLoad(*args):
+            print(args) #ctx.send(event_match.group(0))
         if(interval > 0):
             self.readLog.EH.add_Event("Server load", sendLoad)
             await self.arma_rcon.monitords(1)
