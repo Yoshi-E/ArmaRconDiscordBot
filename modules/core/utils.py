@@ -58,11 +58,9 @@ class Event_Handler(object):
             raise Exception("Failed to add unknown event: "+name)
 
     def remove_Event(self, name: str, func=None):
-        for event in self.Events:
-            o_func = event[1]
-            print(id(o_func), id(func))
-            if((name == event[0] and id(func)==id(o_func)) or (name == event[0] and func==None)):
-                del event
+        for i,event in enumerate(self.Events):
+            if((name == event[0] and id(func)==id(event[1])) or (name == event[0] and func==None)):
+                del self.Events[i]
                 return True
         return False
         
