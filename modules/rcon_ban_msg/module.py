@@ -28,10 +28,13 @@ class CommandRcon_Custom(commands.Cog):
         
     async def on_ready(self):
         await self.bot.wait_until_ready()
+        #await asyncio.sleep(60) #wait addional time for everything to be ready
         try:
-            await asyncio.sleep(60) #wait addional time for everything to be ready
+            if("CommandRcon" not in self.bot.cogs):
+                print("[module] 'CommandRcon' required, but not found in '{}'. Module unloaded".format(type(self).__name__))
+                del self
+                return
             self.CommandRcon = self.bot.cogs["CommandRcon"]
-        
             self.post_channel = self.bot.get_channel(self.cfg["post_channel"]) #channel id
             self.CommandRcon.arma_rcon.add_Event("received_ServerMessage", self.rcon_on_msg_received)
             await self.init_bans_watchdog()

@@ -26,6 +26,10 @@ class CommandJoinMSG(commands.Cog):
     async def on_ready(self):
         await self.bot.wait_until_ready()
         self.channel = self.bot.get_channel(self.cfg["post_channel"])
+        if("CommandRcon" not in self.bot.cogs):
+            print("[module] 'CommandRcon' required, but not found in '{}'. Module unloaded".format(type(self).__name__))
+            del self
+            return
         try:
             self.CommandRcon = self.bot.cogs["CommandRcon"]
             self.CommandRcon.arma_rcon.add_Event("received_ServerMessage", self.rcon_on_msg_received)
