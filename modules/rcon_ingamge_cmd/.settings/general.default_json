@@ -1,4 +1,4 @@
 {
-    "load_module": true,
+    "load_module": false,
 	"module_description": "This module enables players to used commands within arma's chat. <a href='https://github.com/Yoshi-E/ArmaRconDiscordBot/tree/master/modules/rcon_ingamge_cmd' target='_blank'>Documentation</a>"
 }

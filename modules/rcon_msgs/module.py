@@ -39,14 +39,15 @@ class CommandJoinMSG(commands.Cog):
        
         if(message.startswith("Player #")):
             #print(message)
-            #"disconnect"
-            if(message.endswith(" disconnected") and ":" not in message):
-                asyncio.ensure_future(self.channel.send(message))
-            #"connect"
-            elif(message.endswith(") connected")):
-                msg = "(".join(message.split("(")[:-1]) #removes the last block with the ip
-                msg += "connected" 
-                asyncio.ensure_future(self.channel.send(msg))
+            if(self.cfg["send_player_connect_msg"]):
+                #"disconnect"
+                if(message.endswith(" disconnected") and ":" not in message):
+                    asyncio.ensure_future(self.channel.send(message))
+                #"connect"
+                elif(message.endswith(") connected")):
+                    msg = "(".join(message.split("(")[:-1]) #removes the last block with the ip
+                    msg += "connected" 
+                    asyncio.ensure_future(self.channel.send(msg))
                 
     
 ###################################################################################################

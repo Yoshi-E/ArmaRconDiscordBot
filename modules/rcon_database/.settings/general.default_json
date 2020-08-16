@@ -1,5 +1,5 @@
 {
-    "load_module": true,
+    "load_module": false,
 	"post_channel": 0,
 	"post_channel_description": "Warnings about users with multiple names are posted in this <a href='https://support.discord.com/hc/en-us/articles/206346498-Where-can-I-find-my-User-Server-Message-ID-' target='_blank'>discord channel</a>.<br>Leave empty to disable it.",
 	"set_custom_status": true,

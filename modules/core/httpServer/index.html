@@ -48,6 +48,10 @@ input[type="text"] {
 	margin: 15px;
 }
 
+.module_setting_element {
+	display: inline-block;
+}
+
 
 .setting_title {
     font-size: 1.1em;
@@ -98,27 +102,29 @@ input[type="text"] {
 }
 
 .module_title:after {
-  content: "\02795"; /* Unicode character for "plus" sign (+) */
-  font-size: 13px;
-  color: white;
-  float: right;
-  margin-left: 5px;
+	content: "\02795"; /* Unicode character for "plus" sign (+) */
+	font-size: 13px;
+	color: white;
+	float: right;
+	margin-left: 5px;
 }
 
 .active, .module_title:hover {
-  background-color: #383838;
+	background-color: #383838;
 }
 
 .active:after {
-  content: "\2796"; /* Unicode character for "minus" sign (-) */
+	content: "\2796"; /* Unicode character for "minus" sign (-) */
 }
 
 .module_content {
-  padding: 0 18px;
-  background-color: white;
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height 0.2s ease-out;
+	display: inline-block;
+	padding: 0 18px;
+	background-color: white;
+	max-height: 0;
+	width: 100%;
+	overflow: hidden;
+	transition: max-height 0.2s ease-out;
 }
 
 .description {
@@ -131,7 +137,6 @@ input[type="text"] {
 /* Tooltip */
 
 .tooltip {
-  width: 100%;
   position: relative;
   display: inline-block;
 }
@@ -139,18 +144,18 @@ input[type="text"] {
 .tooltip .tooltiptext {
   font-size: 0.8em;
   visibility: hidden;
-  width: 100%;
+  min-width: 500px;
   background-color: black;
   color: #fff;
-  text-align: center;
+  text-align: left;
   border-radius: 6px;
-  padding: 5px 0;
+  padding: 5px;
   
   /* Position the tooltip */
   position: absolute;
   z-index: 1;
   bottom: 100%;
-  left: 10%;
+  left: 50px;
   margin-left: -60px;
 }
 
@@ -169,9 +174,9 @@ input[type="text"] {
 <form action="/terminate_bot.json" method="post">
   <input type="submit" value="Shutdown Bot" onclick="return confirm('Are you sure?')">
 </form>
-<form action="/restart_bot.json" method="post">
-  <input type="submit" value="Restart Bot" onclick="return confirm('Are you sure?')">
-</form>
+<!-- <form action="/restart_bot.json" method="post"> -->
+  <!-- <input type="submit" value="Restart Bot" onclick="return confirm('Are you sure?')"> -->
+<!-- </form> -->
 <br>
 
 
@@ -179,7 +184,10 @@ input[type="text"] {
 <img src="images/yoshi_coin.png" alt="yoshi coin" class="yoshi_coin">
 </a>
 
-
+<div class="description">
+It is recommended to restart the bot after changing settings.<br>
+Settings are saved automatically. 
+</div>
 <div id="module_settings">
 
 </div>
@@ -459,7 +467,9 @@ $.post('/get_module_settings.json', {
 							tooltip.innerHTML = data[key1][key2][key3+"_description"];
 							tooltip.className = "tooltiptext";
 							element.appendChild(tooltip);  
-						}
+						} else {
+							element.className = "module_setting_element";
+						};
 						
 						var element = document.createElement("input");
 						//console.log(data);
