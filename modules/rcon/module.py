@@ -823,7 +823,7 @@ class CommandRcon(commands.Cog):
         pass_context=True)
     async def monitords(self, ctx, interval = 1): 
         def sendLoad(event, timestamp, msg, event_match):
-            ctx.send(msg)
+            await ctx.send(msg)
             
         if(interval > 0):
             self.readLog.EH.add_Event("Server load", sendLoad)
