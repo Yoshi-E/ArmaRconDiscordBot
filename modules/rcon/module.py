@@ -822,7 +822,7 @@ class CommandRcon(commands.Cog):
         brief="Shows performance information in the dedicated server console. Interval 0 means to stop monitoring.",
         pass_context=True)
     async def monitords(self, ctx, interval = 1): 
-        def sendLoad(event, timestamp, msg, event_match):
+        async def sendLoad(event, timestamp, msg, event_match):
             await ctx.send(msg)
             
         if(interval > 0):
