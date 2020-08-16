@@ -50,7 +50,6 @@ class RconCommandEngine(object):
             self.user = None
             self.command = None
             self.channel = None
-            self.base_msg = None
             self.user_beid = -1
         
         async def say(self, msg):
