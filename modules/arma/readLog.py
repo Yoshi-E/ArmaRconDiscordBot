@@ -165,7 +165,7 @@ class readLog:
     
     def processLogLine(self, line):
         timestamp, msg = self.splitTimestamp(line)
-        self.EH.check_Event("Log line", timestamp, msg)
+        self.EH.check_Event("Log line", timestamp, msg, None)
         event, event_match = self.check_log_events(msg, self.events)
         
         if(event_match):
@@ -175,7 +175,7 @@ class readLog:
                 self.EH.check_Event("Log line filtered", timestamp, msg, event_match)
         else:
             self.processMission("", (timestamp, msg))
-            self.EH.check_Event("Log line filtered", timestamp, msg)
+            self.EH.check_Event("Log line filtered", timestamp, msg, None)
     
     #builds mission blocks    
     def processMission(self, event, data): 

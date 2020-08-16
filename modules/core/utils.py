@@ -77,9 +77,9 @@ class Event_Handler(object):
                         asyncio.ensure_future(func(parent))
                 else:
                     if(len(args)>0):
-                        func(*args)
+                        func(parent, *args)
                     else:
-                        func()
+                        func(parent)
                         
 class Modules(object):
     settings_dir = ".settings/"
