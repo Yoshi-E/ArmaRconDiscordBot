@@ -243,6 +243,7 @@ class readLog:
     #follows the current log and switches to a new log, should one be created
     async def watch_log(self):
         try:
+            update_counter = 0 
             while(True): #Wait till a log file exsists
                 logs = self.getLogs()
                 if(len(logs) > 0):
@@ -255,17 +256,20 @@ class readLog:
                             #where = file.tell()
                             try:
                                 line = file.readline()
+                                update_counter+= 1
                             except:
                                 line = None
                             if not line:
-                                await asyncio.sleep(10)
+                                await asyncio.sleep(1)
                                 #file.seek(where)
-                                if(self.current_log != self.getLogs()[-1]):
-                                    old_log = self.current_log
-                                    self.current_log = self.getLogs()[-1] #update to new recent log
-                                    file = open(self.log_path+self.current_log, "r")
-                                    print("current log: "+self.current_log)
-                                    self.EH.check_Event("Log new", old_log, self.current_log)
+                                if(update_counter >= 60): #only check for new log files every 60s, to reduce IOPS
+                                    update_counter = 0
+                                    if(self.current_log != self.getLogs()[-1]):
+                                        old_log = self.current_log
+                                        self.current_log = self.getLogs()[-1] #update to new recent log
+                                        file = open(self.log_path+self.current_log, "r")
+                                        print("current log: "+self.current_log)
+                                        self.EH.check_Event("Log new", old_log, self.current_log)
                             else:
                                 self.processLogLine(line)
                     
