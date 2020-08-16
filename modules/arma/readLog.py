@@ -117,7 +117,6 @@ class readLog:
     def check_log_events(self, line, events):
         try:
             for event in events:
-                
                     m = re.match(event[1], line)
                     if m:
                         return event[0], m
@@ -170,7 +169,7 @@ class readLog:
         event, event_match = self.check_log_events(msg, self.events)
         
         if(event_match):
-            self.EH.check_Event(event, timestamp, event_match)
+            self.EH.check_Event(event, timestamp, msg, event_match)
             if("clutter" not in event):
                 self.processMission(event, (timestamp, msg, event_match))
                 self.EH.check_Event("Log line filtered", timestamp, msg, event_match)
