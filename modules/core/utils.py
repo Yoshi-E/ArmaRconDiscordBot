@@ -59,7 +59,9 @@ class Event_Handler(object):
 
     def remove_Event(self, name: str, func=None):
         for event in self.Events:
-            if((name == event[0] and id(func)==id(event[1])) or (name == event[0] and func==None)):
+            o_func = event[1]
+            print(id(o_func), id(func))
+            if((name == event[0] and id(func)==id(o_func)) or (name == event[0] and func==None)):
                 del event
                 return True
         return False
