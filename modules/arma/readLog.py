@@ -75,6 +75,7 @@ class readLog:
             ["Server online",           "^(Host identity created\.)"], #Host identity created.
             ["Server port",             "^(Game Port: ([0-9]*), Steam Query Port: ([0-9]*))"], #Game Port: 2302, Steam Query Port: 2303
             ["Server waiting for game", "^(Waiting for next game\.)"], #Waiting for next game.
+            ["Server load", "^(Server load: FPS (?P<FPS>[0-9]*), memory used: (?P<memory>[0-9]*) (?P<memory_unit>.*?), out: (?P<out>[0-9]*) (?P<out_unit>.*?), in: (?P<in>[0-9]*) (?P<in_unit>.*?),.*Players: (?P<players>[0-9]*))"], #Server load: FPS 9, memory used: 2430 MB, out: 993 Kbps, in: 290 Kbps, NG:0, G:6358, BE-NG:0, BE-G:0, Players: 17 (L:0, R:0, B:0, G:17, D:0)
         #mission
             ["Mission roles assigned",  "^(Roles assigned\.)"], #Roles assigned.
             ["Mission readname",        "^(Mission (.*) read from bank.)"], #Mission BECTI BE 0.97 - Zerty 1.3.5.2 read from bank.

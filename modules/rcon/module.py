@@ -823,20 +823,28 @@ class CommandRcon(commands.Cog):
         pass_context=True)
     async def monitords(self, ctx, interval = -1): 
         if(interval < 0):
+            self.readLog.EH.add_Event("Server load", self.sendLoad)
             await self.arma_rcon.monitords(1)
-            await asyncio.sleep(2)
-            for i in range(0,5):
-                if(len(self.readLog.dataRows)==0):
-                    await ctx.send("Failed to acquire data. Current path: '{}'".format(CoreConfig.modules["modules/arma"]["general"]['log_path']))
-                    break
-                await ctx.send(self.readLog.dataRows[-1])
-                await asyncio.sleep(1.1)
+            await asyncio.sleep(10)
             await self.arma_rcon.monitords(0)
-        else:
-            await self.arma_rcon.monitords(interval)
-            msg = "Performance will be logged every {} seconds.".format(interval)
-            await ctx.send(msg)        
-
+            self.readLog.EH.remove_Event("Server load", self.sendLoad)
+            
+            # for i in range(0,5):
+                # if(len(self.readLog.dataRows)==0):
+                    # await ctx.send("Failed to acquire data. Current path: '{}'".format(CoreConfig.modules["modules/arma"]["general"]['log_path']))
+                    # break
+                # await ctx.send(self.readLog.dataRows[-1])
+                # await asyncio.sleep(1.1)
+            # await self.arma_rcon.monitords(0)
+        # else:
+            # await self.arma_rcon.monitords(interval)
+            # msg = "Performance will be logged every {} seconds.".format(interval)
+            # await ctx.send(msg)  
+            
+    def sendLoad(self, *args):
+        print(*args)
+        
+        
     @CommandChecker.command(name='goVote',
         brief="Users can vote for the mission selection.",
         aliases=['govote'],
