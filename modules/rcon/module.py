@@ -830,20 +830,9 @@ class CommandRcon(commands.Cog):
             self.readLog.EH.remove_Event("Server load", self.sendLoad)
         else:
             ctx.send("interval must be > 0")
-            # for i in range(0,5):
-                # if(len(self.readLog.dataRows)==0):
-                    # await ctx.send("Failed to acquire data. Current path: '{}'".format(CoreConfig.modules["modules/arma"]["general"]['log_path']))
-                    # break
-                # await ctx.send(self.readLog.dataRows[-1])
-                # await asyncio.sleep(1.1)
-            # await self.arma_rcon.monitords(0)
-        # else:
-            # await self.arma_rcon.monitords(interval)
-            # msg = "Performance will be logged every {} seconds.".format(interval)
-            # await ctx.send(msg)  
             
-    def sendLoad(self, *args):
-        print(args)
+    def sendLoad(self, event, timestamp, event_match):
+        print(event_match.group(0))
         
         
     @CommandChecker.command(name='goVote',

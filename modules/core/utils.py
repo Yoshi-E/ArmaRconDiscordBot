@@ -72,9 +72,9 @@ class Event_Handler(object):
             if(event[0]==parent):
                 if(inspect.iscoroutinefunction(func)): #is async
                     if(len(args)>0):
-                        asyncio.ensure_future(func(*args))
+                        asyncio.ensure_future(func(parent, *args))
                     else:
-                        asyncio.ensure_future(func())
+                        asyncio.ensure_future(func(parent))
                 else:
                     if(len(args)>0):
                         func(*args)
