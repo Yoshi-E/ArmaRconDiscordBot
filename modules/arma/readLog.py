@@ -115,13 +115,14 @@ class readLog:
     
     # goes through an array of regex until it finds a match
     def check_log_events(self, line, events):
-        for event in events:
-            try:
-                m = re.match(event[1], line)
-                if m:
-                    return event[0], m
-            except Exception as e:
-                raise Exception("Invalid Regex: '{}' '{}'".format(event, e))
+        try:
+            for event in events:
+                
+                    m = re.match(event[1], line)
+                    if m:
+                        return event[0], m
+        except Exception as e:
+            raise Exception("Invalid Regex: '{}' '{}'".format(event, e))
         return None, None
       
     #add custom regex based events to the log reader
