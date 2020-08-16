@@ -57,6 +57,13 @@ class Event_Handler(object):
         else:
             raise Exception("Failed to add unknown event: "+name)
 
+    def remove_Event(self, name: str, func):
+        for event in self.Events:
+            if(name == event[0] and func==event[0]):
+                del event
+                return True
+        return False
+        
     def check_Event(self, parent, *args):
         if(self.disabled):
             return
@@ -65,14 +72,14 @@ class Event_Handler(object):
             if(event[0]==parent):
                 if(inspect.iscoroutinefunction(func)): #is async
                     if(len(args)>0):
-                        asyncio.ensure_future(func(*args))
+                        asyncio.ensure_future(func(parent, *args))
                     else:
-                        asyncio.ensure_future(func())
+                        asyncio.ensure_future(func(parent))
                 else:
                     if(len(args)>0):
-                        func(*args)
+                        func(parent, *args)
                     else:
-                        func()
+                        func(parent)
                         
 class Modules(object):
     settings_dir = ".settings/"

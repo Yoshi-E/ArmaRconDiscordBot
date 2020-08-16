@@ -819,24 +819,20 @@ class CommandRcon(commands.Cog):
         await ctx.send(msg)          
 
     @CommandChecker.command(name='monitords',
-        brief="Shows performance information in the dedicated server console. Interval 0 means to stop monitoring.",
+        brief="Shows performance information in the dedicated server console. Tracks the performance for 10s",
         pass_context=True)
-    async def monitords(self, ctx, interval = -1): 
-        if(interval < 0):
-            await self.arma_rcon.monitords(1)
-            await asyncio.sleep(2)
-            for i in range(0,5):
-                if(len(self.readLog.dataRows)==0):
-                    await ctx.send("Failed to acquire data. Current path: '{}'".format(CoreConfig.modules["modules/arma"]["general"]['log_path']))
-                    break
-                await ctx.send(self.readLog.dataRows[-1])
-                await asyncio.sleep(1.1)
-            await self.arma_rcon.monitords(0)
-        else:
-            await self.arma_rcon.monitords(interval)
-            msg = "Performance will be logged every {} seconds.".format(interval)
-            await ctx.send(msg)        
-
+    async def monitords(self, ctx,): 
+        async def sendLoad(event, timestamp, msg, event_match):
+            await ctx.send(msg)
+ 
+        self.readLog.EH.add_Event("Server load", sendLoad)
+        await self.arma_rcon.monitords(1)
+        await asyncio.sleep(5)
+        await self.arma_rcon.monitords(0)
+        self.readLog.EH.remove_Event("Server load", sendLoad)
+            
+        
+        
     @CommandChecker.command(name='goVote',
         brief="Users can vote for the mission selection.",
         aliases=['govote'],

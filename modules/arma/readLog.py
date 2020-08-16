@@ -19,12 +19,16 @@ class readLog:
         self.path = os.path.dirname(os.path.realpath(__file__))
         self.log_path = log_path
         self.current_log = None
+        
+        if(len(self.getLogs()) == 0):
+            print("[WARNNING] No log files found in '{}'".format(self.log_path))
+            
         #all data rows are stored in here, limited to prevent memory leaks
         self.Missions=deque(maxlen=self.maxMisisons)
         self.Missions.append({"dict": {}, "data": []})
         
         self.define_line_types()
-        #self.EH.add_Event("Log line", self.test)
+        #self.EH.add_Event("Server load", self.test)
         #self.pre_scan()
         #self.test_missions()
         
@@ -71,6 +75,7 @@ class readLog:
             ["Server online",           "^(Host identity created\.)"], #Host identity created.
             ["Server port",             "^(Game Port: ([0-9]*), Steam Query Port: ([0-9]*))"], #Game Port: 2302, Steam Query Port: 2303
             ["Server waiting for game", "^(Waiting for next game\.)"], #Waiting for next game.
+            ["Server load", "^(Server load: FPS (?P<FPS>[0-9]*), memory used: (?P<memory>[0-9]*) (?P<memory_unit>.*?), out: (?P<out>[0-9]*) (?P<out_unit>.*?), in: (?P<in>[0-9]*) (?P<in_unit>.*?),.*Players: (?P<players>[0-9]*) .*)"], #Server load: FPS 9, memory used: 2430 MB, out: 993 Kbps, in: 290 Kbps, NG:0, G:6358, BE-NG:0, BE-G:0, Players: 17 (L:0, R:0, B:0, G:17, D:0)
         #mission
             ["Mission roles assigned",  "^(Roles assigned\.)"], #Roles assigned.
             ["Mission readname",        "^(Mission (.*) read from bank.)"], #Mission BECTI BE 0.97 - Zerty 1.3.5.2 read from bank.
@@ -110,10 +115,13 @@ class readLog:
     
     # goes through an array of regex until it finds a match
     def check_log_events(self, line, events):
-        for event in events:
-            m = re.match(event[1], line)
-            if m:
-                return event[0], m
+        try:
+            for event in events:
+                    m = re.match(event[1], line)
+                    if m:
+                        return event[0], m
+        except Exception as e:
+            raise Exception("Invalid Regex: '{}' '{}'".format(event, e))
         return None, None
       
     #add custom regex based events to the log reader
@@ -138,8 +146,6 @@ class readLog:
         
         logs = self.getLogs()
         tempdataMissions = deque(maxlen=self.maxMisisons)
-        if(len(logs)==0):
-            print("[Warning]: No logs found in path '{}'".format(self.log_path))
         
         #scan most recent log. Until enough data is collected
         #go from newest to oldest log until the data buffer is filled
@@ -159,17 +165,17 @@ class readLog:
     
     def processLogLine(self, line):
         timestamp, msg = self.splitTimestamp(line)
-        self.EH.check_Event("Log line", timestamp, msg)
+        self.EH.check_Event("Log line", timestamp, msg, None)
         event, event_match = self.check_log_events(msg, self.events)
         
         if(event_match):
-            self.EH.check_Event(event, timestamp, *event_match.groups())
+            self.EH.check_Event(event, timestamp, msg, event_match)
             if("clutter" not in event):
                 self.processMission(event, (timestamp, msg, event_match))
                 self.EH.check_Event("Log line filtered", timestamp, msg, event_match)
         else:
             self.processMission("", (timestamp, msg))
-            self.EH.check_Event("Log line filtered", timestamp, msg)
+            self.EH.check_Event("Log line filtered", timestamp, msg, None)
     
     #builds mission blocks    
     def processMission(self, event, data): 
@@ -236,8 +242,8 @@ class readLog:
     
     #follows the current log and switches to a new log, should one be created
     async def watch_log(self):
-        await asyncio.sleep(60)
         try:
+            update_counter = 0 
             while(True): #Wait till a log file exsists
                 logs = self.getLogs()
                 if(len(logs) > 0):
@@ -250,17 +256,20 @@ class readLog:
                             #where = file.tell()
                             try:
                                 line = file.readline()
+                                update_counter+= 1
                             except:
                                 line = None
                             if not line:
-                                await asyncio.sleep(10)
+                                await asyncio.sleep(1)
                                 #file.seek(where)
-                                if(self.current_log != self.getLogs()[-1]):
-                                    old_log = self.current_log
-                                    self.current_log = self.getLogs()[-1] #update to new recent log
-                                    file = open(self.log_path+self.current_log, "r")
-                                    print("current log: "+self.current_log)
-                                    self.EH.check_Event("Log new", old_log, self.current_log)
+                                if(update_counter >= 60): #only check for new log files every 60s, to reduce IOPS
+                                    update_counter = 0
+                                    if(self.current_log != self.getLogs()[-1]):
+                                        old_log = self.current_log
+                                        self.current_log = self.getLogs()[-1] #update to new recent log
+                                        file = open(self.log_path+self.current_log, "r")
+                                        print("current log: "+self.current_log)
+                                        self.EH.check_Event("Log new", old_log, self.current_log)
                             else:
                                 self.processLogLine(line)
                     

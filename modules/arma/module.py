@@ -35,7 +35,7 @@ class CommandArma(commands.Cog):
         self.readLog = readLog(self.cfg["log_path"], maxMisisons=self.cfg["buffer_maxMisisons"])
         self.readLog.define_line_types()
         self.readLog.pre_scan()
-        asyncio.ensure_future(self.readLog.watch_log())
+        
         
         self.server_pid = None
         asyncio.ensure_future(self.on_ready())
@@ -43,6 +43,7 @@ class CommandArma(commands.Cog):
     async def on_ready(self):
         await self.bot.wait_until_ready()
         self.CommandRcon = self.bot.cogs["CommandRcon"]
+        asyncio.ensure_future(self.readLog.watch_log())
         
         
 ###################################################################################################
