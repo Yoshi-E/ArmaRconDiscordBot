@@ -41,6 +41,9 @@ Easy setup and configuration with a web based setup page<br>
 Display Player acount in the bots status:<br>
 ![player count](https://i.imgur.com/ehjPjF8.png)
 
+Get warnings about script errors in the mission:
+![script errors](https://i.imgur.com/5KsgcGR.png) 
+
 Receive Ban notifications (Local only):<br>
 ![ban notifications](https://i.imgur.com/fXWWblD.png)
 
