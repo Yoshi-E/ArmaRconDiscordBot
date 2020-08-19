@@ -46,9 +46,9 @@ async def sendLong(ctx, msg: str, enclosed=False, hard_post_limit=4):
 
 class Event_Handler(object):
     def __init__(self, events):
-        self.events = events
+        self.events = events #contains all valid event names
         self.events.append("other")
-        self.Events = []
+        self.Events = [] #contains custom events and their functions
         self.disabled = False
         
     def add_Event(self, name: str, func):

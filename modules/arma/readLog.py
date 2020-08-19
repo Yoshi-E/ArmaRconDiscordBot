@@ -19,7 +19,8 @@ class readLog:
         self.path = os.path.dirname(os.path.realpath(__file__))
         self.log_path = log_path
         self.current_log = None
-        
+        self.multiEventLock = None
+        self.multiEventLockData = []
         if(len(self.getLogs()) == 0):
             print("[WARNNING] No log files found in '{}'".format(self.log_path))
             
@@ -28,7 +29,7 @@ class readLog:
         self.Missions.append({"dict": {}, "data": []})
         
         self.define_line_types()
-        #self.EH.add_Event("Server load", self.test)
+        self.EH.add_Event("Mission script error", self.test)
         #self.pre_scan()
         #self.test_missions()
         
@@ -36,7 +37,7 @@ class readLog:
         #asyncio.ensure_future(self.watch_log())
     
     def test(self, *args):
-        print(args)
+        print("----", args)
 
 ###################################################################################################
 #####                                       Events                                             ####
@@ -88,6 +89,7 @@ class readLog:
             ["Mission id",              "^\s(Mission id: (.*))"], # Mission id: a001eb0dc827137d84595a7706f2cdd937f95fa3
             ["Mission finished",        "^(Game finished\.)"], #Game finished.
             ["Mission started",         "^(Game started\.)"], #Game started.
+            ["Mission script error",         "^(Error in expression .*)", "^(File (?P<path>.*)..., line (?P<line>[0-9]*))"], #Error in expression <= false };  #File mpmissions\__cur_mp.Altis\Server\Functions\Server_SpawnTownResistance.sqf..., line 151
         #player
             ["Player modified data file",   "^((.*) uses modified data file)"], #KKD | dawkar3152 uses modified data file
             ["Player disconnected",         "^(Player (.*) disconnected.)"], #Player ARMATA disconnected.
@@ -141,10 +143,25 @@ File mpmissions\__cur_mp.Altis\Server\Functions\Server_SpawnTownResistance.sqf..
     # goes through an array of regex until it finds a match
     def check_log_events(self, line, events):
         try:
-            for event in events:
+            if(self.multiEventLock):
+                m = re.match(self.multiEventLock[2], line)
+                if m:  
+                    self.multiEventLockData.append(line)
+                    result = (self.multiEventLock[0], self.multiEventLockData)
+                    self.multiEventLock = None
+                    tmpB = self.multiEventLockData.copy()
+                    self.multiEventLockData = []
+                    return result
+                self.multiEventLockData.append(line)
+            else:
+                for event in events:
                     m = re.match(event[1], line)
                     if m:
-                        return event[0], m
+                        if(len(event)>2):
+                            self.multiEventLock = event
+                            self.multiEventLockData.append(line)
+                        else:
+                            return event[0], m
         except Exception as e:
             raise Exception("Invalid Regex: '{}' '{}'".format(event, e))
         return None, None
@@ -192,7 +209,6 @@ File mpmissions\__cur_mp.Altis\Server\Functions\Server_SpawnTownResistance.sqf..
         timestamp, msg = self.splitTimestamp(line)
         self.EH.check_Event("Log line", timestamp, msg, None)
         event, event_match = self.check_log_events(msg, self.events)
-        
         if(event_match):
             self.EH.check_Event(event, timestamp, msg, event_match)
             if("clutter" not in event):

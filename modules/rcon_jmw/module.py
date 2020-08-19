@@ -38,7 +38,6 @@ class CommandJMW(commands.Cog):
             self.processLog = ProcessLog(self.CommandArma.readLog, self.cfg)
             self.processLog.readLog.EH.add_Event("Mission readname", self.gameStart)
             self.processLog.readLog.EH.add_Event("Mission finished", self.gameEnd)
-             
             #self.processLog.EH.add_Event("on_missionHeader", self.gameStart)
             #self.processLog.EH.add_Event("on_missionGameOver", self.gameEnd)
            

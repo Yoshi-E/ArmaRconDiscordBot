@@ -33,7 +33,6 @@ class CommandArma(commands.Cog):
         
         #read the Log files
         self.readLog = readLog(self.cfg["log_path"], maxMisisons=self.cfg["buffer_maxMisisons"])
-        self.readLog.define_line_types()
         self.readLog.pre_scan()
         
         
