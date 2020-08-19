@@ -29,7 +29,7 @@ class readLog:
         self.Missions.append({"dict": {}, "data": []})
         
         self.define_line_types()
-        self.EH.add_Event("Mission script error", self.test)
+        #self.EH.add_Event("Mission script error", self.test)
         #self.pre_scan()
         #self.test_missions()
         

@@ -12,11 +12,15 @@ import traceback
 import discord
 from discord.ext import commands
 from discord.ext.commands import has_permissions, CheckFailure
+from collections import deque
 import prettytable
 import geoip2.database
 import datetime
 import shlex, subprocess
 import psutil
+import re
+from time import time
+
 
 import bec_rcon
 
@@ -24,26 +28,52 @@ from modules.core.utils import CommandChecker, RateBucket, CoreConfig
 import modules.core.utils as utils
 from modules.arma.readLog import readLog
 
+
+
 class CommandArma(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.path = os.path.dirname(os.path.realpath(__file__))
         
         self.cfg = CoreConfig.modules["modules/arma"]["general"]
+        self.channel = None
         
         #read the Log files
         self.readLog = readLog(self.cfg["log_path"], maxMisisons=self.cfg["buffer_maxMisisons"])
         self.readLog.pre_scan()
         
         
+        self.mission_error_last = 0
+        self.script_errors = deque(maxlen=10000)
+        
         self.server_pid = None
         asyncio.ensure_future(self.on_ready())
+        
         
     async def on_ready(self):
         await self.bot.wait_until_ready()
         self.CommandRcon = self.bot.cogs["CommandRcon"]
+        self.channel = self.bot.get_channel(self.cfg["post_channel"])
+        if(self.channel):
+            self.readLog.EH.add_Event("Mission script error", self.mission_script_error)
         asyncio.ensure_future(self.readLog.watch_log())
-        
+    
+    async def mission_script_error(self, *args):
+        try:
+            if(time() - self.mission_error_last < 60*10):
+                return
+            self.mission_error_last = time()
+            regex = "Error in expression <(?P<expression>.*?)>.*?Error position: <(?P<position>.*?)>.*?Error Undefined variable in expression: (?P<err_cause>.*?)File (?P<file>.*?)\.\.\., line (?P<line>[0-9]*)"
+            error = "".join(args[3])
+            m = re.match(regex, error, flags=re.S)
+            if m: 
+                await self.channel.send("Error in expression```sqf\n{expression}```Error position:```sqf\n{position}```Error Undefined variable in expression: ``{err_cause}`` ``{file}``... line {line}\nAdditional Errors will be supressed for 10min.".format(**m.groupdict()))
+            else:
+                await self.channel.send("```sqf\n{}```".format(error))
+            
+        except Exception as e:
+            traceback.print_exc()
+            print(e)
         
 ###################################################################################################
 #####                              Arma 3 Server start - stop                                  ####
