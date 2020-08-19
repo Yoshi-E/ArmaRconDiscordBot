@@ -108,6 +108,31 @@ class readLog:
         ]
         #TODO: Bans?
         
+        #TODO:
+        """
+Server: Object 2:6738 not found (message Type_120)
+Error in expression <= false };
+};
+
+if (_can_use) then {
+if (_unit isEqualType []) then { _unit = sel>
+  Error position: <_unit isEqualType []) then { _unit = sel>
+  Error Undefined variable in expression: _unit
+File mpmissions\__cur_mp.Altis\Server\Functions\Server_SpawnTownResistance.sqf..., line 151
+Error in expression <{
+
+_picked = _pool select _ci;
+
+_unit = _picked select 0;
+_probability = _picked>
+  Error position: <_picked select 0;
+_probability = _picked>
+  Error Undefined variable in expression: _picked
+File mpmissions\__cur_mp.Altis\Server\Functions\Server_SpawnTownResistance.sqf..., line 142
+"POOL Composer for Paros (value 350)"
+        
+        """
+        
         #base events:
         self.base_events = ["Log new", "Log line", "Log line filtered"]
         

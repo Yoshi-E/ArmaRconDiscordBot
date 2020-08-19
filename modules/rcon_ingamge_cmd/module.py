@@ -49,12 +49,15 @@ class CommandRconIngameComs(commands.Cog):
         self.bot = bot
         self.path = os.path.dirname(os.path.realpath(__file__))
         
+        self.cfg = CoreConfig.modules["modules/rcon_ingamge_cmd"]["general"]
+        
         self.afkLock = False
         self.afkTime = -1
         asyncio.ensure_future(self.on_ready())
         
         self.RconCommandEngine = RconCommandEngine
         RconCommandEngine.cogs = self
+        RconCommandEngine.command_prefix = self.cfg["command_prefix"]
         #RconCommandEngine.rate_limit_commands.append("afk")
         #RconCommandEngine.admins.append("Yoshi_E") this simply bypasses cooldowns for cmds
         #RconCommandEngine.admins.append("[H] Tom")

@@ -124,8 +124,8 @@ class RconCommandEngine(object):
                     ctx.args = ctx.args[1:]
                     
                     ctx.channel = channel
-                    if(len(ctx.command) > 0 and RconCommandEngine.command_prefix==ctx.command[0]):
-                        ctx.command = ctx.command[1:]
+                    if(len(ctx.command) > len(RconCommandEngine.command_prefix) and RconCommandEngine.command_prefix==ctx.command[:len(RconCommandEngine.command_prefix)]):
+                        ctx.command = ctx.command[len(RconCommandEngine.command_prefix):]
                         return await RconCommandEngine.processCommand(ctx)
         except Exception as e:
             RconCommandEngine.log_s(traceback.format_exc())
@@ -175,7 +175,7 @@ class RconCommandEngine(object):
                 RconCommandEngine.log_s("Error in: {}".format(ctx))
                 return ctx
         #Command not found
-        if(len(ctx.command) > 0 and ctx.command[0] != RconCommandEngine.command_prefix and ctx.command != "" and ctx.command != None):
+        if(len(ctx.command) > len(len(RconCommandEngine.command_prefix)) and ctx.command[:len(RconCommandEngine.command_prefix)] != RconCommandEngine.command_prefix and ctx.command != "" and ctx.command != None):
             ctx.error = "Command '{}' not found".format(ctx.command)
             ctx.executed = False
             RconCommandEngine.log_s(ctx)

@@ -238,6 +238,8 @@ class ProcessLog:
         lastwinner = meta["winner"]
         lastmap = meta["map"]
         timestamp = meta["timestamp"]
+        if(timestamp == None):
+            timestamp = "00:00:00"
         fdate = meta["date"]
         
         #register plots
@@ -287,27 +289,27 @@ class ProcessLog:
                     }) 
                     
         if(admin == True):       
-            v1 = self.featchValues(data, "self.active_SQF_count")
+            v1 = self.featchValues(data, "active_SQF_count")
             if(len(v1) > 0):
                 plots.append({
                     "data": [[v1, "g"]],
                     "xlabel": "Time in min",
-                    "ylabel": "self.active SQF",
-                    "title": "self.active Server SQF"
+                    "ylabel": "active SQF",
+                    "title": "active Server SQF"
                     })  
                     
         if(admin == True):       
-            v1 = self.featchValues(data, "self.active_towns")
+            v1 = self.featchValues(data, "active_towns")
             if(len(v1) > 0):
                 plots.append({
                     "data": [[v1, "g"]],
                     "xlabel": "Time in min",
-                    "ylabel": "self.active Towns",
-                    "title": "self.active Towns"
+                    "ylabel": "active Towns",
+                    "title": "active Towns"
                     }) 
                     
         if(admin == True):       
-            v1 = self.featchValues(data, "self.active_AI")
+            v1 = self.featchValues(data, "active_AI")
             if(len(v1) > 0):
                 plots.append({
                     "data": [[v1, "g"]],
@@ -335,7 +337,7 @@ class ProcessLog:
             gameduration = round(time[-1])
         else:
             gameduration = 0
-        print(timestamp+","+lastwinner+","+str(gameduration))
+        print("{} {} {}".format(timestamp, lastwinner, gameduration))
         
         #maps plot count to image size
         #plot_count: image_size
