@@ -172,7 +172,7 @@ class CommandRcon(commands.Cog):
         
         self.lastReconnect = deque()
         self.ipReader = geoip2.database.Reader(self.path+"/GeoLite2-Country.mmdb")
-        
+        self.arma_rcon  = None
         
         asyncio.ensure_future(self.on_ready())
         
@@ -193,6 +193,7 @@ class CommandRcon(commands.Cog):
         self.setupRcon()
             
     def setupRcon(self, serverMessage=None):
+        del self.arma_rcon 
         self.arma_rcon = bec_rcon.ARC(self.rcon_settings["ip"], 
                                  self.rcon_settings["password"], 
                                  self.rcon_settings["port"], 
@@ -351,6 +352,7 @@ class CommandRcon(commands.Cog):
         aliases=['disconnectrcon'],
         pass_context=True)
     async def disconnectrcon(self, ctx): 
+        self.lastReconnect.append(datetime.datetime.now())
         self.arma_rcon.disconnect()
         await ctx.send("Disconnect Rcon")   
        
@@ -838,7 +840,7 @@ class CommandRcon(commands.Cog):
     async def goVote(self, ctx): 
         data = await self.arma_rcon.goVote()
         msg = "Sending users to vote for next mission"
-        await ctx.send(msg)       
+        await ctx.send(msg)          
 
 
 
