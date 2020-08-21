@@ -20,27 +20,11 @@ import psutil
 import inspect
 import time
 from random import randint
+import glob
 
 from modules.core.utils import CommandChecker, sendLong, CoreConfig, Tools
+from modules.core.config import Config
 from .cmdengine import RconCommandEngine
-
-class CommandRconTaskScheduler(commands.Cog):
-
-    def __init__(self, bot):
-        self.bot = bot
-        self.path = os.path.dirname(os.path.realpath(__file__))
-        
-        #self.rcon_adminNotification = CoreConfig.cfg.new(self.path+"/rcon_scheduler.json")
-    
-        asyncio.ensure_future(self.on_ready())
-        
-    async def on_ready(self):
-        await self.bot.wait_until_ready()
-        if("CommandRcon" not in self.bot.cogs):
-            print("[module] 'CommandRcon' required, but not found in '{}'. Module unloaded".format(type(self).__name__))
-            del self
-            return
-        self.CommandRcon = self.bot.cogs["CommandRcon"]
 
 
 class AccountVerificationCode():
@@ -69,6 +53,59 @@ class AccountVerificationCode():
         await asyncio.sleep(self.timelimit)
         del obj
 
+class PermissionConfig(CoreConfig):
+    path = os.path.dirname(os.path.realpath(__file__))
+    
+    def __init__(self, bot):
+        CoreConfig.bot = bot
+        self.cfgPermissions_Roles = {}
+        self.generate_default_settings()
+    
+    def load_role_permissions(self):
+        files = glob.glob(type(self).path+"/permissions_*.json")
+        if(len(files)==0):
+            self.generate_default_settings()
+        for file in files:
+            role = os.path.basename(file).replace("permissions_", "").replace(".json", "")
+            self.cfgPermissions_Roles[role] = Config(type(self).path+"/permissions_{}.json".format(role))
+        
+        #add new commands (for new modules)
+        for role, data in self.cfgPermissions_Roles.items():
+            for command in RconCommandEngine.commands:
+                cmd = "command_"+str(command[0])
+                if(cmd not in self.cfgPermissions_Roles[role]):
+                    self.cfgPermissions_Roles[role][cmd] = False
+                    
+    def generate_default_settings(self):
+        for role in ["@everyone", "Admin"]:
+            self.cfgPermissions_Roles[role] = type(self).cfg.new(type(self).path+"/permissions_{}.json".format(role))
+            
+            if(role in ["default"]):
+                val = False
+            else:
+                val = True
+                
+            for command in RconCommandEngine.commands:
+                self.cfgPermissions_Roles[role]["command_"+str(command[0])] = val
+                
+    def deall_role(self, data):
+        role = data["role"][0]
+        for command in RconCommandEngine.commands:
+            self.cfgPermissions_Roles[role]["command_"+str(command[0])] = False    
+    
+    def all_role(self, data):
+        role = data["role"][0]
+        for command in RconCommandEngine.commands:
+            self.cfgPermissions_Roles[role]["command_"+str(command[0])] = True
+        
+    def add_role(self, data):
+        role = data["add_role"][0]
+        print("Created new role: '{}'".format(role))
+        self.cfgPermissions_Roles[role] = type(self).cfg.new(type(self).path+"/permissions_{}.json".format(role))
+
+        for command in RconCommandEngine.commands:
+            self.cfgPermissions_Roles[role]["command_"+str(command[0])] = False
+
 # Registering functions, and interacting with the discord bot.
 class CommandRconIngameComs(commands.Cog):
 
@@ -77,6 +114,8 @@ class CommandRconIngameComs(commands.Cog):
         self.path = os.path.dirname(os.path.realpath(__file__))
         
         self.cfg = CoreConfig.modules["modules/rcon_ingamge_cmd"]["general"]
+        
+        self.PermissionConfig = PermissionConfig(self.bot)
         
         self.afkLock = False
         self.afkTime = -1
@@ -119,6 +158,9 @@ class CommandRconIngameComs(commands.Cog):
         
         print("[ingcmd] Generated code '{}' for user {} [{}]".format(code, ctx.author.name, ctx.author.id))
         msg = "To verify your account, use the in game command '{}link {}'\nThe code is valid for 5min.".format(RconCommandEngine.command_prefix, code)
+        
+        if("account_arma3" in self.user_data[user_id]):
+            msg = "You account is already linked.\n"+msg
         await ctx.author.send(msg)   
 
         await asyncio.sleep(60*5)
@@ -233,13 +275,33 @@ class CommandRconIngameComs(commands.Cog):
 
     @RconCommandEngine.command(name="link")  
     async def linkAcc(self, rctx, verifyCode):
-        playerBEID, playerGUID = await RconCommandEngine.getPlayerBEID(rctx.user)
-        if(self.verifyAccount(int(verifyCode), playerGUID)):
-            await rctx.say("Account successfully linked!")
-        else:
-            await rctx.say("Invalid code")
+        try:
+            playerBEID, playerGUID = await RconCommandEngine.getPlayerBEID(rctx.user)
+            if(self.verifyAccount(int(verifyCode), playerGUID)):
+                await rctx.say("Account successfully linked!")
+            else:
+                await rctx.say("Invalid code")
+        except ValueError as e:
+            pass
         
+class CommandRconTaskScheduler(commands.Cog):
+
+    def __init__(self, bot):
+        self.bot = bot
+        self.path = os.path.dirname(os.path.realpath(__file__))
         
+        #self.rcon_adminNotification = CoreConfig.cfg.new(self.path+"/rcon_scheduler.json")
+    
+        asyncio.ensure_future(self.on_ready())
+        
+    async def on_ready(self):
+        await self.bot.wait_until_ready()
+        if("CommandRcon" not in self.bot.cogs):
+            print("[module] 'CommandRcon' required, but not found in '{}'. Module unloaded".format(type(self).__name__))
+            del self
+            return
+        self.CommandRcon = self.bot.cogs["CommandRcon"]
+
         
 def setup(bot):
     #bot.add_cog(CommandRconTaskScheduler(bot))

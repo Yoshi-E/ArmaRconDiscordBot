@@ -51,6 +51,7 @@ class RconCommandEngine(object):
             self.command = None
             self.channel = None
             self.user_beid = -1
+            self.user_guid = -1
         
         async def say(self, msg):
             if(int(self.user_beid) >= 0):
@@ -130,9 +131,12 @@ class RconCommandEngine(object):
         except Exception as e:
             RconCommandEngine.log_s(traceback.format_exc())
             RconCommandEngine.log_s(e)
-                        
+    
+    async def checkPermission(self, ctx, func_name):
+        return True
+        
     async def processCommand(ctx):
-        ctx.user_beid, _ = await RconCommandEngine.getPlayerBEID(ctx.user)
+        ctx.user_beid, ctx.user_guid = await RconCommandEngine.getPlayerBEID(ctx.user)
         for func_name, func, parameters in RconCommandEngine.commands:
             ctx.func_name = func_name 
             ctx.parameters = parameters 
@@ -148,7 +152,11 @@ class RconCommandEngine(object):
                                 ctx.executed = False
                                 await ctx.say("Error: '{}'".format(check_data))
                                 return ctx
-                    
+                                
+                    if(not await self.checkPermission(ctx, func_name)):
+                        ctx.executed = False
+                        return ctx
+                        
                     if(len(parameters) > 0):
                         result = await func(ctx, *ctx.args)
                     else:

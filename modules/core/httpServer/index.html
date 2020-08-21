@@ -206,6 +206,10 @@ Settings are saved automatically.
 
 </table>
 
+<h2>In game permissions (BEC)</h2>
+<table id="permission_settings_ingcmd">
+
+</table>
 
 </body>
 
@@ -216,6 +220,7 @@ Settings are saved automatically.
 <script type="text/javascript">
 
 permission_settings = document.getElementById("permission_settings");
+permission_settings_ingcmd = document.getElementById("permission_settings_ingcmd");
 
 var coll = document.getElementsByClassName("module_setting");
 var i;
@@ -249,7 +254,7 @@ function generateTableHead(table, data) {
 		}
 }
 
-function generateTable(table, data) {
+function generateTablePermissions(table, data) {
 	var enabled =  data["registered"]; //TODO: get only commands with decorator
 	delete data["registered"];
 	jQuery.each(data, function(i, val) {
@@ -262,12 +267,29 @@ function generateTable(table, data) {
 			if(enabled.includes(name)) {
 				let cell = row.insertCell();
 				//let text = document.createTextNode(val);
-				cell.appendChild(createCheckbox(i, name, val));
+				//console.log(name);
+				cell.appendChild(createCheckbox(i, name, val, permission_changed));
 			}
 
 		});
 	});
+}
 
+function generateTablePermissions_ingcmd(table, data) {
+	jQuery.each(data, function(i, val) {
+		let row = table.insertRow(); 
+		let cell = row.insertCell();
+		let text = document.createTextNode(i);
+		cell.appendChild(text);
+		var name = i;
+		jQuery.each(data[i], function(i, val) {
+			let cell = row.insertCell();
+			//let text = document.createTextNode(val);
+			//console.log(name);
+			cell.appendChild(createCheckbox(i, name, val, permission_ingcmd_changed));
+
+		});
+	});
 }
 
 function generate_delete_role_button(name) {
@@ -333,18 +355,28 @@ function active_deall_role(e) {
 };
 
 
-function createCheckbox(parent, command, value) {
+function createCheckbox(parent, command, value, onchange) {
 	var x = document.createElement("INPUT");
 	x.setAttribute("type", "checkbox");
 	x.checked = value;
 	x.id = "command_"+command;
 	x.value = parent;
-	x.onchange = permission_changed;
+	x.onchange = onchange;
 	return x;
 }; 
 
 function permission_changed(e) {
 	$.post('/set_settings.json', { 
+	name: e.srcElement.id,
+	value: e.srcElement.checked,
+	role: e.srcElement.value
+	}, function(data) { 
+		//console.log(data);
+	});
+};
+
+function permission_ingcmd_changed(e) {
+	$.post('/set_ingcmd_settings.json', { 
 	name: e.srcElement.id,
 	value: e.srcElement.checked,
 	role: e.srcElement.value
@@ -386,7 +418,7 @@ function debounce(func, interval) {
 $.post('/get_module_settings.json', { 
 	}, function(data) { 
 		var main_div_p = document.getElementById("module_settings");
-		console.log(data);
+		//console.log(data);
 		jQuery.each(data, function(key1, val1) {
 			
 			var main_div = document.createElement("div");
@@ -398,7 +430,7 @@ $.post('/get_module_settings.json', {
 			title_box.className = "module_title_container";
 			//Load_Module
 			var element = document.createElement("input");
-			console.log(key1);
+			//console.log(key1);
 			element.type = "checkbox";
 			element.checked = val1["general"]["load_module"];
 			element.className = "module_title_load";
@@ -473,7 +505,7 @@ $.post('/get_module_settings.json', {
 						
 						var element = document.createElement("input");
 						//console.log(data);
-						console.log(typeof val3);
+						//console.log(typeof val3);
 						if (typeof val3 === "boolean"){
 							element.type = "checkbox";
 							element.checked = val3;
@@ -499,11 +531,22 @@ $.post('/get_module_settings.json', {
 });
 
 //Load Permissions
-$.post('/get_settings.json', { 
+$.post('/get_permissions.json', { 
 	}, function(data) { 
 		//console.log(data);
 		generateTableHead(permission_settings, data["head"])
 		delete data["head"];
-		generateTable(permission_settings, data)
+		generateTablePermissions(permission_settings, data)
+});
+
+//Load Permissions
+$.post('/get_permissions_ingcmd.json', { 
+	}, function(data) { 
+		console.log(data);
+		if(data){
+			generateTableHead(permission_settings_ingcmd, data["head"])
+			delete data["head"];
+			generateTablePermissions_ingcmd(permission_settings_ingcmd, data);
+		}
 });
 </script>
