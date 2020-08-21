@@ -233,7 +233,7 @@ class CommandRconIngameComs(commands.Cog):
 
     @RconCommandEngine.command(name="link")  
     async def linkAcc(self, rctx, verifyCode):
-        playerGUID = await RconCommandEngine.getPlayerBEID(rctx.user)
+        playerBEID, playerGUID = await RconCommandEngine.getPlayerBEID(rctx.user)
         if(self.verifyAccount(int(verifyCode), playerGUID)):
             await rctx.say("Account successfully linked!")
         else:
