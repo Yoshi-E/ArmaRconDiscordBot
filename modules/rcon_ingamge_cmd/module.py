@@ -19,6 +19,7 @@ import shlex, subprocess
 import psutil
 import inspect
 import time
+from random import randint
 
 from modules.core.utils import CommandChecker, sendLong, CoreConfig, Tools
 from .cmdengine import RconCommandEngine
@@ -42,6 +43,32 @@ class CommandRconTaskScheduler(commands.Cog):
         self.CommandRcon = self.bot.cogs["CommandRcon"]
 
 
+class AccountVerificationCode():
+    def __init__(self, authorID, timelimit = 60):
+        self.authorID = authorID
+        self.code = randint(1000, 9999)
+        self.timelimit = timelimit
+    
+    def __str__(self):
+        return str(self.code)
+    
+    def __lt__(self, other):
+        return self.code < other
+    def __le__(self, other):
+        return self.code <= other
+    def __eq__(self, other):
+        return self.code == other
+    def __ne__(self, other):
+        return self.code != other
+    def __gt__(self, other):
+        return self.code > other
+    def __ge__(self, other):
+        return self.code >= other
+        
+    async def destruct(self, obj):
+        await asyncio.sleep(self.timelimit)
+        del obj
+
 # Registering functions, and interacting with the discord bot.
 class CommandRconIngameComs(commands.Cog):
 
@@ -53,7 +80,13 @@ class CommandRconIngameComs(commands.Cog):
         
         self.afkLock = False
         self.afkTime = -1
+        self.account_verify_codes = []
+        
         asyncio.ensure_future(self.on_ready())
+        
+        self.user_data = {}
+        if(os.path.isfile(self.path+"/userdata.json")):
+            self.user_data = json.load(open(self.path+"/userdata.json","r"))
         
         self.RconCommandEngine = RconCommandEngine
         RconCommandEngine.cogs = self
@@ -66,8 +99,50 @@ class CommandRconIngameComs(commands.Cog):
     async def on_ready(self):
         await self.bot.wait_until_ready()
         self.CommandRcon = self.bot.cogs["CommandRcon"]
-    
+
+    def set_user_data(self, user_id=0, field="", data=[]):
+        if(user_id != 0):
+            self.user_data[user_id] = {field: data}
+        #save data
+        with open(self.path+"/userdata.json", 'w') as outfile:
+            json.dump(self.user_data, outfile, sort_keys=True, indent=4, separators=(',', ': '))
+  
+    @commands.cooldown(1,60*5)
+    @CommandChecker.command(name='linkAccount',
+        brief="Link you discord account with your arma 3 ingame account.",
+        aliases=['linkaccount'],
+        pass_context=True)
+    async def linkAccount(self, ctx): 
+        code = AccountVerificationCode(ctx.author.id, timelimit = 60*5)
+        asyncio.ensure_future(code.destruct(code))
+        self.account_verify_codes.append(code)
         
+        print("[ingcmd] Generated code '{}' for user {} [{}]".format(code, ctx.author.name, ctx.author.id))
+        msg = "To verify your account, use the in game command '{}link {}'\nThe code is valid for 5min.".format(RconCommandEngine.command_prefix, code)
+        await ctx.author.send(msg)   
+
+        await asyncio.sleep(60*5)
+        if("account_arma3" not in self.user_data[user_id]):
+            await ctx.author.send("Code expired")  
+        
+    def verifyAccount(self, verifyCode, link_id):
+        try:
+            verifyCode = self.account_verify_codes.index(verifyCode)
+        except ValueError:
+            print("not found")
+            verifyCode = None
+        else: 
+            verifyCode = self.account_verify_codes[verifyCode]
+        if(verifyCode):
+            print("[ingcmd] Linked account '{}' with arma 3 '{}'".format(verifyCode.authorID, link_id))
+            self.set_user_data(verifyCode.authorID, "account_arma3", link_id)
+            return True
+        return False
+       
+###################################################################################################
+#####                                    In game commands                                      ####
+################################################################################################### 
+
     @RconCommandEngine.command(name="ping")  
     async def ping(self, rctx):
         await rctx.say("Pong!")    
@@ -156,6 +231,16 @@ class CommandRconIngameComs(commands.Cog):
             await rctx.say("``{}`` did not respond and was kicked for being AFK".format(player_name))
         self.afkLock = False
 
+    @RconCommandEngine.command(name="link")  
+    async def linkAcc(self, rctx, verifyCode):
+        playerGUID = await RconCommandEngine.getPlayerBEID(rctx.user)
+        if(self.verifyAccount(int(verifyCode), playerGUID)):
+            await rctx.say("Account successfully linked!")
+        else:
+            await rctx.say("Invalid code")
+        
+        
+        
 def setup(bot):
     #bot.add_cog(CommandRconTaskScheduler(bot))
     bot.add_cog(CommandRconIngameComs(bot))

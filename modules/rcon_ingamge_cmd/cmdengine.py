@@ -98,7 +98,7 @@ class RconCommandEngine(object):
             if(name.endswith(" (Lobby)")): #Strip lobby from name
                 name = name[:-8]
             if(player == name):
-                return id
+                return (id, guid)
         raise LookupError("Player '{}' not found".format(player))
         
     @staticmethod
@@ -132,7 +132,7 @@ class RconCommandEngine(object):
             RconCommandEngine.log_s(e)
                         
     async def processCommand(ctx):
-        ctx.user_beid = await RconCommandEngine.getPlayerBEID(ctx.user)
+        ctx.user_beid, _ = await RconCommandEngine.getPlayerBEID(ctx.user)
         for func_name, func, parameters in RconCommandEngine.commands:
             ctx.func_name = func_name 
             ctx.parameters = parameters 
