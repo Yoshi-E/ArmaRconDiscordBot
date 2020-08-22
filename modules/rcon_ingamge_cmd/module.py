@@ -161,6 +161,7 @@ class CommandRconIngameComs(commands.Cog):
         #check if user can use it
         #Lookup user in linked accounts:
         for user_id,data in self.user_data.items():
+            print(data["account_arma3"], rctx.user_guid)
             if("account_arma3" in data and data["account_arma3"] == rctx.user_guid):
                 #check if user has permission:
                 user = self.bot.get_user(int(user_id))
