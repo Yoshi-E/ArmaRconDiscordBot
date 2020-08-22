@@ -80,7 +80,7 @@ class PermissionConfig(CoreConfig):
         for role in ["@everyone", "Admin"]:
             self.cfgPermissions_Roles[role] = type(self).cfg.new(type(self).path+"/permissions_{}.json".format(role))
             
-            if(role in ["default"]):
+            if(role in ["@everyone"]):
                 val = False
             else:
                 val = True
