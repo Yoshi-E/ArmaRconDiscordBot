@@ -130,6 +130,9 @@ class CommandRconIngameComs(commands.Cog):
         self.RconCommandEngine = RconCommandEngine
         RconCommandEngine.cogs = self
         RconCommandEngine.command_prefix = self.cfg["command_prefix"]
+        
+        #God please have mercy on me for doing this:
+        RconCommandEngine.checkPermission = self.checkPermission #MonkeyPatching
         #RconCommandEngine.rate_limit_commands.append("afk")
         #RconCommandEngine.admins.append("Yoshi_E") this simply bypasses cooldowns for cmds
         #RconCommandEngine.admins.append("[H] Tom")
@@ -145,6 +148,29 @@ class CommandRconIngameComs(commands.Cog):
         #save data
         with open(self.path+"/userdata.json", 'w') as outfile:
             json.dump(self.user_data, outfile, sort_keys=True, indent=4, separators=(',', ': '))
+  
+    def checkPermission(self, rctx, func_name):
+        pr = self.PermissionConfig.cfgPermissions_Roles
+        role = "@everyone"
+        #check if everybody can use it
+        if(cmd in pr[str(role)] and pr[str(role)][cmd]):
+            #anyone can use the cmd
+            return True
+        
+        #check if user can use it
+        #Lookup user in linked accounts:
+        for user_id,data in self.user_data.items():
+            if("account_arma3" in data and data["account_arma3"] == rctx.user_guid):
+                #check if user has permission:
+                user = self.bot.get_user(int(user_id))
+                if(user):
+                    #get user roles, and check if role has permission
+                    for role in user.roles:
+                        if str(role) in pr.keys():
+                            cmd = "command_{}".format(ctx.command.name)
+                            if(cmd in pr[str(role)] and pr[str(role)][cmd]):
+                                return True
+        return False               
   
     @commands.cooldown(1,60*5)
     @CommandChecker.command(name='linkAccount',
