@@ -152,7 +152,7 @@ class CommandRconIngameComs(commands.Cog):
     async def checkPermission(self, rctx, cmd):
         print("OK 1")
         try:
-             print("OK 2")
+            print("OK 2")
             pr = self.PermissionConfig.cfgPermissions_Roles
             role = "@everyone"
             #check if everybody can use it
