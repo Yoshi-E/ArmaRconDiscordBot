@@ -315,6 +315,11 @@ class CommandRconIngameComs(commands.Cog):
                 await rctx.say("Invalid code")
         except ValueError as e:
             pass
+     
+    @RconCommandEngine.command(name="kpl")  
+    async def kpl(self, rctx, beid):
+        await RconCommandEngine.kickPlayer(beid, "AFK too long") 
+            
         
 class CommandRconTaskScheduler(commands.Cog):
 
