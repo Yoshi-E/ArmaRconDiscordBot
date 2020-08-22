@@ -318,7 +318,7 @@ class CommandRconIngameComs(commands.Cog):
      
     @RconCommandEngine.command(name="kpl")  
     async def kpl(self, rctx, beid):
-        await RconCommandEngine.kickPlayer(beid, "AFK too long") 
+        await RconCommandEngine.cogs.CommandRcon.arma_rcon.kickPlayer(beid, "Kicked by '{}'".format(rctx.user)) 
             
         
 class CommandRconTaskScheduler(commands.Cog):

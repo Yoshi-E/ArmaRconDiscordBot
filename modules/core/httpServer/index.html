@@ -207,6 +207,11 @@ Settings are saved automatically.
 </table>
 
 <h2>In game permissions (BEC)</h2>
+<form action="/add_role_ingcmd.json" method="post">
+  <label for="add_role">Add Role:</label><br>
+  <input type="text" id="add_role" name="add_role" value=""><br>
+  <input type="submit" value="Submit">
+</form> 
 <table id="permission_settings_ingcmd">
 
 </table>
@@ -254,6 +259,23 @@ function generateTableHead(table, data) {
 		}
 }
 
+function generateTableHead_ingcmd(table, data) {
+	data.unshift("Command");
+	let thead = table.createTHead();
+	let row = thead.insertRow();
+	for (let key of data) {
+		let th = document.createElement("th");
+		let text = document.createTextNode(key);
+		th.appendChild(text);
+		row.appendChild(th);
+		if(key != "Command") {
+			th.appendChild(generate_delete_role_button_ingcmd(key)); 
+			th.appendChild(generate_role_all_button_ingcmd(key)); 
+			th.appendChild(generate_role_deall_button_ingcmd(key)); 
+		}
+		}
+}
+
 function generateTablePermissions(table, data) {
 	var enabled =  data["registered"]; //TODO: get only commands with decorator
 	delete data["registered"];
@@ -291,6 +313,7 @@ function generateTablePermissions_ingcmd(table, data) {
 		});
 	});
 }
+
 
 function generate_delete_role_button(name) {
 	var button = document.createElement('input');
@@ -353,6 +376,70 @@ function active_deall_role(e) {
 	});
 	window.location.reload(false);
 };
+
+
+function generate_delete_role_button_ingcmd(name) {
+	var button = document.createElement('input');
+	button.setAttribute('type', 'submit');
+	button.setAttribute('ID', name);
+	button.setAttribute('title', "Delete the role");
+	button.setAttribute('value', 'X');
+	button.setAttribute('onclick', 'delete_role_ingcmd(this)');
+	button.setAttribute('form', 'myform');
+	return button	
+}
+
+function generate_role_all_button_ingcmd(name) {
+	var button = document.createElement('input');
+	button.setAttribute('type', 'submit');
+	button.setAttribute('ID', name);
+	button.setAttribute('title', "Enable all permissions");
+	button.setAttribute('value', 'All');
+	button.setAttribute('onclick', 'active_all_role_ingcmd(this)');
+	button.setAttribute('form', 'myform');
+	return button	
+}
+
+function generate_role_deall_button_ingcmd(name) {
+	var button = document.createElement('input');
+	button.setAttribute('type', 'submit');
+	button.setAttribute('ID', name);
+	button.setAttribute('title', "Disable all permissions");
+	button.setAttribute('value', 'None');
+	button.setAttribute('onclick', 'active_deall_role_ingcmd(this)');
+	button.setAttribute('form', 'myform');
+	return button	
+}
+
+function delete_role_ingcmd(e) {
+	if(confirm("Are you sure you want to delete the role "+e.id+"?")) {
+		$.post('/delete_role_ingcmd.json', { 
+		delete_role: e.id
+		}, function(data) { 
+			//console.log(data);
+		});
+		window.location.reload(false);
+	}	
+};
+
+function active_all_role_ingcmd(e) {
+	$.post('/active_all_role_ingcmd.json', { 
+	role: e.id
+	}, function(data) { 
+		//console.log(data);
+	});
+	window.location.reload(false);
+};
+	
+function active_deall_role_ingcmd(e) {
+	$.post('/active_deall_role_ingcmd.json', { 
+	role: e.id
+	}, function(data) { 
+		//console.log(data);
+	});
+	window.location.reload(false);
+};
+
 
 
 function createCheckbox(parent, command, value, onchange) {
@@ -544,7 +631,7 @@ $.post('/get_permissions_ingcmd.json', {
 	}, function(data) { 
 		console.log(data);
 		if(data){
-			generateTableHead(permission_settings_ingcmd, data["head"])
+			generateTableHead_ingcmd(permission_settings_ingcmd, data["head"])
 			delete data["head"];
 			generateTablePermissions_ingcmd(permission_settings_ingcmd, data);
 		}

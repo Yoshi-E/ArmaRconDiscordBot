@@ -103,13 +103,21 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
             self.data_redirect("/restart.html")
             _thread.start_new_thread(WebServer.restart, ())
         elif self.path == '/add_role.json':
-            WebServer.bot.CoreConfig.add_role(self.data_redirect())      
+            WebServer.bot.CoreConfig.add_role(self.data_redirect())           
+        elif self.path == '/add_role_ingcmd.json':
+            WebServer.bot.cogs["CommandRconIngameComs"].PermissionConfig.add_role(self.data_redirect())      
         elif self.path == '/delete_role.json':
-            WebServer.bot.CoreConfig.delete_role(self.data_redirect())        
+            WebServer.bot.CoreConfig.delete_role(self.data_redirect())             
+        elif self.path == '/delete_role_ingcmd.json':
+            WebServer.bot.cogs["CommandRconIngameComs"].PermissionConfig.delete_role(self.data_redirect())        
         elif self.path == '/active_deall_role.json':
-            WebServer.bot.CoreConfig.deall_role(self.data_redirect())        
+            WebServer.bot.CoreConfig.deall_role(self.data_redirect())            
+        elif self.path == '/active_deall_role_ingcmd.json':
+            WebServer.bot.cogs["CommandRconIngameComs"].PermissionConfig.deall_role(self.data_redirect())        
         elif self.path == '/active_all_role.json':
-            WebServer.bot.CoreConfig.all_role(self.data_redirect())         
+            WebServer.bot.CoreConfig.all_role(self.data_redirect())           
+        elif self.path == '/active_all_role_ingcmd.json':
+            WebServer.bot.cogs["CommandRconIngameComs"].PermissionConfig.all_role(self.data_redirect())         
         elif "set_module_settings::" in self.path:
             WebServer.set_module_settings(self.path, self.data_redirect())        
         elif self.path == '/get_module_settings.json':
