@@ -132,7 +132,7 @@ class RconCommandEngine(object):
             RconCommandEngine.log_s(traceback.format_exc())
             RconCommandEngine.log_s(e)
     
-    async def checkPermission(self, ctx, func_name):
+    async def checkPermission(ctx, func_name):
         return True
         
     async def processCommand(ctx):
@@ -153,7 +153,7 @@ class RconCommandEngine(object):
                                 await ctx.say("Error: '{}'".format(check_data))
                                 return ctx
                                 
-                    if(not await self.checkPermission(ctx, func_name)):
+                    if(not await RconCommandEngine.checkPermission(ctx, func_name)):
                         ctx.executed = False
                         return ctx
                         
