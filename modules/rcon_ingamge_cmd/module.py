@@ -132,7 +132,7 @@ class CommandRconIngameComs(commands.Cog):
         RconCommandEngine.command_prefix = self.cfg["command_prefix"]
         
         #God please have mercy on me for doing this:
-        RconCommandEngine.checkPermission = CommandRconIngameComs.checkPermission #MonkeyPatching
+        RconCommandEngine.checkPermission = self.checkPermission #MonkeyPatching
         #RconCommandEngine.rate_limit_commands.append("afk")
         #RconCommandEngine.admins.append("Yoshi_E") this simply bypasses cooldowns for cmds
         #RconCommandEngine.admins.append("[H] Tom")
@@ -149,7 +149,7 @@ class CommandRconIngameComs(commands.Cog):
         with open(self.path+"/userdata.json", 'w') as outfile:
             json.dump(self.user_data, outfile, sort_keys=True, indent=4, separators=(',', ': '))
   
-    def checkPermission(rctx, func_name):
+    def checkPermission(self, rctx, func_name):
         pr = self.PermissionConfig.cfgPermissions_Roles
         role = "@everyone"
         #check if everybody can use it
