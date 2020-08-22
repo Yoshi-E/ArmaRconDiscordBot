@@ -150,18 +150,15 @@ class CommandRconIngameComs(commands.Cog):
             json.dump(self.user_data, outfile, sort_keys=True, indent=4, separators=(',', ': '))
   
     async def checkPermission(self, rctx, cmd):
-        print("OK 1")
         try:
-            print("OK 2")
+            cmd = "command_{}".format(cmd)
             pr = self.PermissionConfig.cfgPermissions_Roles
             role = "@everyone"
             #check if everybody can use it
-            print(cmd, pr[role].keys())
-            if("command_"+cmd in pr[role] and pr[role]["command_"+cmd]):
+            if(cmd in pr[role] and pr[role][cmd]):
                 #anyone can use the cmd
                 print("True discord @everyone")
                 return True
-            print("OK 3")
             #check if user can use it
             #Lookup user in linked accounts:
             for user_id,data in self.user_data.items():
@@ -175,7 +172,7 @@ class CommandRconIngameComs(commands.Cog):
                         #get user roles, and check if role has permission
                         for role in user.roles:
                             if str(role) in pr.keys():
-                                cmd = "command_{}".format(ctx.command.name)
+                                
                                 if(cmd in pr[str(role)] and pr[str(role)][cmd]):
                                     print("True discord role")
                                     return True
