@@ -165,7 +165,7 @@ class CommandRconIngameComs(commands.Cog):
             print(data["account_arma3"], rctx.user_guid)
             if("account_arma3" in data and data["account_arma3"][0] == rctx.user_guid):
                 #check if user has permission:
-                server = ctx.bot.guilds[0]
+                server = self.bot.guilds[0]
                 user = discord.utils.get(server.members, id=int(user_id))
                 print("User:", user)
                 if(user):
