@@ -157,7 +157,6 @@ class CommandRconIngameComs(commands.Cog):
             #check if everybody can use it
             if(cmd in pr[role] and pr[role][cmd]):
                 #anyone can use the cmd
-                print("True discord @everyone")
                 return True
             #check if user can use it
             #Lookup user in linked accounts:
@@ -167,18 +166,15 @@ class CommandRconIngameComs(commands.Cog):
                     #check if user has permission:
                     server = self.bot.guilds[0]
                     user = discord.utils.get(server.members, id=int(user_id))
-                    print("User:", user)
                     if(user):
                         #get user roles, and check if role has permission
                         for role in user.roles:
                             if str(role) in pr.keys():
-                                
                                 if(cmd in pr[str(role)] and pr[str(role)][cmd]):
-                                    print("True discord role")
                                     return True
-            print("False")
             return False       
         except Exception as e:
+            print(traceback.format_exc())
             print(e)
             return False
             
@@ -195,12 +191,12 @@ class CommandRconIngameComs(commands.Cog):
         print("[ingcmd] Generated code '{}' for user {} [{}]".format(code, ctx.author.name, ctx.author.id))
         msg = "To verify your account, use the in game command '{}link {}'\nThe code is valid for 5min.".format(RconCommandEngine.command_prefix, code)
         
-        if("account_arma3" in self.user_data[user_id]):
+        if(str(ctx.author.id) in self.user_data and "account_arma3" in self.user_data[str(ctx.author.id)]):
             msg = "You account is already linked.\n"+msg
         await ctx.author.send(msg)   
 
         await asyncio.sleep(60*5)
-        if("account_arma3" not in self.user_data[user_id]):
+        if(not (str(ctx.author.id) in self.user_data and "account_arma3" in self.user_data[str(ctx.author.id)])):
             await ctx.author.send("Code expired")  
         
     def verifyAccount(self, verifyCode, link_id):
@@ -213,7 +209,7 @@ class CommandRconIngameComs(commands.Cog):
             verifyCode = self.account_verify_codes[verifyCode]
         if(verifyCode):
             print("[ingcmd] Linked account '{}' with arma 3 '{}'".format(verifyCode.authorID, link_id))
-            self.set_user_data(verifyCode.authorID, "account_arma3", link_id)
+            self.set_user_data(str(verifyCode.authorID), "account_arma3", link_id)
             return True
         return False
        
