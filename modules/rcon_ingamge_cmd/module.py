@@ -59,7 +59,10 @@ class PermissionConfig(CoreConfig):
     def __init__(self, bot):
         CoreConfig.bot = bot
         self.cfgPermissions_Roles = {}
-        self.generate_default_settings()
+        
+        files = glob.glob(type(self).path+"/permissions_*.json")
+        if(len(files)==0):
+            self.generate_default_settings()
     
     def load_role_permissions(self):
         files = glob.glob(type(self).path+"/permissions_*.json")
