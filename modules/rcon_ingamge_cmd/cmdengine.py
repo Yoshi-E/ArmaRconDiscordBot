@@ -184,7 +184,7 @@ class RconCommandEngine(object):
                 RconCommandEngine.log_s("Error in: {}".format(ctx))
                 return ctx
         #Command not found
-        if(len(ctx.command) > len(len(RconCommandEngine.command_prefix)) and ctx.command[:len(RconCommandEngine.command_prefix)] != RconCommandEngine.command_prefix and ctx.command != "" and ctx.command != None):
+        if(len(ctx.command) > len(RconCommandEngine.command_prefix) and ctx.command[:len(RconCommandEngine.command_prefix)] != RconCommandEngine.command_prefix and ctx.command != "" and ctx.command != None):
             ctx.error = "Command '{}' not found".format(ctx.command)
             ctx.executed = False
             RconCommandEngine.log_s(ctx)
