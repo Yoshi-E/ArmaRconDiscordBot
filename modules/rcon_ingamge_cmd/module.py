@@ -153,6 +153,7 @@ class CommandRconIngameComs(commands.Cog):
         pr = self.PermissionConfig.cfgPermissions_Roles
         role = "@everyone"
         #check if everybody can use it
+        print(cmd, pr.keys())
         if(cmd in pr[str(role)] and pr[str(role)][cmd]):
             #anyone can use the cmd
             print("True discord @everyone")
