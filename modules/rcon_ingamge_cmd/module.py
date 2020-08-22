@@ -153,8 +153,8 @@ class CommandRconIngameComs(commands.Cog):
         pr = self.PermissionConfig.cfgPermissions_Roles
         role = "@everyone"
         #check if everybody can use it
-        print(cmd, pr.keys())
-        if(cmd in pr[str(role)] and pr[str(role)][cmd]):
+        print(cmd, pr[role].keys())
+        if(cmd in pr[role] and pr[role][cmd][0]):
             #anyone can use the cmd
             print("True discord @everyone")
             return True
@@ -165,7 +165,8 @@ class CommandRconIngameComs(commands.Cog):
             print(data["account_arma3"], rctx.user_guid)
             if("account_arma3" in data and data["account_arma3"][0] == rctx.user_guid):
                 #check if user has permission:
-                user = self.bot.get_user(int(user_id))
+                server = ctx.bot.guilds[0]
+                user = discord.utils.get(server.members, id=int(user_id))
                 print("User:", user)
                 if(user):
                     #get user roles, and check if role has permission
