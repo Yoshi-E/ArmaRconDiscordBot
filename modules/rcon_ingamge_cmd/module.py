@@ -150,35 +150,39 @@ class CommandRconIngameComs(commands.Cog):
             json.dump(self.user_data, outfile, sort_keys=True, indent=4, separators=(',', ': '))
   
     async def checkPermission(self, rctx, cmd):
-        pr = self.PermissionConfig.cfgPermissions_Roles
-        role = "@everyone"
-        #check if everybody can use it
-        print(cmd, pr[role].keys())
-        if("command_"+cmd in pr[role] and pr[role]["command_"+cmd]):
-            #anyone can use the cmd
-            print("True discord @everyone")
-            return True
-        
-        #check if user can use it
-        #Lookup user in linked accounts:
-        for user_id,data in self.user_data.items():
-            print(data["account_arma3"], rctx.user_guid)
-            if("account_arma3" in data and data["account_arma3"][0] == rctx.user_guid):
-                #check if user has permission:
-                server = self.bot.guilds[0]
-                user = discord.utils.get(server.members, id=int(user_id))
-                print("User:", user)
-                if(user):
-                    #get user roles, and check if role has permission
-                    for role in user.roles:
-                        if str(role) in pr.keys():
-                            cmd = "command_{}".format(ctx.command.name)
-                            if(cmd in pr[str(role)] and pr[str(role)][cmd]):
-                                print("True discord role")
-                                return True
-        print("False")
-        return False               
-  
+        try:
+            pr = self.PermissionConfig.cfgPermissions_Roles
+            role = "@everyone"
+            #check if everybody can use it
+            print(cmd, pr[role].keys())
+            if("command_"+cmd in pr[role] and pr[role]["command_"+cmd]):
+                #anyone can use the cmd
+                print("True discord @everyone")
+                return True
+            
+            #check if user can use it
+            #Lookup user in linked accounts:
+            for user_id,data in self.user_data.items():
+                print(data["account_arma3"], rctx.user_guid)
+                if("account_arma3" in data and data["account_arma3"][0] == rctx.user_guid):
+                    #check if user has permission:
+                    server = self.bot.guilds[0]
+                    user = discord.utils.get(server.members, id=int(user_id))
+                    print("User:", user)
+                    if(user):
+                        #get user roles, and check if role has permission
+                        for role in user.roles:
+                            if str(role) in pr.keys():
+                                cmd = "command_{}".format(ctx.command.name)
+                                if(cmd in pr[str(role)] and pr[str(role)][cmd]):
+                                    print("True discord role")
+                                    return True
+            print("False")
+            return False       
+        except Exception as e:
+            print(e)
+            return False
+            
     @commands.cooldown(1,60*5)
     @CommandChecker.command(name='linkAccount',
         brief="Link you discord account with your arma 3 ingame account.",
