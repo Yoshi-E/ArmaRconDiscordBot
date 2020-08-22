@@ -149,7 +149,7 @@ class CommandRconIngameComs(commands.Cog):
         with open(self.path+"/userdata.json", 'w') as outfile:
             json.dump(self.user_data, outfile, sort_keys=True, indent=4, separators=(',', ': '))
   
-    def checkPermission(self, rctx, func_name):
+    def checkPermission(self, rctx, cmd):
         pr = self.PermissionConfig.cfgPermissions_Roles
         role = "@everyone"
         #check if everybody can use it
