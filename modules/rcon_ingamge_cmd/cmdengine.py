@@ -153,7 +153,8 @@ class RconCommandEngine(object):
                                 await ctx.say("Error: '{}'".format(check_data))
                                 return ctx
                                 
-                    if(not await RconCommandEngine.checkPermission(ctx, func_name)):
+                    permisison = await RconCommandEngine.checkPermission(ctx, func_name)
+                    if(not permisison):
                         ctx.executed = False
                         return ctx
                         
