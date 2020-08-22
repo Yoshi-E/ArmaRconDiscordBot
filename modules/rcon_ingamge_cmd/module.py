@@ -315,10 +315,30 @@ class CommandRconIngameComs(commands.Cog):
                 await rctx.say("Invalid code")
         except ValueError as e:
             pass
-     
+
+
+###################################################################################################
+#####                                In game commands  (BEC)                                   ####
+###################################################################################################      
     @RconCommandEngine.command(name="kpl")  
     async def kpl(self, rctx, beid):
-        await RconCommandEngine.cogs.CommandRcon.arma_rcon.kickPlayer(beid, "Kicked by '{}'".format(rctx.user)) 
+        await RconCommandEngine.cogs.CommandRcon.arma_rcon.kickPlayer(beid, "Kicked by '{}'".format(rctx.user))     
+    
+    @RconCommandEngine.command(name="bpl")  
+    async def bpl60(self, rctx, beid, time):
+        await RconCommandEngine.cogs.CommandRcon.arma_rcon.banPlayer(beid, 60, "Banned for {}min ({})' ".format(time, rctx.user)) 
+    
+    @RconCommandEngine.command(name="bpl60")  
+    async def bpl60(self, rctx, beid):
+        await RconCommandEngine.cogs.CommandRcon.arma_rcon.banPlayer(beid, 60, "Banned by '{}' for 60min".format(rctx.user))     
+        
+    @RconCommandEngine.command(name="say")  
+    async def say(self, rctx, message):
+        await RconCommandEngine.cogs.CommandRcon.arma_rcon.sayGlobal(message)    
+    
+    @RconCommandEngine.command(name="reassign")  
+    async def reassign(self, rctx, message):
+        await RconCommandEngine.cogs.CommandRcon.arma_rcon.reassign()
             
         
 class CommandRconTaskScheduler(commands.Cog):

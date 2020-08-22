@@ -172,6 +172,7 @@ class RconCommandEngine(object):
             except TypeError as e:
                 ctx.error = "Invalid arguments: Given {}, expected {}".format(len(ctx.args), len(parameters)-2)
                 ctx.executed = False
+                await ctx.say(ctx.error)
                 RconCommandEngine.log_s(traceback.format_exc())
                 RconCommandEngine.log_s("Error in: {}".format(ctx))
                 return ctx
@@ -181,6 +182,7 @@ class RconCommandEngine(object):
                 RconCommandEngine.log_s(traceback.format_exc())
                 ctx.error = "Error: '{}'".format(e)
                 ctx.executed = False
+                await ctx.say("Error '{}'".format(ctx.error))
                 RconCommandEngine.log_s("Error in: {}".format(ctx))
                 return ctx
         #Command not found
