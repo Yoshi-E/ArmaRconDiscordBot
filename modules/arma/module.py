@@ -130,12 +130,17 @@ class CommandArma(commands.Cog):
         for mission in reversed(self.readLog.Missions):
             if "Mission starting" in mission["dict"]:
                 try:
-                    mlist.append("{} {} {} ({} entries)".format(  mission["dict"]["Mission starting"][0], 
+                    mlist.append("{} {} {} ({} entries) {}".format(  mission["dict"]["Mission starting"][0], 
                                                     mission["dict"]["Mission world"][2].group(2), 
                                                     mission["dict"]["Mission file"][2].group(2),
-                                                    len(mission["data"])))
+                                                    len(mission["data"]),
+                                                    mission["dict"]["Mission id"][2].group(2)))
                 except KeyError:
-                    mlist.append("unknown mission")
+                    if("Mission id" in mission["dict"]):
+                        mlist.append("unknown mission {}".format(mission["dict"]["Mission id"][2].group(2)))
+                    else:
+                        mlist.append("unknown mission")
+                    
         msg = "Recently played missions (new to old)\n"
         msg += "\n".join(mlist)
         await ctx.send(msg)  
