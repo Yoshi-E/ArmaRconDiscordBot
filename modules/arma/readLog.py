@@ -210,6 +210,7 @@ File mpmissions\__cur_mp.Altis\Server\Functions\Server_SpawnTownResistance.sqf..
         self.EH.check_Event("Log line", timestamp, msg, None)
         event, event_match = self.check_log_events(msg, self.events)
         if(event_match):
+            print(event, event_match)
             self.EH.check_Event(event, timestamp, msg, event_match)
             if("clutter" not in event):
                 self.processMission(event, (timestamp, msg, event_match))
@@ -313,8 +314,7 @@ File mpmissions\__cur_mp.Altis\Server\Functions\Server_SpawnTownResistance.sqf..
                                         print("current log: "+self.current_log)
                                         self.EH.check_Event("Log new", old_log, self.current_log)
                             else:
-                                self.line = line
-                                print(line)
+                                self.line = line #access to last read line (debugging)
                                 self.processLogLine(line)
                     
                     except (KeyboardInterrupt, asyncio.CancelledError):
