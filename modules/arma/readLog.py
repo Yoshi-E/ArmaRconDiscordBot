@@ -210,9 +210,9 @@ File mpmissions\__cur_mp.Altis\Server\Functions\Server_SpawnTownResistance.sqf..
         self.EH.check_Event("Log line", timestamp, msg, None)
         event, event_match = self.check_log_events(msg, self.events)
         if(event_match):
-            print(event, event_match)
             self.EH.check_Event(event, timestamp, msg, event_match)
             if("clutter" not in event):
+                print(event, event_match)
                 self.processMission(event, (timestamp, msg, event_match))
                 self.EH.check_Event("Log line filtered", timestamp, msg, event_match)
         else:
