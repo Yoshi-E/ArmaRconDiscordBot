@@ -356,7 +356,17 @@ class CommandJMW(commands.Cog):
         await ctx.send("Restarting...")
         sys.exit()     
                   
-
+                
+    @CommandChecker.command(name='eval',
+        brief="Evluate a py expression",
+        pass_context=True)
+    async def evaluate(self, ctx, *expression):
+        inp = " ".join(expression)
+        print("exec '{}'".format(inp))
+        data = str(exec(inp, {'bot': self.bot, 'logp': self.processLog}))
+        #await ctx.send("```py\n{}```".format(data)) 
+                  
+    
 def setup(bot):
     module = CommandJMW(bot)
     bot.loop.create_task(module.task_setStatus())
