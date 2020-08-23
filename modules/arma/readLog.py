@@ -313,6 +313,8 @@ File mpmissions\__cur_mp.Altis\Server\Functions\Server_SpawnTownResistance.sqf..
                                         print("current log: "+self.current_log)
                                         self.EH.check_Event("Log new", old_log, self.current_log)
                             else:
+                                self.line = line
+                                print(line)
                                 self.processLogLine(line)
                     
                     except (KeyboardInterrupt, asyncio.CancelledError):
