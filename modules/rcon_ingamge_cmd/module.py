@@ -336,12 +336,12 @@ class CommandRconIngameComs(commands.Cog):
         await self.rcon.kickPlayer(beid, "Kicked by '{}'".format(rctx.user))     
     
     @RconCommandEngine.command(name="bpl")  
-    async def bpl60(self, rctx, beid, time):
-        await self.rcon.banPlayer(beid, 60, "Banned for {}min ({})' ".format(time, rctx.user)) 
+    async def bpl(self, rctx, beid, time):
+        await self.rcon.banPlayer(player_id=beid, reason="Banned for {}min ({})' ".format(time, rctx.user), time=time) 
     
     @RconCommandEngine.command(name="bpl60")  
     async def bpl60(self, rctx, beid):
-        await self.rcon.banPlayer(beid, 60, "Banned by '{}' for 60min".format(rctx.user))     
+        await self.rcon.banPlayer(player_id=beid, reason="Banned by '{}' for 60min".format(rctx.user), time = 60)     
         
     @RconCommandEngine.command(name="say")  
     async def say(self, rctx, message):
