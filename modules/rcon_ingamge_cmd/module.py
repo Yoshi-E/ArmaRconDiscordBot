@@ -62,6 +62,8 @@ class PermissionConfig(CoreConfig):
         files = glob.glob(type(self).path+"/permissions_*.json")
         if(len(files)==0):
             self.generate_default_settings()
+        else:
+            self.load_role_permissions()
     
     def load_role_permissions(self):
         files = glob.glob(type(self).path+"/permissions_*.json")
