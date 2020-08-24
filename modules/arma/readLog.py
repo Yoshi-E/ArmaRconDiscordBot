@@ -106,7 +106,7 @@ class readLog:
             ["BattlEye player guid verified",   "^(BattlEye Server: Verified GUID \((.*)\) of player #([0-9]*) (.*))"], #BattlEye Server: Verified GUID (2844515fa6c84ca6647cd55fa8c145cb) of player #8 Sgt. Gonzalez
             ["BattlEye player kicked",          "^(Player (.*) kicked off by BattlEye: (.*))"],  #Player MM Leon kicked off by BattlEye: Admin Kick (AFK too long (user_check by Ztppp))
             ["BattlEye rcon admin login",       "^(BattlEye Server: RCon admin #([0-9]*) \((.*):(.*)\) logged in)"],  #BattlEye Server: RCon admin #0 (90.92.59.82:59806) logged in
-            ["BattlEye chat direct message",    "^(BattlEye Server: RCon admin #([0-9]*): \(To (.*)\) (.*))"]  #BattlEye Server: RCon admin #1: (To MM Leon) 
+            ["BattlEye chat direct message",    "^(BattlEye Server: RCon admin #([0-9]*): \(To (.*)\) (.*))"],  #BattlEye Server: RCon admin #1: (To MM Leon) 
             ["BattlEye chat global message",    "^(BattlEye Server: RCon admin #([0-9]*):)"]  #BattlEye Server: RCon admin #2: (Global) Yoshi_E: test
         ]
         #TODO: Bans?
