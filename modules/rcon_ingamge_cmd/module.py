@@ -26,7 +26,6 @@ from modules.core.utils import CommandChecker, sendLong, CoreConfig, Tools
 from modules.core.config import Config
 from .cmdengine import RconCommandEngine
 
-
 class AccountVerificationCode():
     def __init__(self, authorID, timelimit = 60):
         self.authorID = authorID
@@ -131,7 +130,7 @@ class CommandRconIngameComs(commands.Cog):
             self.user_data = json.load(open(self.path+"/userdata.json","r"))
         
         self.RconCommandEngine = RconCommandEngine
-        RconCommandEngine.cogs = self
+        RconCommandEngine.cogs = self.bot.cogs
         RconCommandEngine.command_prefix = self.cfg["command_prefix"]
         
         #God please have mercy on me for doing this:
@@ -340,7 +339,11 @@ class CommandRconIngameComs(commands.Cog):
     
     @RconCommandEngine.command(name="reassign")  
     async def reassign(self, rctx, message):
-        await RconCommandEngine.cogs.CommandRcon.arma_rcon.reassign()
+        await RconCommandEngine.cogs.CommandRcon.arma_rcon.reassign()    
+        
+    #@RconCommandEngine.command(name="score", cogs=["CommandJMW"])  
+    async def score(self, rctx, message):
+        pass#await RconCommandEngine.cogs.CommandRcon.arma_rcon.reassign()
             
         
 class CommandRconTaskScheduler(commands.Cog):

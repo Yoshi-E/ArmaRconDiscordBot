@@ -72,7 +72,7 @@ class RconCommandEngine(object):
     commands = []
     channels = ["Side", "Global", "Vehicle", "Direct", "Group", "Command"]
     command_prefix = "?"
-    cogs = None
+    cogs = None #acess to discord bots cogs
     users = {}
     rate_limit_commands = []
     rate_limit = 900 #15min
@@ -94,7 +94,7 @@ class RconCommandEngine(object):
     async def getPlayerBEID(player: str):
         #get updated player list, only if player not found
         #if(not player in Tools.column(self.playerList,4)):   
-        playerList = await RconCommandEngine.cogs.CommandRcon.arma_rcon.getPlayersArray()
+        playerList = await RconCommandEngine.cogs["CommandRcon"].arma_rcon.getPlayersArray()
         for id, ip, ping, guid, name  in playerList:
             if(name.endswith(" (Lobby)")): #Strip lobby from name
                 name = name[:-8]
@@ -132,16 +132,24 @@ class RconCommandEngine(object):
             RconCommandEngine.log_s(traceback.format_exc())
             RconCommandEngine.log_s(e)
     
+    @staticmethod
     async def checkPermission(ctx, func_name):
         return True
-        
+     
+    @staticmethod     
     async def processCommand(ctx):
         ctx.user_beid, ctx.user_guid = await RconCommandEngine.getPlayerBEID(ctx.user)
-        for func_name, func, parameters in RconCommandEngine.commands:
+        for func_name, func, parameters, cogs in RconCommandEngine.commands:
             ctx.func_name = func_name 
             ctx.parameters = parameters 
             try:
                 if(func_name==ctx.command):
+                    for cog in cogs:
+                        if cog not in RconCommandEngine.cogs:
+                            ctx.executed = False
+                            ctx.error = "Cog '{}' not loaded".format(cog)
+                            return ctx
+                
                     if( ctx.user  not in RconCommandEngine.admins):
                         #Create Rate limit
                         if( ctx.user  not in RconCommandEngine.users):
@@ -178,7 +186,7 @@ class RconCommandEngine(object):
                 return ctx
             except Exception as e:
                 if(ctx.command == "afk"):
-                    RconCommandEngine.cogs.afkLock = False #set Rconcommand engine 
+                    RconCommandEngine.cogs["CommandRconIngameComs"].afkLock = False #set Rconcommand engine 
                 RconCommandEngine.log_s(traceback.format_exc())
                 ctx.error = "Error: '{}'".format(e)
                 ctx.executed = False
@@ -199,14 +207,21 @@ class RconCommandEngine(object):
             if("name" in kwargs):
                 name = kwargs["name"]
             else:
-                name =  function.__name__
-
+                name =  function.__name__           
+            
+            
+            if("cogs" in kwargs):
+                cogs = kwargs["cogs"]
+            else:
+                cogs = []
+                        
+                        
             if(name in Tools.column(RconCommandEngine.commands, 0)):
                 raise Exception("Command '{}' already exists".format(name))
             #init
             async def wrapper(*args, **kwargs):
                 return await function(RconCommandEngine.cogs, *args, **kwargs)
             t = wrapper
-            RconCommandEngine.commands.append([name, t, inspect.getfullargspec(function)[0]])
+            RconCommandEngine.commands.append((name, t, inspect.getfullargspec(function)[0], cogs))
             return t
         return arguments
