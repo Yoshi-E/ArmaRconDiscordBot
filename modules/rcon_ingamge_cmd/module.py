@@ -226,7 +226,7 @@ class CommandRconIngameComs(commands.Cog):
 
     @RconCommandEngine.command(name="help")  
     async def ping(self, rctx):
-        for func_name, func, parameters in RconCommandEngine.commands:
+        for func_name, func, parameters, cogs in RconCommandEngine.commands:
             if(len(parameters) > 2):
                 await rctx.say("{} {}".format(func_name, parameters[2:]))   
             else:
