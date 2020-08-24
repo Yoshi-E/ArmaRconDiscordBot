@@ -75,8 +75,8 @@ class PermissionConfig(CoreConfig):
         
         #add new commands (for new modules)
         for role, data in self.cfgPermissions_Roles.items():
-            for command in RconCommandEngine.commands:
-                cmd = "command_"+str(command[0])
+            for Command in RconCommandEngine.commands:
+                cmd = "command_"+str(Command["cmd"])
                 if(cmd not in self.cfgPermissions_Roles[role]):
                     self.cfgPermissions_Roles[role][cmd] = False
                     
@@ -89,26 +89,26 @@ class PermissionConfig(CoreConfig):
             else:
                 val = True
                 
-            for command in RconCommandEngine.commands:
-                self.cfgPermissions_Roles[role]["command_"+str(command[0])] = val
+            for Command in RconCommandEngine.commands:
+                self.cfgPermissions_Roles[role]["command_"+str(Command["cmd"])] = val
                 
     def deall_role(self, data):
         role = data["role"][0]
-        for command in RconCommandEngine.commands:
-            self.cfgPermissions_Roles[role]["command_"+str(command[0])] = False    
+        for Command in RconCommandEngine.commands:
+            self.cfgPermissions_Roles[role]["command_"+str(Command["cmd"])] = False    
     
     def all_role(self, data):
         role = data["role"][0]
-        for command in RconCommandEngine.commands:
-            self.cfgPermissions_Roles[role]["command_"+str(command[0])] = True
+        for Command in RconCommandEngine.commands:
+            self.cfgPermissions_Roles[role]["command_"+str(Command["cmd"])] = True
         
     def add_role(self, data):
         role = data["add_role"][0]
         print("Created new role: '{}'".format(role))
         self.cfgPermissions_Roles[role] = type(self).cfg.new(type(self).path+"/permissions_{}.json".format(role))
 
-        for command in RconCommandEngine.commands:
-            self.cfgPermissions_Roles[role]["command_"+str(command[0])] = False
+        for Command in RconCommandEngine.commands:
+            self.cfgPermissions_Roles[role]["command_"+str(Command["cmd"])] = False
 
 # Registering functions, and interacting with the discord bot.
 class CommandRconIngameComs(commands.Cog):
@@ -125,7 +125,7 @@ class CommandRconIngameComs(commands.Cog):
         self.afkTime = -1
         self.account_verify_codes = []
         
-        asyncio.ensure_future(self.on_ready())
+        
         
         self.user_data = {}
         if(os.path.isfile(self.path+"/userdata.json")):
@@ -136,16 +136,24 @@ class CommandRconIngameComs(commands.Cog):
         RconCommandEngine.command_prefix = self.cfg["command_prefix"]
         
         #God please have mercy on me for doing this:
-        RconCommandEngine.checkPermission = self.checkPermission #MonkeyPatching
+        #RconCommandEngine.checkPermission = self.checkPermission #MonkeyPatching
         #RconCommandEngine.rate_limit_commands.append("afk")
         #RconCommandEngine.admins.append("Yoshi_E") this simply bypasses cooldowns for cmds
         #RconCommandEngine.admins.append("[H] Tom")
         #RconCommandEngine.admins.append("zerty")
         
+        asyncio.ensure_future(self.on_ready())
+        
     async def on_ready(self):
-        await self.bot.wait_until_ready()
-        self.CommandRcon = self.bot.cogs["CommandRcon"]
+        try:
+            await self.bot.wait_until_ready()
+            self.CommandRcon = self.bot.cogs["CommandRcon"]
+            
+            self.rcon = self.CommandRcon.arma_rcon
+        except Exception as e:
+            print(e)
 
+        
     def set_user_data(self, user_id=0, field="", data=[]):
         if(user_id != 0):
             self.user_data[user_id] = {field: data}
@@ -225,16 +233,16 @@ class CommandRconIngameComs(commands.Cog):
         await rctx.say("Pong!")    
 
     @RconCommandEngine.command(name="help")  
-    async def ping(self, rctx):
-        for func_name, func, parameters, cogs in RconCommandEngine.commands:
-            if(len(parameters) > 2):
-                await rctx.say("{} {}".format(func_name, parameters[2:]))   
+    async def help(self, rctx):
+        for Command in RconCommandEngine.commands:
+            if(len(Command["kwargs"]) > 2):
+                await rctx.say("{} {}".format(Command["cmd"], Command["kwargs"][2:]))   
             else:
-                await rctx.say("{}".format(func_name))    
+                await rctx.say("{}".format(Command["cmd"]))    
         
     @RconCommandEngine.command(name="players")  
     async def players(self, rctx):
-        playerList = await self.CommandRcon.arma_rcon.getPlayersArray()
+        playerList = await self.rcon.getPlayersArray()
         msg = ""
         for id, ip, ping, guid, name in playerList:
             msg += "\n{} | {}".format(id, name[:22]) #.ljust(20, " ") #.rjust(3, " ")
@@ -257,7 +265,7 @@ class CommandRconIngameComs(commands.Cog):
             return False
         self.afkLock = True
         
-        players = await self.CommandRcon.arma_rcon.getPlayersArray()
+        players = await self.rcon.getPlayersArray()
         player_name = None
         for player in players:
             if(int(player[0]) == int(beid)):
@@ -282,13 +290,13 @@ class CommandRconIngameComs(commands.Cog):
                 else:
                     await rctx.say("Player responded in chat. Canceling AFK check.")  
                 if(already_active == False):
-                    await self.CommandRcon.arma_rcon.sayPlayer(beid,  "Thank you for responding in chat.")
+                    await self.rcon.sayPlayer(beid,  "Thank you for responding in chat.")
                 self.afkLock = False
                 return True
             if((i % 30) == 0):
                 try:
                     for k in range(0, 3):
-                        await self.CommandRcon.arma_rcon.sayPlayer(beid, "Type something in chat or you will be kicked for being AFK. ("+str(round(i/30)+1)+"/10)")
+                        await self.rcon.sayPlayer(beid, "Type something in chat or you will be kicked for being AFK. ("+str(round(i/30)+1)+"/10)")
                 except: 
                     print("Failed to send command sayPlayer (checkAFK)")
             await asyncio.sleep(1)
@@ -298,13 +306,13 @@ class CommandRconIngameComs(commands.Cog):
             await rctx.say("Player responded in chat. Canceling AFK check.")  
             if(already_active == False):
                 try:
-                    await self.CommandRcon.arma_rcon.sayPlayer(beid, "Thank you for responding in chat.")
+                    await self.rcon.sayPlayer(beid, "Thank you for responding in chat.")
                 except:
                     print("Failed to send command sayPlayer")
             self.afkLock = False        
             return False
         else:
-            await self.CommandRcon.arma_rcon.kickPlayer(beid, "AFK too long (user_check by {})".format(user))
+            await self.rcon.kickPlayer(beid, "AFK too long (user_check by {})".format(user))
             await rctx.say("``{}`` did not respond and was kicked for being AFK".format(player_name))
         self.afkLock = False
 
@@ -325,27 +333,28 @@ class CommandRconIngameComs(commands.Cog):
 ###################################################################################################      
     @RconCommandEngine.command(name="kpl")  
     async def kpl(self, rctx, beid):
-        await RconCommandEngine.cogs.CommandRcon.arma_rcon.kickPlayer(beid, "Kicked by '{}'".format(rctx.user))     
+        await self.rcon.kickPlayer(beid, "Kicked by '{}'".format(rctx.user))     
     
     @RconCommandEngine.command(name="bpl")  
     async def bpl60(self, rctx, beid, time):
-        await RconCommandEngine.cogs.CommandRcon.arma_rcon.banPlayer(beid, 60, "Banned for {}min ({})' ".format(time, rctx.user)) 
+        await self.rcon.banPlayer(beid, 60, "Banned for {}min ({})' ".format(time, rctx.user)) 
     
     @RconCommandEngine.command(name="bpl60")  
     async def bpl60(self, rctx, beid):
-        await RconCommandEngine.cogs.CommandRcon.arma_rcon.banPlayer(beid, 60, "Banned by '{}' for 60min".format(rctx.user))     
+        await self.rcon.banPlayer(beid, 60, "Banned by '{}' for 60min".format(rctx.user))     
         
     @RconCommandEngine.command(name="say")  
     async def say(self, rctx, message):
-        await RconCommandEngine.cogs.CommandRcon.arma_rcon.sayGlobal(message)    
+        await self.rcon.sayGlobal(message)    
     
     @RconCommandEngine.command(name="reassign")  
     async def reassign(self, rctx, message):
-        await RconCommandEngine.cogs.CommandRcon.arma_rcon.reassign()    
+        await self.rcon.reassign()    
         
     #@RconCommandEngine.command(name="score", cogs=["CommandJMW"])  
-    async def score(self, rctx, message):
-        pass#await RconCommandEngine.cogs.CommandRcon.arma_rcon.reassign()
+    async def score(self, rctx):
+        print("##", self, rctx)
+        pass#await self.rcon.reassign()
             
         
 class CommandRconTaskScheduler(commands.Cog):

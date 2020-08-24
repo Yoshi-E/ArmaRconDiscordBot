@@ -10,8 +10,6 @@ import datetime
 import inspect
 import time
 
-from modules.core.utils import Tools
-
 #Limits commands to X per second
 class RateBucketLimit():
     def __init__(self, per_function = False, limit = 30):
@@ -138,13 +136,15 @@ class RconCommandEngine(object):
      
     @staticmethod     
     async def processCommand(ctx):
+        self = RconCommandEngine.cogs["CommandRconIngameComs"]
         ctx.user_beid, ctx.user_guid = await RconCommandEngine.getPlayerBEID(ctx.user)
-        for func_name, func, parameters, cogs in RconCommandEngine.commands:
-            ctx.func_name = func_name 
-            ctx.parameters = parameters 
+        for Command in RconCommandEngine.commands:
+            ctx.func_name = Command["cmd"] 
+            ctx.parameters = Command["kwargs"] 
+            func = Command["func"]
             try:
-                if(func_name==ctx.command):
-                    for cog in cogs:
+                if(Command["cmd"] ==ctx.command):
+                    for cog in Command["cogs"]:
                         if cog not in RconCommandEngine.cogs:
                             ctx.executed = False
                             ctx.error = "Cog '{}' not loaded".format(cog)
@@ -154,22 +154,22 @@ class RconCommandEngine(object):
                         #Create Rate limit
                         if( ctx.user  not in RconCommandEngine.users):
                             RconCommandEngine.users[ctx.user] = RateBucketLimit(True, RconCommandEngine.rate_limit)
-                        if(func_name in RconCommandEngine.rate_limit_commands):
-                            check_data = RconCommandEngine.users[ctx.user].check(func_name)
+                        if(Command["cmd"]  in RconCommandEngine.rate_limit_commands):
+                            check_data = RconCommandEngine.users[ctx.user].check(Command["cmd"] )
                             if(check_data != True):
                                 ctx.executed = False
                                 await ctx.say("Error: '{}'".format(check_data))
                                 return ctx
                                 
-                    permisison = await RconCommandEngine.checkPermission(ctx, func_name)
+                    permisison = await RconCommandEngine.checkPermission(ctx, Command["cmd"])
                     if(not permisison):
                         ctx.executed = False
                         return ctx
-                        
-                    if(len(parameters) > 0):
-                        result = await func(ctx, *ctx.args)
+
+                    if(len(Command["kwargs"] ) > 0):
+                        result = await func(self, ctx, *ctx.args)
                     else:
-                        result = await func(ctx)
+                        result = await func(self, ctx)
                     
                     if result: #only update if the command was executed correctly (returned True)
                          RconCommandEngine.users[ctx.user].update()
@@ -178,7 +178,7 @@ class RconCommandEngine(object):
                     RconCommandEngine.log_s(ctx)
                     return ctx
             except TypeError as e:
-                ctx.error = "Invalid arguments: Given {}, expected {}".format(len(ctx.args), len(parameters)-2)
+                ctx.error = "Invalid arguments: Given {}, expected {}".format(len(ctx.args), len(Command["kwargs"])-2)
                 ctx.executed = False
                 await ctx.say(ctx.error)
                 RconCommandEngine.log_s(traceback.format_exc())
@@ -200,7 +200,7 @@ class RconCommandEngine(object):
             RconCommandEngine.log_s(ctx)
             return ctx
         return None
-            
+        
     @staticmethod
     def command(*args, **kwargs):
         def arguments(function):
@@ -209,19 +209,20 @@ class RconCommandEngine(object):
             else:
                 name =  function.__name__           
             
-            
             if("cogs" in kwargs):
                 cogs = kwargs["cogs"]
             else:
                 cogs = []
                         
-                        
-            if(name in Tools.column(RconCommandEngine.commands, 0)):
-                raise Exception("Command '{}' already exists".format(name))
+            for Command in RconCommandEngine.commands:       
+                if(name == Command["cmd"]):
+                    raise Exception("Command '{}' already exists".format(name))
+            
             #init
-            async def wrapper(*args, **kwargs):
-                return await function(RconCommandEngine.cogs, *args, **kwargs)
+            async def wrapper(*t_args, **t_kwargs):
+                # t_args[0] --> self
+                return await function(*t_args, **t_kwargs)
             t = wrapper
-            RconCommandEngine.commands.append((name, t, inspect.getfullargspec(function)[0], cogs))
+            RconCommandEngine.commands.append({"cmd": name, "func": t, "kwargs": inspect.getfullargspec(function)[0], "cogs": cogs})
             return t
         return arguments
