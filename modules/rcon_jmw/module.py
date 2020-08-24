@@ -226,7 +226,7 @@ class CommandJMW(commands.Cog):
 
 
     async def gameEnd(self, *args):
-        print("GAMESTART")
+        #print("GAMESTART")
         if(self.bot.is_closed()):
             return False
         channel = self.bot.get_channel(int(self.cfg["post_channel"]))

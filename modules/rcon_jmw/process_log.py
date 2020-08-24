@@ -142,7 +142,7 @@ class ProcessLog:
             type = m.group(2)
             if(type == "GameOver"):
                 #Start generating game
-                print("END FOUND")
+                #print("END FOUND")
                 self.buildGameBlock()
 
     def buildGameBlock(self, index=0):

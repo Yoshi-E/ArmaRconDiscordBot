@@ -107,6 +107,7 @@ class readLog:
             ["BattlEye player kicked",          "^(Player (.*) kicked off by BattlEye: (.*))"],  #Player MM Leon kicked off by BattlEye: Admin Kick (AFK too long (user_check by Ztppp))
             ["BattlEye rcon admin login",       "^(BattlEye Server: RCon admin #([0-9]*) \((.*):(.*)\) logged in)"],  #BattlEye Server: RCon admin #0 (90.92.59.82:59806) logged in
             ["BattlEye chat direct message",    "^(BattlEye Server: RCon admin #([0-9]*): \(To (.*)\) (.*))"]  #BattlEye Server: RCon admin #1: (To MM Leon) 
+            ["BattlEye chat global message",    "^(BattlEye Server: RCon admin #([0-9]*):)"]  #BattlEye Server: RCon admin #2: (Global) Yoshi_E: test
         ]
         #TODO: Bans?
         
@@ -209,13 +210,13 @@ File mpmissions\__cur_mp.Altis\Server\Functions\Server_SpawnTownResistance.sqf..
         timestamp, msg = self.splitTimestamp(line)
         self.EH.check_Event("Log line", timestamp, msg, None)
         event, event_match = self.check_log_events(msg, self.events)
-        if(self.EH.disabled==False):
-            print(line, event, event_match)      
+        # if(self.EH.disabled==False):
+            # print(line, event, event_match)      
             
         if(event_match):
             self.EH.check_Event(event, timestamp, msg, event_match)
             if("clutter" not in event):
-                print(event, event_match)
+                #print(event, event_match)
                 self.processMission(event, (timestamp, msg, event_match))
                 self.EH.check_Event("Log line filtered", timestamp, msg, event_match)
         else:
