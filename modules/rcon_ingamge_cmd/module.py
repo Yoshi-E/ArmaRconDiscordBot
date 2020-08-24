@@ -181,7 +181,6 @@ class CommandRconIngameComs(commands.Cog):
             print(e)
             return False
             
-    @commands.cooldown(1,60*5)
     @CommandChecker.command(name='linkAccount',
         brief="Link you discord account with your arma 3 ingame account.",
         aliases=['linkaccount'],
