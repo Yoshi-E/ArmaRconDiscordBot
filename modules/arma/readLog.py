@@ -89,7 +89,8 @@ class readLog:
             ["Mission id",              "^\s(Mission id: (.*))"], # Mission id: a001eb0dc827137d84595a7706f2cdd937f95fa3
             ["Mission started",         "^(Game started\.)"], #Game started.
             ["Mission finished",        "^(Game finished\.)"], #Game finished.
-            ["Mission script error",         "^(Error in expression .*)", "^(File (?P<path>.*)..., line (?P<line>[0-9]*))"], #Error in expression <= false };  #File mpmissions\__cur_mp.Altis\Server\Functions\Server_SpawnTownResistance.sqf..., line 151
+            #["Mission script error",         "^(Error in expression .*)", "^(File (?P<path>.*)..., line (?P<line>[0-9]*))"], #Error in expression <= false };  #File mpmissions\__cur_mp.Altis\Server\Functions\Server_SpawnTownResistance.sqf..., line 151
+            #TODO: Multi line Events can cause other events to be skipped. 
         #player
             ["Player modified data file",   "^((.*) uses modified data file)"], #KKD | dawkar3152 uses modified data file
             ["Player disconnected",         "^(Player (.*) disconnected.)"], #Player ARMATA disconnected.
@@ -144,8 +145,8 @@ File mpmissions\__cur_mp.Altis\Server\Functions\Server_SpawnTownResistance.sqf..
     
     # goes through an array of regex until it finds a match
     def check_log_events(self, line, events):
-        try:
-            if(self.multiEventLock):
+        if(self.multiEventLock):
+            try:
                 m = re.match(self.multiEventLock[2], line)
                 if m:  
                     self.multiEventLockData.append(line)
@@ -155,7 +156,15 @@ File mpmissions\__cur_mp.Altis\Server\Functions\Server_SpawnTownResistance.sqf..
                     self.multiEventLockData = []
                     return result
                 self.multiEventLockData.append(line)
-            else:
+                if(len(self.multiEventLockData)>5): #max multi line lenght
+                    print("Warning Exceeded 'multiEventLock' length! For '{}'".format((self.multiEventLock[0], self.multiEventLockData)))
+                    self.multiEventLock = None
+                    self.multiEventLockData = []
+            except Exception as e:
+                traceback.print_exc()
+                raise Exception("Error processing MultiEventLock: '{}' '{}'".format(self.multiEventLock, e))
+        else:
+            try:
                 for event in events:
                     m = re.match(event[1], line)
                     if m:
@@ -164,8 +173,8 @@ File mpmissions\__cur_mp.Altis\Server\Functions\Server_SpawnTownResistance.sqf..
                             self.multiEventLockData.append(line)
                         else:
                             return event[0], m
-        except Exception as e:
-            raise Exception("Invalid Regex: '{}' '{}'".format(event, e))
+            except Exception as e:
+                raise Exception("Invalid Regex: '{}' '{}'".format(event, e))
         return None, None
       
     #add custom regex based events to the log reader
@@ -213,7 +222,7 @@ File mpmissions\__cur_mp.Altis\Server\Functions\Server_SpawnTownResistance.sqf..
         event, event_match = self.check_log_events(msg, self.events)
         # if(self.EH.disabled==False):
             # print(line, event, event_match)      
-            
+        #print(event, msg, self.multiEventLockData)
         if(event_match):
             self.EH.check_Event(event, timestamp, msg, event_match)
             if("clutter" not in event):
@@ -226,6 +235,7 @@ File mpmissions\__cur_mp.Altis\Server\Functions\Server_SpawnTownResistance.sqf..
     
     #builds mission blocks    
     def processMission(self, event, data): 
+        
         #new mission is being started
         if(event == "Mission readname"):
             self.Missions.append({"dict": {"Server sessionID": self.server_sessionID, event: data}, "data": []})

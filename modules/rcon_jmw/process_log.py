@@ -30,7 +30,7 @@ class ProcessLog:
         self.EH.disabled = True
         
         #Add EventHandlers:
-        #self.readLog.EH.add_Event("other", self.checkforEnd)
+        #self.readLog.EH.add_Event("Mission script error", self.missionError)
         
         #self.readLog.pre_scan()
         #self.active = True
@@ -43,6 +43,9 @@ class ProcessLog:
         ]
         
         self.EH = Event_Handler(self.events)
+        
+    def missionError(*args):
+        print(args)
         
     def processGameData(self, pdata):
         data = pdata.copy()
