@@ -211,7 +211,7 @@ class WebServer():
             settings = {}
             roles = ingcmd.PermissionConfig.cfgPermissions_Roles.keys()
             for command in ingcmd.RconCommandEngine.commands:
-                settings[str(command[0])] = {}
+                settings[str(command[0])] = {} #TODO: invalid index error
                 for role in roles:
                     settings[str(command[0])][role] = ingcmd.PermissionConfig.cfgPermissions_Roles[role]["command_"+str(command[0])]
             settings["head"] = list(roles)
