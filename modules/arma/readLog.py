@@ -192,66 +192,77 @@ File mpmissions\__cur_mp.Altis\Server\Functions\Server_SpawnTownResistance.sqf..
     #it is necessary to rearrange the data to ensure they stay in order.
     #Limited by Mission count
     def pre_scan(self):
-        if(self.maxMisisons <= 0):
-            return
-        #disable Event handlers, so they dont trigger
-        self.EH.disabled = True 
-        
-        logs = self.getLogs()
-        tempdataMissions = deque(maxlen=self.maxMisisons)
-        
-        #scan most recent log. Until enough data is collected
-        #go from newest to oldest log until the data buffer is filled
-        for log in reversed(logs):
-            print("Pre-scanning: "+log)
-            self.scanfile(log)
-            if(len(tempdataMissions)+len(self.Missions) <= self.maxMisisons):
-                tempdataMissions.extendleft(reversed(self.Missions))
-                self.Missions = deque(maxlen=self.maxMisisons)
-                self.Missions.append({"dict": {}, "data": []})
-            else:
-                break
-            if(len(tempdataMissions)>=self.maxMisisons):
-                break
-        self.Missions = tempdataMissions
-        self.EH.disabled = False    
+        try:
+            if(self.maxMisisons <= 0):
+                return
+            #disable Event handlers, so they dont trigger
+            self.EH.disabled = True 
+            
+            logs = self.getLogs()
+            tempdataMissions = deque(maxlen=self.maxMisisons)
+            
+            #scan most recent log. Until enough data is collected
+            #go from newest to oldest log until the data buffer is filled
+            for log in reversed(logs):
+                print("Pre-scanning: "+log)
+                self.scanfile(log)
+                if(len(tempdataMissions)+len(self.Missions) <= self.maxMisisons):
+                    tempdataMissions.extendleft(reversed(self.Missions))
+                    self.Missions = deque(maxlen=self.maxMisisons)
+                    self.Missions.append({"dict": {}, "data": []})
+                else:
+                    break
+                if(len(tempdataMissions)>=self.maxMisisons):
+                    break
+            self.Missions = tempdataMissions
+            self.EH.disabled = False    
+        except Exception as e:
+            traceback.print_exc()
+            print(e)
     
     def processLogLine(self, line):
-        timestamp, msg = self.splitTimestamp(line)
-        self.EH.check_Event("Log line", timestamp, msg, None)
-        event, event_match = self.check_log_events(msg, self.events)
-        # if(self.EH.disabled==False):
-            # print(line, event, event_match)      
-        #print(event, msg, self.multiEventLockData)
-        if(event_match):
-            self.EH.check_Event(event, timestamp, msg, event_match)
-            if("clutter" not in event):
-                #print(event, event_match)
-                self.processMission(event, (timestamp, msg, event_match))
-                self.EH.check_Event("Log line filtered", timestamp, msg, event_match)
-        else:
-            self.processMission("", (timestamp, msg))
-            self.EH.check_Event("Log line filtered", timestamp, msg, None)
+        try:
+            timestamp, msg = self.splitTimestamp(line)
+            self.EH.check_Event("Log line", timestamp, msg, None)
+            event, event_match = self.check_log_events(msg, self.events)
+            # if(self.EH.disabled==False):
+                # print(line, event, event_match)      
+            #print(event, msg, self.multiEventLockData)
+            if(event_match):
+                self.EH.check_Event(event, timestamp, msg, event_match)
+                if("clutter" not in event):
+                    #print(event, event_match)
+                    self.processMission(event, (timestamp, msg, event_match))
+                    self.EH.check_Event("Log line filtered", timestamp, msg, event_match)
+            else:
+                self.processMission("", (timestamp, msg))
+                self.EH.check_Event("Log line filtered", timestamp, msg, None)
+        except Exception as e:
+            traceback.print_exc()
+            print(e)
     
     #builds mission blocks    
     def processMission(self, event, data): 
-        
-        #new mission is being started
-        if(event == "Mission readname"):
-            self.Missions.append({"dict": {"Server sessionID": self.server_sessionID, event: data}, "data": []})
-        elif(event == "Server sessionID"):
-            self.server_sessionID = data[2].group(2)
-        
-        #mission is complete, switching to between mission block
-        elif(event == "Mission finished"): 
-            print(self.Missions[-1]["dict"]["Mission id"][0], self.Missions[-1]["dict"]["Mission id"][1])
-            self.Missions[-1]["dict"][event] = data
-            self.Missions.append({"dict": {"Server sessionID": self.server_sessionID}, "data": []})
-        
-        #process data within a mission
-        elif("Mission" in event):
-            self.Missions[-1]["dict"][event] = data
-        self.Missions[-1]["data"].append(data)
+        try:
+            #new mission is being started
+            if(event == "Mission readname"):
+                self.Missions.append({"dict": {"Server sessionID": self.server_sessionID, event: data}, "data": []})
+            elif(event == "Server sessionID"):
+                self.server_sessionID = data[2].group(2)
+            
+            #mission is complete, switching to between mission block
+            elif(event == "Mission finished"): 
+                print(self.Missions[-1]["dict"]["Mission id"][0], self.Missions[-1]["dict"]["Mission id"][1])
+                self.Missions[-1]["dict"][event] = data
+                self.Missions.append({"dict": {"Server sessionID": self.server_sessionID}, "data": []})
+            
+            #process data within a mission
+            elif("Mission" in event):
+                self.Missions[-1]["dict"][event] = data
+            self.Missions[-1]["data"].append(data)
+        except Exception as e:
+            traceback.print_exc()
+            print(e)
 
 ###################################################################################################
 #####                                       Utils                                              ####
@@ -341,3 +352,6 @@ File mpmissions\__cur_mp.Altis\Server\Functions\Server_SpawnTownResistance.sqf..
                     await asyncio.sleep(10*60)
         except (KeyboardInterrupt, asyncio.CancelledError):
             print("[asyncio] exiting", watch_log)
+        except Exception as e:
+            traceback.print_exc()
+            print(e)
