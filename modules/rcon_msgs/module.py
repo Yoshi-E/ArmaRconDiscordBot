@@ -39,19 +39,24 @@ class CommandJoinMSG(commands.Cog):
             
     #function called when a new message is received by rcon
     def rcon_on_msg_received(self, args):
-        message=args[0].strip()
-       
-        if(message.startswith("Player #")):
-            #print(message)
-            if(self.cfg["send_player_connect_msg"]):
-                #"disconnect"
-                if(message.endswith(" disconnected") and ":" not in message):
-                    asyncio.ensure_future(self.channel.send(message))
-                #"connect"
-                elif(message.endswith(") connected")):
-                    msg = "(".join(message.split("(")[:-1]) #removes the last block with the ip
-                    msg += "connected" 
-                    asyncio.ensure_future(self.channel.send(msg))
+        try:
+            message=args[0].strip()
+           
+            if(message.startswith("Player #")):
+                #print(message)
+                if(self.cfg["send_player_connect_msg"]):
+                    #"disconnect"
+                    if(message.endswith(" disconnected") and ":" not in message):
+                        message = ":x: "+message.split(" ")[-2]
+                        asyncio.ensure_future(self.channel.send(message))
+                    #"connect"
+                    elif(message.endswith(") connected")):
+                        msg = "(".join(message.split("(")[:-1]) #removes the last block with the ip
+                        msg = ":white_check_mark: "+" ".join(msg.split(" ")[2:])
+                        asyncio.ensure_future(self.channel.send(msg))
+        except Exception as e:
+            traceback.print_exc()
+            print(e)
                 
     
 ###################################################################################################
