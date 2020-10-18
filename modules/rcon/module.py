@@ -193,25 +193,39 @@ class CommandRcon(commands.Cog):
         self.setupRcon()
             
     def setupRcon(self, serverMessage=None):
-        del self.arma_rcon 
-        self.arma_rcon = bec_rcon.ARC(self.rcon_settings["ip"], 
-                                 self.rcon_settings["password"], 
-                                 self.rcon_settings["port"], 
-                                 {'timeoutSec' : self.rcon_settings["timeoutSec"]}
-                                )
+        try:
+            Events = None
+            if self.arma_rcon:
+                Events = self.arma_rcon.Events.copy()
+            del self.arma_rcon 
+            self.arma_rcon = bec_rcon.ARC(self.rcon_settings["ip"], 
+                                     self.rcon_settings["password"], 
+                                     self.rcon_settings["port"], 
+                                     {'timeoutSec' : self.rcon_settings["timeoutSec"]}
+                                    )
+            if Events:
+                #restore Event Handlers
+                self.arma_rcon.Events = Events
+            else:
+                #Add Event Handlers
+                self.arma_rcon.add_Event("received_ServerMessage", self.rcon_on_msg_received)
+                self.arma_rcon.add_Event("on_disconnect", self.rcon_on_disconnect)
+                
+            if(serverMessage):
+                self.arma_rcon.serverMessage = serverMessage
+            else:   
+                #Extend the chat storage
+                data = self.arma_rcon.serverMessage.copy()
+                self.arma_rcon.serverMessage = deque(maxlen=500) #Default: 100
+                data.reverse()
+                for d in data:
+                    self.arma_rcon.serverMessage.append(d)
+        except Exception as e:
+            traceback.print_exc()
+            print(e)
         
-        #Add Event Handlers
-        self.arma_rcon.add_Event("received_ServerMessage", self.rcon_on_msg_received)
-        self.arma_rcon.add_Event("on_disconnect", self.rcon_on_disconnect)
-        if(serverMessage):
-            self.arma_rcon.serverMessage = serverMessage
-        else:   
-            #Extend the chat storage
-            data = self.arma_rcon.serverMessage.copy()
-            self.arma_rcon.serverMessage = deque(maxlen=500) #Default: 100
-            data.reverse()
-            for d in data:
-                self.arma_rcon.serverMessage.append(d)
+                
+        
 ###################################################################################################
 #####                                  common functions                                        ####
 ###################################################################################################
