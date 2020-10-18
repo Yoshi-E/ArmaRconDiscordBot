@@ -244,7 +244,7 @@ File mpmissions\__cur_mp.Altis\Server\Functions\Server_SpawnTownResistance.sqf..
         
         #mission is complete, switching to between mission block
         elif(event == "Mission finished"): 
-            print("Mission id:", self.Missions[-1]["dict"]["Mission id"])
+            print(self.Missions[-1]["dict"]["Mission id"][0], self.Missions[-1]["dict"]["Mission id"][1])
             self.Missions[-1]["dict"][event] = data
             self.Missions.append({"dict": {"Server sessionID": self.server_sessionID}, "data": []})
         
