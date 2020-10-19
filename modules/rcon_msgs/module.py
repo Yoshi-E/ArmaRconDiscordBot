@@ -47,7 +47,7 @@ class CommandJoinMSG(commands.Cog):
                 if(self.cfg["send_player_connect_msg"]):
                     #"disconnect"
                     if(message.endswith(" disconnected") and ":" not in message):
-                        message = ":x: "+message.split(" ")[-2]
+                        message = ":x: "+message.split(" ")[2:-1]
                         asyncio.ensure_future(self.channel.send(message))
                     #"connect"
                     elif(message.endswith(") connected")):
