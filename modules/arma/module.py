@@ -51,12 +51,16 @@ class CommandArma(commands.Cog):
         
         
     async def on_ready(self):
-        await self.bot.wait_until_ready()
-        self.CommandRcon = self.bot.cogs["CommandRcon"]
-        self.channel = self.bot.get_channel(self.cfg["post_channel"])
-        if(self.channel):
-            self.readLog.EH.add_Event("Mission script error", self.mission_script_error)
-        asyncio.ensure_future(self.readLog.watch_log())
+        try:
+            await self.bot.wait_until_ready()
+            self.CommandRcon = self.bot.cogs["CommandRcon"]
+            self.channel = self.bot.get_channel(self.cfg["post_channel"])
+            #if(self.channel):
+            #    self.readLog.EH.add_Event("Mission script error", self.mission_script_error)
+            asyncio.ensure_future(self.readLog.watch_log())
+        except Exception as e:
+            traceback.print_exc()
+            print(e)
     
     async def mission_script_error(self, *args):
         try:
