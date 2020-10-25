@@ -412,7 +412,9 @@ class CommandRcon(commands.Cog):
             if(self.playerTypesMessage(player_name)):
                 if(i==0):
                     already_active = True
-                await ctx.send("Player responded in chat. Canceling AFK check.")  
+                    await ctx.send("Player was recently active. Canceling AFK check.")  
+                else:
+                    await ctx.send("Player responded in chat. Canceling AFK check.")  
                 if(already_active == False):
                     await self.arma_rcon.sayPlayer(player_id,  "Thank you for responding in chat.")
                 return

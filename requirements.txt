@@ -6,3 +6,4 @@ prettytable>=0.7.2
 pygeoip>=0.3.2
 psutil>=5.6.6
 scipy
+numpy
