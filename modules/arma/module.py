@@ -147,7 +147,7 @@ class CommandArma(commands.Cog):
                     
         msg = "Recently played missions (new to old)\n"
         msg += "\n".join(mlist)
-        await ctx.send(msg)  
+        await utils.sendLong(ctx, msg)  
   
 
 def setup(bot):
