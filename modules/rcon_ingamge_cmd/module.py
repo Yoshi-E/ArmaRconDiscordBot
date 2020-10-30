@@ -204,7 +204,7 @@ class CommandRconIngameComs(commands.Cog):
         
         if(str(ctx.author.id) in self.user_data and "account_arma3" in self.user_data[str(ctx.author.id)]):
             msg = "You account is already linked.\n"+msg
-        await ctx.author.send(msg)   
+        await ctx.author.send(msg)  #handle the case that the user blocked the bot / does not have DM enabled
 
         await asyncio.sleep(60*5)
         if(not (str(ctx.author.id) in self.user_data and "account_arma3" in self.user_data[str(ctx.author.id)])):

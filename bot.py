@@ -13,7 +13,10 @@ import sys
 #cfg = utils.CoreConfig.modules["modules/core"]["discord"]
 cfg = utils.CoreConfig.cfgDiscord
 
-bot = commands.Bot(command_prefix=cfg["BOT_PREFIX"], pm_help=True)
+intents = discord.Intents.default()
+intents.members = True  # Subscribe to the privileged members 
+
+bot = commands.Bot(command_prefix=cfg["BOT_PREFIX"], pm_help=True, intents=intents)
 bot.CoreConfig = utils.CoreConfig(bot)
  
 ###################################################################################################
