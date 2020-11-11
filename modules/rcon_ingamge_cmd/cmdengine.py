@@ -10,6 +10,9 @@ import datetime
 import inspect
 import time
 
+import logging
+from logging.handlers import RotatingFileHandler
+
 #Limits commands to X per second
 class RateBucketLimit():
     def __init__(self, per_function = False, limit = 30):
@@ -66,7 +69,7 @@ class RconCommandEngine(object):
         def __str__(self):
             return "{} [beid: {}, executed: {}, error: {}]".format(self.base_msg, self.user_beid, self.executed, self.error)
     
-    logging = True
+    console_logging = True
     commands = []
     channels = ["Side", "Global", "Vehicle", "Direct", "Group", "Command"]
     command_prefix = "?"
@@ -76,18 +79,16 @@ class RconCommandEngine(object):
     rate_limit = 900 #15min
     admins = []
     
+    #Create Log handler:
+    log_formatter = logging.Formatter('%(asctime)s %(levelname)s %(funcName)s(%(lineno)d) %(message)s')
+    logFile = os.path.dirname(os.path.realpath(__file__))+"/commands.log"
+    my_handler = RotatingFileHandler(logFile, mode='a', maxBytes=1*1000000, backupCount=10, encoding=None, delay=0)
+    my_handler.setFormatter(log_formatter)
+    my_handler.setLevel(logging.INFO)
+    log = logging.getLogger(__name__)
+    log.setLevel(logging.INFO)
+    log.addHandler(my_handler)
     
-    @staticmethod
-    def log_s(msg):
-        if(RconCommandEngine.logging==True):
-            now = datetime.datetime.now()
-            print(now.strftime("%m/%d/%Y, %H:%M:%S"), msg)  
-            
-    def log(self, msg):
-        if(RconCommandEngine.logging==True):
-            now = datetime.datetime.now()
-            print(now.strftime("%m/%d/%Y, %H:%M:%S"), msg)    
-            
     @staticmethod
     async def getPlayerBEID(player: str):
         #get updated player list, only if player not found
@@ -127,8 +128,8 @@ class RconCommandEngine(object):
                         ctx.command = ctx.command[len(RconCommandEngine.command_prefix):]
                         return await RconCommandEngine.processCommand(ctx)
         except Exception as e:
-            RconCommandEngine.log_s(traceback.format_exc())
-            RconCommandEngine.log_s(e)
+            RconCommandEngine.log.error(traceback.format_exc())
+            RconCommandEngine.log.error(e)
     
     @staticmethod
     async def checkPermission(ctx, func_name):
@@ -175,29 +176,29 @@ class RconCommandEngine(object):
                          RconCommandEngine.users[ctx.user].update()
                          
                     ctx.executed = True
-                    RconCommandEngine.log_s(ctx)
+                    RconCommandEngine.log.info(ctx)
                     return ctx
             except TypeError as e:
                 ctx.error = "Invalid arguments: Given {}, expected {}".format(len(ctx.args), len(Command["kwargs"])-2)
                 ctx.executed = False
                 await ctx.say(ctx.error)
-                RconCommandEngine.log_s(traceback.format_exc())
-                RconCommandEngine.log_s("Error in: {}".format(ctx))
+                RconCommandEngine.log.error(traceback.format_exc())
+                RconCommandEngine.log.error("Error in: {}".format(ctx))
                 return ctx
             except Exception as e:
                 if(ctx.command == "afk"):
                     RconCommandEngine.cogs["CommandRconIngameComs"].afkLock = False #set Rconcommand engine 
-                RconCommandEngine.log_s(traceback.format_exc())
+                RconCommandEngine.log.ERROR(traceback.format_exc())
                 ctx.error = "Error: '{}'".format(e)
                 ctx.executed = False
                 await ctx.say("Error '{}'".format(ctx.error))
-                RconCommandEngine.log_s("Error in: {}".format(ctx))
+                RconCommandEngine.log.error("Error in: {}".format(ctx))
                 return ctx
         #Command not found
         if(len(ctx.command) > len(RconCommandEngine.command_prefix) and ctx.command[:len(RconCommandEngine.command_prefix)] != RconCommandEngine.command_prefix and ctx.command != "" and ctx.command != None):
             ctx.error = "Command '{}' not found".format(ctx.command)
             ctx.executed = False
-            RconCommandEngine.log_s(ctx)
+            RconCommandEngine.log.warning(ctx)
             return ctx
         return None
         
