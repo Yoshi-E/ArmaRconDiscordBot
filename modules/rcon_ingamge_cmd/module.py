@@ -22,20 +22,6 @@ import time
 from random import randint
 import glob
 
-import logging
-from logging.handlers import RotatingFileHandler
-
-#Create Log handler:
-log_formatter = logging.Formatter('%(asctime)s %(levelname)s %(funcName)s(%(lineno)d) %(message)s')
-logFile = os.path.dirname(os.path.realpath(__file__))+"/discord.log"
-my_handler = RotatingFileHandler(logFile, mode='a', maxBytes=1*1000000, backupCount=10, encoding=None, delay=0)
-my_handler.setFormatter(log_formatter)
-my_handler.setLevel(logging.INFO)
-log = logging.getLogger("discord")
-log.setLevel(logging.INFO)
-log.addHandler(my_handler)
-
-
 from modules.core.utils import CommandChecker, sendLong, CoreConfig, Tools
 from modules.core.config import Config
 from .cmdengine import RconCommandEngine
