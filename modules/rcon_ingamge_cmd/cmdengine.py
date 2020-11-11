@@ -57,7 +57,7 @@ class RconCommandEngine(object):
         async def say(self, msg):
             if(int(self.user_beid) >= 0):
                 if(RconCommandEngine.logging==True):
-                    RconCommandEngine.log_s(msg)
+                    RconCommandEngine.log.info(msg)
                 await RconCommandEngine.cogs["CommandRcon"].arma_rcon.sayPlayer(self.user_beid, msg)
             else:
                 self.error = "Invalid BEID"
