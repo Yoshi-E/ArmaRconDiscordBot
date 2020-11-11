@@ -188,7 +188,7 @@ class RconCommandEngine(object):
             except Exception as e:
                 if(ctx.command == "afk"):
                     RconCommandEngine.cogs["CommandRconIngameComs"].afkLock = False #set Rconcommand engine 
-                RconCommandEngine.log.ERROR(traceback.format_exc())
+                RconCommandEngine.log.error(traceback.format_exc())
                 ctx.error = "Error: '{}'".format(e)
                 ctx.executed = False
                 await ctx.say("Error '{}'".format(ctx.error))
