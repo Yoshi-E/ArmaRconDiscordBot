@@ -25,7 +25,7 @@ class CommandRconDatabase(commands.Cog):
         self.cfg = CoreConfig.modules["modules/rcon_database"]["general"]
         
         asyncio.ensure_future(self.on_ready())
-        
+        self.players = None
         #Import an EPM rcon database
         #First convert the EPM export (.sdf) to csv:
         #Convert SDF with https://www.rebasedata.com/convert-sdf-to-csv-online
@@ -49,7 +49,7 @@ class CommandRconDatabase(commands.Cog):
                 if(self.CommandRcon.arma_rcon.disconnected==True):
                     continue
                 try:
-                    players = await self.CommandRcon.arma_rcon.getPlayersArray()
+                    self.players = await self.CommandRcon.arma_rcon.getPlayersArray()
                 except Exception as e:
                     continue
                 self.player_db.save = False 
@@ -58,9 +58,12 @@ class CommandRconDatabase(commands.Cog):
                 c_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") 
                 #Set status
                 if(self.cfg["set_custom_status"]==True):
-                    await self.set_status(players)
+                    await self.set_status(self.players)                
+                    
+                if(self.cfg["setTopicPlayerList_channel"]>0):
+                    await self.setTopicPlayerList(self.players)
                 
-                for player in players:
+                for player in self.players:
                     name = player[4]
                     if(name.endswith(" (Lobby)")): #Strip lobby from name
                         name = name[:-8]
@@ -98,6 +101,16 @@ class CommandRconDatabase(commands.Cog):
         
         await self.bot.change_presence(activity=discord.Game(name=game_name), status=status)
     
+    async def setTopicPlayerList(self, players):
+        #print("[DEBUG]", players)#
+        channel = self.bot.get_channel(self.cfg["setTopicPlayerList_channel"])
+        if(not channel):
+            return
+        playerlist = "Players online: "+str(len(players))+" - "
+        for player in players:
+            playerlist += player[4]+", "
+        await channel.edit(topic=playerlist[:-2])
+        
 ###################################################################################################
 #####                                   General functions                                      ####
 ###################################################################################################         

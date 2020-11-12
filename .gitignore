@@ -113,3 +113,5 @@ modules/jmw/data/
 data/
 error.log
 *.json
+*.png
+*.rpt

@@ -19,7 +19,8 @@ class readLog:
         self.path = os.path.dirname(os.path.realpath(__file__))
         self.log_path = log_path
         self.current_log = None
-        
+        self.multiEventLock = None
+        self.multiEventLockData = []
         if(len(self.getLogs()) == 0):
             print("[WARNNING] No log files found in '{}'".format(self.log_path))
             
@@ -28,7 +29,7 @@ class readLog:
         self.Missions.append({"dict": {}, "data": []})
         
         self.define_line_types()
-        #self.EH.add_Event("Server load", self.test)
+        #self.EH.add_Event("Mission script error", self.test)
         #self.pre_scan()
         #self.test_missions()
         
@@ -36,7 +37,7 @@ class readLog:
         #asyncio.ensure_future(self.watch_log())
     
     def test(self, *args):
-        print(args)
+        print("----", args)
 
 ###################################################################################################
 #####                                       Events                                             ####
@@ -77,17 +78,19 @@ class readLog:
             ["Server waiting for game", "^(Waiting for next game\.)"], #Waiting for next game.
             ["Server load", "^(Server load: FPS (?P<FPS>[0-9]*), memory used: (?P<memory>[0-9]*) (?P<memory_unit>.*?), out: (?P<out>[0-9]*) (?P<out_unit>.*?), in: (?P<in>[0-9]*) (?P<in_unit>.*?),.*Players: (?P<players>[0-9]*) .*)"], #Server load: FPS 9, memory used: 2430 MB, out: 993 Kbps, in: 290 Kbps, NG:0, G:6358, BE-NG:0, BE-G:0, Players: 17 (L:0, R:0, B:0, G:17, D:0)
         #mission
-            ["Mission roles assigned",  "^(Roles assigned\.)"], #Roles assigned.
             ["Mission readname",        "^(Mission (.*) read from bank.)"], #Mission BECTI BE 0.97 - Zerty 1.3.5.2 read from bank.
+            ["Mission roles assigned",  "^(Roles assigned\.)"], #Roles assigned.
             ["Mission reading",         "^(Reading mission \.\.\.)"], #Reading mission ...
-            ["Mission read",            "^(Mission read\.)"], #Mission read.
             ["Mission starting",        "^(Starting mission:)"], #Starting mission:
             ["Mission file",            "^\s(Mission file: (.*) \((.*)\))"], # Mission file: becti_current (__cur_mp)
             ["Mission world",           "^\s(Mission world: (.*))"], # Mission world: Altis
             ["Mission directory",       "^\s(Mission directory: (.*))"], # Mission directory: mpmissions\__cur_mp.Altis\
+            ["Mission read",            "^(Mission read\.)"], #Mission read.
             ["Mission id",              "^\s(Mission id: (.*))"], # Mission id: a001eb0dc827137d84595a7706f2cdd937f95fa3
-            ["Mission finished",        "^(Game finished\.)"], #Game finished.
             ["Mission started",         "^(Game started\.)"], #Game started.
+            ["Mission finished",        "^(Game finished\.)"], #Game finished.
+            #["Mission script error",         "^(Error in expression .*)", "^(File (?P<path>.*)..., line (?P<line>[0-9]*))"], #Error in expression <= false };  #File mpmissions\__cur_mp.Altis\Server\Functions\Server_SpawnTownResistance.sqf..., line 151
+            #TODO: Multi line Events can cause other events to be skipped. 
         #player
             ["Player modified data file",   "^((.*) uses modified data file)"], #KKD | dawkar3152 uses modified data file
             ["Player disconnected",         "^(Player (.*) disconnected.)"], #Player ARMATA disconnected.
@@ -103,10 +106,37 @@ class readLog:
             ["BattlEye player guid",            "^(BattlEye Server: Player #(.*) (.*) - GUID: (.*))"], #BattlEye Server: Player #38 Fritz - GUID: 54333f4dbe1d3c73b227c8a3ed7b663c
             ["BattlEye player guid verified",   "^(BattlEye Server: Verified GUID \((.*)\) of player #([0-9]*) (.*))"], #BattlEye Server: Verified GUID (2844515fa6c84ca6647cd55fa8c145cb) of player #8 Sgt. Gonzalez
             ["BattlEye player kicked",          "^(Player (.*) kicked off by BattlEye: (.*))"],  #Player MM Leon kicked off by BattlEye: Admin Kick (AFK too long (user_check by Ztppp))
+            ["BattlEye player banned",          "^(Player (?P<player>.*?) kicked off by BattlEye: Admin Ban \((?P<reason>.*)\))"],  #Player  kicked off by BattlEye: Admin Ban (Banned by 'Yoshi_E' for 60min)
             ["BattlEye rcon admin login",       "^(BattlEye Server: RCon admin #([0-9]*) \((.*):(.*)\) logged in)"],  #BattlEye Server: RCon admin #0 (90.92.59.82:59806) logged in
-            ["BattlEye chat direct message",    "^(BattlEye Server: RCon admin #([0-9]*): \(To (.*)\) (.*))"]  #BattlEye Server: RCon admin #1: (To MM Leon) 
+            ["BattlEye chat direct message",    "^(BattlEye Server: RCon admin #([0-9]*): \(To (.*)\) (.*))"],  #BattlEye Server: RCon admin #1: (To MM Leon) 
+            ["BattlEye chat global message",    "^(BattlEye Server: RCon admin #([0-9]*):)"]  #BattlEye Server: RCon admin #2: (Global) Yoshi_E: test
         ]
         #TODO: Bans?
+        
+        #TODO:
+        """
+Server: Object 2:6738 not found (message Type_120)
+Error in expression <= false };
+};
+
+if (_can_use) then {
+if (_unit isEqualType []) then { _unit = sel>
+  Error position: <_unit isEqualType []) then { _unit = sel>
+  Error Undefined variable in expression: _unit
+File mpmissions\__cur_mp.Altis\Server\Functions\Server_SpawnTownResistance.sqf..., line 151
+Error in expression <{
+
+_picked = _pool select _ci;
+
+_unit = _picked select 0;
+_probability = _picked>
+  Error position: <_picked select 0;
+_probability = _picked>
+  Error Undefined variable in expression: _picked
+File mpmissions\__cur_mp.Altis\Server\Functions\Server_SpawnTownResistance.sqf..., line 142
+"POOL Composer for Paros (value 350)"
+        
+        """
         
         #base events:
         self.base_events = ["Log new", "Log line", "Log line filtered"]
@@ -115,13 +145,36 @@ class readLog:
     
     # goes through an array of regex until it finds a match
     def check_log_events(self, line, events):
-        try:
-            for event in events:
+        if(self.multiEventLock):
+            try:
+                m = re.match(self.multiEventLock[2], line)
+                if m:  
+                    self.multiEventLockData.append(line)
+                    result = (self.multiEventLock[0], self.multiEventLockData)
+                    self.multiEventLock = None
+                    tmpB = self.multiEventLockData.copy()
+                    self.multiEventLockData = []
+                    return result
+                self.multiEventLockData.append(line)
+                if(len(self.multiEventLockData)>5): #max multi line lenght
+                    print("Warning Exceeded 'multiEventLock' length! For '{}'".format((self.multiEventLock[0], self.multiEventLockData)))
+                    self.multiEventLock = None
+                    self.multiEventLockData = []
+            except Exception as e:
+                traceback.print_exc()
+                raise Exception("Error processing MultiEventLock: '{}' '{}'".format(self.multiEventLock, e))
+        else:
+            try:
+                for event in events:
                     m = re.match(event[1], line)
                     if m:
-                        return event[0], m
-        except Exception as e:
-            raise Exception("Invalid Regex: '{}' '{}'".format(event, e))
+                        if(len(event)>2):
+                            self.multiEventLock = event
+                            self.multiEventLockData.append(line)
+                        else:
+                            return event[0], m
+            except Exception as e:
+                raise Exception("Invalid Regex: '{}' '{}'".format(event, e))
         return None, None
       
     #add custom regex based events to the log reader
@@ -139,61 +192,77 @@ class readLog:
     #it is necessary to rearrange the data to ensure they stay in order.
     #Limited by Mission count
     def pre_scan(self):
-        if(self.maxMisisons <= 0):
-            return
-        #disable Event handlers, so they dont trigger
-        self.EH.disabled = True 
-        
-        logs = self.getLogs()
-        tempdataMissions = deque(maxlen=self.maxMisisons)
-        
-        #scan most recent log. Until enough data is collected
-        #go from newest to oldest log until the data buffer is filled
-        for log in reversed(logs):
-            print("Pre-scanning: "+log)
-            self.scanfile(log)
-            if(len(tempdataMissions)+len(self.Missions) <= self.maxMisisons):
-                tempdataMissions.extendleft(reversed(self.Missions))
-                self.Missions = deque(maxlen=self.maxMisisons)
-                self.Missions.append({"dict": {}, "data": []})
-            else:
-                break
-            if(len(tempdataMissions)>=self.maxMisisons):
-                break
-        self.Missions = tempdataMissions
-        self.EH.disabled = False    
+        try:
+            if(self.maxMisisons <= 0):
+                return
+            #disable Event handlers, so they dont trigger
+            self.EH.disabled = True 
+            
+            logs = self.getLogs()
+            tempdataMissions = deque(maxlen=self.maxMisisons)
+            
+            #scan most recent log. Until enough data is collected
+            #go from newest to oldest log until the data buffer is filled
+            for log in reversed(logs):
+                print("Pre-scanning: "+log)
+                self.scanfile(log)
+                if(len(tempdataMissions)+len(self.Missions) <= self.maxMisisons):
+                    tempdataMissions.extendleft(reversed(self.Missions))
+                    self.Missions = deque(maxlen=self.maxMisisons)
+                    self.Missions.append({"dict": {}, "data": []})
+                else:
+                    break
+                if(len(tempdataMissions)>=self.maxMisisons):
+                    break
+            self.Missions = tempdataMissions
+            self.EH.disabled = False    
+        except Exception as e:
+            traceback.print_exc()
+            print(e)
     
     def processLogLine(self, line):
-        timestamp, msg = self.splitTimestamp(line)
-        self.EH.check_Event("Log line", timestamp, msg, None)
-        event, event_match = self.check_log_events(msg, self.events)
-        
-        if(event_match):
-            self.EH.check_Event(event, timestamp, msg, event_match)
-            if("clutter" not in event):
-                self.processMission(event, (timestamp, msg, event_match))
-                self.EH.check_Event("Log line filtered", timestamp, msg, event_match)
-        else:
-            self.processMission("", (timestamp, msg))
-            self.EH.check_Event("Log line filtered", timestamp, msg, None)
+        try:
+            timestamp, msg = self.splitTimestamp(line)
+            self.EH.check_Event("Log line", timestamp, msg, None)
+            event, event_match = self.check_log_events(msg, self.events)
+            # if(self.EH.disabled==False):
+                # print(line, event, event_match)      
+            #print(event, msg, self.multiEventLockData)
+            if(event_match):
+                self.EH.check_Event(event, timestamp, msg, event_match)
+                if("clutter" not in event):
+                    #print(event, event_match)
+                    self.processMission(event, (timestamp, msg, event_match))
+                    self.EH.check_Event("Log line filtered", timestamp, msg, event_match)
+            else:
+                self.processMission("", (timestamp, msg))
+                self.EH.check_Event("Log line filtered", timestamp, msg, None)
+        except Exception as e:
+            traceback.print_exc()
+            print(e)
     
     #builds mission blocks    
     def processMission(self, event, data): 
-        #new mission is being started
-        if(event == "Mission readname"):
-            self.Missions.append({"dict": {"Server sessionID": self.server_sessionID, event: data}, "data": []})
-        elif(event == "Server sessionID"):
-            self.server_sessionID = data[2].group(2)
-        
-        #mission is complete, switching to between mission block
-        elif(event == "Mission finished"): 
-            self.Missions[-1]["dict"][event] = data
-            self.Missions.append({"dict": {"Server sessionID": self.server_sessionID}, "data": []})
-        
-        #process data within a mission
-        elif("Mission" in event):
-            self.Missions[-1]["dict"][event] = data
-        self.Missions[-1]["data"].append(data)
+        try:
+            #new mission is being started
+            if(event == "Mission readname"):
+                self.Missions.append({"dict": {"Server sessionID": self.server_sessionID, event: data}, "data": []})
+            elif(event == "Server sessionID"):
+                self.server_sessionID = data[2].group(2)
+            
+            #mission is complete, switching to between mission block
+            elif(event == "Mission finished"): 
+                print(self.Missions[-1]["dict"]["Mission id"][0], self.Missions[-1]["dict"]["Mission id"][1])
+                self.Missions[-1]["dict"][event] = data
+                self.Missions.append({"dict": {"Server sessionID": self.server_sessionID}, "data": []})
+            
+            #process data within a mission
+            elif("Mission" in event):
+                self.Missions[-1]["dict"][event] = data
+            self.Missions[-1]["data"].append(data)
+        except Exception as e:
+            traceback.print_exc()
+            print(e)
 
 ###################################################################################################
 #####                                       Utils                                              ####
@@ -271,6 +340,7 @@ class readLog:
                                         print("current log: "+self.current_log)
                                         self.EH.check_Event("Log new", old_log, self.current_log)
                             else:
+                                self.line = line #access to last read line (debugging)
                                 self.processLogLine(line)
                     
                     except (KeyboardInterrupt, asyncio.CancelledError):
@@ -282,3 +352,6 @@ class readLog:
                     await asyncio.sleep(10*60)
         except (KeyboardInterrupt, asyncio.CancelledError):
             print("[asyncio] exiting", watch_log)
+        except Exception as e:
+            traceback.print_exc()
+            print(e)

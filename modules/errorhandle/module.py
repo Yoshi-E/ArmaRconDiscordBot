@@ -16,7 +16,11 @@ class CommandErrorHandler(commands.Cog):
             else:
                 await ctx.send(msg)
                 msg = ""
-                
+    
+    @commands.Cog.listener()
+    async def on_error(event, *args, **kwargs):
+        print(event,args, kwargs)
+        
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
         """The event triggered when an error is raised while invoking a command.

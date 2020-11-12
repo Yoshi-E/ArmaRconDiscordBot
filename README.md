@@ -1,11 +1,15 @@
 # ArmaRconDiscordBot
 
 ## Setup:
+Make sure to enable "Privileged Gateway Intents" for the discord bot:
+https://discord.com/developers/applications/
+-> SERVER MEMBERS INTENT
+
 1. Install Python3.6+
 2. Clone the git `https://github.com/Yoshi-E/ArmaRconDiscordBot.git`
 3. Run `pip install -r requirements.txt` to install required modules
 4. Run the `bot.py` once.
-5. Now configure the bot inside a web brower of your choice. Simply open the site: localhost:8000
+5. Now configure the bot inside a web browser of your choice. Simply open the site: localhost:8000
 6. Now enter all essential details (Discord token, etc.)
 7. Restart the bot
 8. The bot should now be functional. However the permission have to be configured first, otherwise you wont be able to use any commands. Open the settings again, and set up the permissions.
@@ -18,7 +22,7 @@ https://github.com/Yoshi-E/Python-BEC-RCon
 ## Questions:
 <dl>
   <dt>I want to bot to do this or that, what can I do?</dt>
-  <dd>You open an issue here with detailed infromation on what you want. You can also directly contact me on discord: Yoshi_E#0405 (I am on all Bohemia discord servers).</dd>
+  <dd>You open an issue here with detailed information on what you want. You can also directly contact me on discord: Yoshi_E#0405 (I am on all Bohemia discord servers).</dd>
   <dd>You can also ask in the <a href="https://forums.bohemia.net/forums/topic/223835-api-bec-rcon-api-for-python-and-discord/">Forum Thread</a></dd>
 
   <dt>Can I use this bot with multiple servers?</dt>
@@ -38,8 +42,11 @@ https://github.com/Yoshi-E/Python-BEC-RCon
 Easy setup and configuration with a web based setup page<br>
 ![easy setup](https://i.imgur.com/IiIOST2.png)
 
-Display Player acount in the bots status:<br>
+Display Player account in the bots status:<br>
 ![player count](https://i.imgur.com/ehjPjF8.png)
+
+Get warnings about script errors in the mission:
+![script errors](https://i.imgur.com/5KsgcGR.png) 
 
 Receive Ban notifications (Local only):<br>
 ![ban notifications](https://i.imgur.com/fXWWblD.png)

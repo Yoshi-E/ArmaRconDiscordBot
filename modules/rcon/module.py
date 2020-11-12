@@ -172,7 +172,7 @@ class CommandRcon(commands.Cog):
         
         self.lastReconnect = deque()
         self.ipReader = geoip2.database.Reader(self.path+"/GeoLite2-Country.mmdb")
-        
+        self.arma_rcon  = None
         
         asyncio.ensure_future(self.on_ready())
         
@@ -193,24 +193,39 @@ class CommandRcon(commands.Cog):
         self.setupRcon()
             
     def setupRcon(self, serverMessage=None):
-        self.arma_rcon = bec_rcon.ARC(self.rcon_settings["ip"], 
-                                 self.rcon_settings["password"], 
-                                 self.rcon_settings["port"], 
-                                 {'timeoutSec' : self.rcon_settings["timeoutSec"]}
-                                )
+        try:
+            Events = None
+            if self.arma_rcon:
+                Events = self.arma_rcon.Events.copy()
+            del self.arma_rcon 
+            self.arma_rcon = bec_rcon.ARC(self.rcon_settings["ip"], 
+                                     self.rcon_settings["password"], 
+                                     self.rcon_settings["port"], 
+                                     {'timeoutSec' : self.rcon_settings["timeoutSec"]}
+                                    )
+            if Events:
+                #restore Event Handlers
+                self.arma_rcon.Events = Events
+            else:
+                #Add Event Handlers
+                self.arma_rcon.add_Event("received_ServerMessage", self.rcon_on_msg_received)
+                self.arma_rcon.add_Event("on_disconnect", self.rcon_on_disconnect)
+                
+            if(serverMessage):
+                self.arma_rcon.serverMessage = serverMessage
+            else:   
+                #Extend the chat storage
+                data = self.arma_rcon.serverMessage.copy()
+                self.arma_rcon.serverMessage = deque(maxlen=500) #Default: 100
+                data.reverse()
+                for d in data:
+                    self.arma_rcon.serverMessage.append(d)
+        except Exception as e:
+            traceback.print_exc()
+            print(e)
         
-        #Add Event Handlers
-        self.arma_rcon.add_Event("received_ServerMessage", self.rcon_on_msg_received)
-        self.arma_rcon.add_Event("on_disconnect", self.rcon_on_disconnect)
-        if(serverMessage):
-            self.arma_rcon.serverMessage = serverMessage
-        else:   
-            #Extend the chat storage
-            data = self.arma_rcon.serverMessage.copy()
-            self.arma_rcon.serverMessage = deque(maxlen=500) #Default: 100
-            data.reverse()
-            for d in data:
-                self.arma_rcon.serverMessage.append(d)
+                
+        
 ###################################################################################################
 #####                                  common functions                                        ####
 ###################################################################################################
@@ -351,6 +366,7 @@ class CommandRcon(commands.Cog):
         aliases=['disconnectrcon'],
         pass_context=True)
     async def disconnectrcon(self, ctx): 
+        self.lastReconnect.append(datetime.datetime.now())
         self.arma_rcon.disconnect()
         await ctx.send("Disconnect Rcon")   
        
@@ -396,7 +412,9 @@ class CommandRcon(commands.Cog):
             if(self.playerTypesMessage(player_name)):
                 if(i==0):
                     already_active = True
-                await ctx.send("Player responded in chat. Canceling AFK check.")  
+                    await ctx.send("Player was recently active. Canceling AFK check.")  
+                else:
+                    await ctx.send("Player responded in chat. Canceling AFK check.")  
                 if(already_active == False):
                     await self.arma_rcon.sayPlayer(player_id,  "Thank you for responding in chat.")
                 return
@@ -838,7 +856,7 @@ class CommandRcon(commands.Cog):
     async def goVote(self, ctx): 
         data = await self.arma_rcon.goVote()
         msg = "Sending users to vote for next mission"
-        await ctx.send(msg)       
+        await ctx.send(msg)          
 
 
 

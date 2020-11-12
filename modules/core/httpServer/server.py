@@ -50,12 +50,19 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
             
     def do_POST(self):
 
-        if self.path == '/get_settings.json':
+        if self.path == '/get_permissions.json':
             self.send_response(200)
             self.send_header('Content-type', 'text/json')
             self.end_headers()
             response = BytesIO()
-            response.write(WebServer.generate_settings())
+            response.write(WebServer.generate_permissionList())
+            self.wfile.write(response.getvalue())          
+        elif self.path == '/get_permissions_ingcmd.json':
+            self.send_response(200)
+            self.send_header('Content-type', 'text/json')
+            self.end_headers()
+            response = BytesIO()
+            response.write(WebServer.generate_permissionList_ingcmd())
             self.wfile.write(response.getvalue())           
         elif self.path == '/set_general_settings.json':
             WebServer.bot.CoreConfig.setGeneralSetting(self.data_redirect("/restart.html"))
@@ -75,7 +82,16 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
             
             body = "?"+body.decode('utf-8')
             parsed = urlparse(body)
-            WebServer.bot.CoreConfig.setCommandSetting(parse_qs(parsed.query))            
+            WebServer.bot.CoreConfig.setCommandSetting(parse_qs(parsed.query))       
+        elif self.path == '/set_ingcmd_settings.json':
+            content_length = int(self.headers['Content-Length'])
+            body = self.rfile.read(content_length)
+            self.send_response(200)
+            self.end_headers()
+            
+            body = "?"+body.decode('utf-8')
+            parsed = urlparse(body)
+            WebServer.bot.cogs["CommandRconIngameComs"].PermissionConfig.setCommandSetting(parse_qs(parsed.query))
         elif self.path == '/terminate_bot.json':
             self.data_redirect()
             
@@ -87,13 +103,21 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
             self.data_redirect("/restart.html")
             _thread.start_new_thread(WebServer.restart, ())
         elif self.path == '/add_role.json':
-            WebServer.bot.CoreConfig.add_role(self.data_redirect())      
+            WebServer.bot.CoreConfig.add_role(self.data_redirect())           
+        elif self.path == '/add_role_ingcmd.json':
+            WebServer.bot.cogs["CommandRconIngameComs"].PermissionConfig.add_role(self.data_redirect())      
         elif self.path == '/delete_role.json':
-            WebServer.bot.CoreConfig.delete_role(self.data_redirect())        
+            WebServer.bot.CoreConfig.delete_role(self.data_redirect())             
+        elif self.path == '/delete_role_ingcmd.json':
+            WebServer.bot.cogs["CommandRconIngameComs"].PermissionConfig.delete_role(self.data_redirect())        
         elif self.path == '/active_deall_role.json':
-            WebServer.bot.CoreConfig.deall_role(self.data_redirect())        
+            WebServer.bot.CoreConfig.deall_role(self.data_redirect())            
+        elif self.path == '/active_deall_role_ingcmd.json':
+            WebServer.bot.cogs["CommandRconIngameComs"].PermissionConfig.deall_role(self.data_redirect())        
         elif self.path == '/active_all_role.json':
-            WebServer.bot.CoreConfig.all_role(self.data_redirect())         
+            WebServer.bot.CoreConfig.all_role(self.data_redirect())           
+        elif self.path == '/active_all_role_ingcmd.json':
+            WebServer.bot.cogs["CommandRconIngameComs"].PermissionConfig.all_role(self.data_redirect())         
         elif "set_module_settings::" in self.path:
             WebServer.set_module_settings(self.path, self.data_redirect())        
         elif self.path == '/get_module_settings.json':
@@ -164,7 +188,7 @@ class WebServer():
         self.httpd = HTTPServer(('localhost', port), SimpleHTTPRequestHandler)
         self.httpd.serve_forever()
     
-    def generate_settings():
+    def generate_permissionList():
         if(WebServer.CommandChecker):
             WebServer.bot.CoreConfig.load_role_permissions() #Load permissions from file
 
@@ -177,7 +201,24 @@ class WebServer():
             settings["head"] = list(roles)
             settings["registered"] = WebServer.CommandChecker.registered
             json_dump = json.dumps(settings)
+            return json_dump.encode()          
+
+    def generate_permissionList_ingcmd():
+        if("CommandRconIngameComs" in WebServer.bot.cogs):
+            ingcmd = WebServer.bot.cogs["CommandRconIngameComs"]
+            ingcmd.PermissionConfig.load_role_permissions() #Load permissions from file
+            
+            settings = {}
+            roles = ingcmd.PermissionConfig.cfgPermissions_Roles.keys()
+            for command in ingcmd.RconCommandEngine.commands:
+                settings[str(command["cmd"])] = {} #TODO: invalid index error
+                for role in roles:
+                    settings[str(command["cmd"])][role] = ingcmd.PermissionConfig.cfgPermissions_Roles[role]["command_"+str(command["cmd"])]
+            settings["head"] = list(roles)
+            json_dump = json.dumps(settings)
             return json_dump.encode()       
+        else:
+            return json.dumps({}).encode()    #empty response   
 
     def get_module_settings():
         settings = {}

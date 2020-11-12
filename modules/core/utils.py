@@ -5,16 +5,30 @@ import discord
 from discord.ext import commands
 from discord.ext.commands import GroupMixin
 
+
 from packaging import version
 import time
 import inspect
 import asyncio
 import glob
+
 assert version.parse(discord.__version__) >= version.parse("1.2.2"), "Module 'Discord' required to be >= 1.2.5"
 
+import logging
+from logging.handlers import RotatingFileHandler
 
 from modules.core.httpServer import server
 from modules.core.config import Config
+
+
+_log_formatter = logging.Formatter('%(asctime)s %(levelname)s %(funcName)s(%(lineno)d) %(message)s')
+_logFile = os.path.dirname(os.path.realpath(__file__))+"/root.log"
+_my_handler = RotatingFileHandler(_logFile, mode='a', maxBytes=10*1000000, backupCount=10, encoding=None, delay=0)
+_my_handler.setFormatter(_log_formatter)
+_my_handler.setLevel(logging.INFO)
+log = logging.getLogger('root')
+log.setLevel(logging.INFO)
+log.addHandler(_my_handler)
 
 async def sendLong(ctx, msg: str, enclosed=False, hard_post_limit=4):
     discord_limit = 1900 #discord limit is 2000
@@ -46,9 +60,9 @@ async def sendLong(ctx, msg: str, enclosed=False, hard_post_limit=4):
 
 class Event_Handler(object):
     def __init__(self, events):
-        self.events = events
+        self.events = events #contains all valid event names
         self.events.append("other")
-        self.Events = []
+        self.Events = [] #contains custom events and their functions
         self.disabled = False
         
     def add_Event(self, name: str, func):
@@ -178,46 +192,41 @@ class CoreConfig():
     #Core config is always avaible, modules only after they are loaded
     cfg = Config(path+"/"+Modules.settings_dir+"/"+Modules.general_settings_file+".json", path+"/"+Modules.settings_dir+"/"+Modules.general_settings_file+".default_json")
     cfgDiscord = Config(path+"/"+Modules.settings_dir+"/discord.json", path+"/"+Modules.settings_dir+"/discord.default_json")
-    cfgPermissions = Config(path+"/permissions.json", path+"/permissions.default_json")
     registered = []
     modules = {}
     bot = None
     def __init__(self, bot):
         
-        CoreConfig.bot = bot
+        type(self).bot = bot
         self.cfgPermissions_Roles = {}
-        self.WebServer = server.WebServer(bot, CommandChecker, CoreConfig)
-        
-    @staticmethod
-    def update():
-        GlobalConfig.cfg.load() #reload cfg from file 
+        self.WebServer = server.WebServer(bot, CommandChecker, type(self))
         
     def load_role_permissions(self):
-        files = glob.glob(CoreConfig.path+"/permissions_*.json")
+        files = glob.glob(type(self).path+"/permissions_*.json")
         if(len(files)==0):
             self.generate_default_settings()
         for file in files:
             role = os.path.basename(file).replace("permissions_", "").replace(".json", "")
-            self.cfgPermissions_Roles[role] = Config(CoreConfig.path+"/permissions_{}.json".format(role))
+            self.cfgPermissions_Roles[role] = Config(type(self).path+"/permissions_{}.json".format(role))
         
         #add new commands (for new modules)
         for role, data in self.cfgPermissions_Roles.items():
-            for command in CoreConfig.bot.commands:
+            for command in type(self).bot.commands:
                 cmd = "command_"+str(command)
                 if(cmd not in self.cfgPermissions_Roles[role]):
                     self.cfgPermissions_Roles[role][cmd] = False
             
         
     def generate_default_settings(self):
-        for role in CoreConfig.cfgPermissions["roles"]:
-            self.cfgPermissions_Roles[role] = CoreConfig.cfg.new(CoreConfig.path+"/permissions_{}.json".format(role))
+        for role in ["@everyone", "Admin"]:
+            self.cfgPermissions_Roles[role] = type(self).cfg.new(type(self).path+"/permissions_{}.json".format(role))
             
             if(role in ["default"]):
                 val = False
             else:
                 val = True
                 
-            for command in CoreConfig.bot.commands:
+            for command in type(self).bot.commands:
                 self.cfgPermissions_Roles[role]["command_"+str(command)] = val
                 
     def setCommandSetting(self, data):
@@ -225,26 +234,26 @@ class CoreConfig():
         self.cfgPermissions_Roles[data["role"][0]][data["name"][0]] = val
     
     def setGeneralSetting(self, data):
-       CoreConfig.modules["modules/core"]["discord"]["TOKEN"] = data["token"][0]
-       CoreConfig.modules["modules/core"]["discord"]["BOT_PREFIX"] = data["prefix"][0]   
-       CoreConfig.modules["modules/core"]["discord"]["post_channel"] = int(data["post_channel"][0])   
+       type(self).modules["modules/core"]["discord"]["TOKEN"] = data["token"][0]
+       type(self).modules["modules/core"]["discord"]["BOT_PREFIX"] = data["prefix"][0]   
+       type(self).modules["modules/core"]["discord"]["post_channel"] = int(data["post_channel"][0])   
 
     def deall_role(self, data):
         role = data["role"][0]
-        for command in CoreConfig.bot.commands:
+        for command in type(self).bot.commands:
             self.cfgPermissions_Roles[role]["command_"+str(command)] = False    
     
     def all_role(self, data):
         role = data["role"][0]
-        for command in CoreConfig.bot.commands:
+        for command in type(self).bot.commands:
             self.cfgPermissions_Roles[role]["command_"+str(command)] = True
         
     def add_role(self, data):
         role = data["add_role"][0]
         print("Created new role: '{}'".format(role))
-        self.cfgPermissions_Roles[role] = CoreConfig.cfg.new(CoreConfig.path+"/permissions_{}.json".format(role))
+        self.cfgPermissions_Roles[role] = type(self).cfg.new(type(self).path+"/permissions_{}.json".format(role))
 
-        for command in CoreConfig.bot.commands:
+        for command in type(self).bot.commands:
             self.cfgPermissions_Roles[role]["command_"+str(command)] = False
             
     def delete_role(self, data):
@@ -255,7 +264,6 @@ class CoreConfig():
         self.load_role_permissions()
         
 class CommandChecker():       
-    permssion = CoreConfig.cfgPermissions
     registered = []
     registered_func = []
     @staticmethod
@@ -298,9 +306,6 @@ class CommandChecker():
     def checkPermission(ctx):
         pr = ctx.bot.CoreConfig.cfgPermissions_Roles
         if(type(ctx) == discord.ext.commands.context.Context):
-            
-            # if(ctx.author.id in CommandChecker.permssion["can_use_dm"]):
-                # return True
             if(hasattr(ctx.author, 'roles')):
                 roles = ctx.author.roles
             else:

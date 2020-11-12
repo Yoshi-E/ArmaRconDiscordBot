@@ -5,6 +5,22 @@ import time
 import subprocess
 import asyncio
 import sys
+import os
+
+import logging
+from logging.handlers import RotatingFileHandler
+
+#Create Log handler:
+log_formatter = logging.Formatter('%(asctime)s %(levelname)s %(funcName)s(%(lineno)d) %(message)s')
+logFile = os.path.dirname(os.path.realpath(__file__))+"/discord.log"
+my_handler = RotatingFileHandler(logFile, mode='a', maxBytes=1*1000000, backupCount=10, encoding=None, delay=0)
+my_handler.setFormatter(log_formatter)
+my_handler.setLevel(logging.INFO)
+log = logging.getLogger("discord")
+log.setLevel(logging.INFO)
+log.addHandler(my_handler)
+
+
 # Make bot join server:
 # https://discordapp.com/oauth2/authorize?client_id=xxxxxx&scope=bot
 # API Reference
@@ -13,7 +29,10 @@ import sys
 #cfg = utils.CoreConfig.modules["modules/core"]["discord"]
 cfg = utils.CoreConfig.cfgDiscord
 
-bot = commands.Bot(command_prefix=cfg["BOT_PREFIX"], pm_help=True)
+intents = discord.Intents.default()
+intents.members = True  # Subscribe to the privileged members 
+
+bot = commands.Bot(command_prefix=cfg["BOT_PREFIX"], pm_help=True, intents=intents)
 bot.CoreConfig = utils.CoreConfig(bot)
  
 ###################################################################################################

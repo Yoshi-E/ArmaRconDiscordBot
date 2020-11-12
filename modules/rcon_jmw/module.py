@@ -38,7 +38,6 @@ class CommandJMW(commands.Cog):
             self.processLog = ProcessLog(self.CommandArma.readLog, self.cfg)
             self.processLog.readLog.EH.add_Event("Mission readname", self.gameStart)
             self.processLog.readLog.EH.add_Event("Mission finished", self.gameEnd)
-             
             #self.processLog.EH.add_Event("on_missionHeader", self.gameStart)
             #self.processLog.EH.add_Event("on_missionGameOver", self.gameEnd)
            
@@ -227,6 +226,7 @@ class CommandJMW(commands.Cog):
 
 
     async def gameEnd(self, *args):
+        #print("GAMESTART")
         if(self.bot.is_closed()):
             return False
         channel = self.bot.get_channel(int(self.cfg["post_channel"]))
@@ -357,7 +357,17 @@ class CommandJMW(commands.Cog):
         await ctx.send("Restarting...")
         sys.exit()     
                   
-
+                
+    @CommandChecker.command(name='eval',
+        brief="Evluate a py expression",
+        pass_context=True)
+    async def evaluate(self, ctx, *expression):
+        inp = " ".join(expression)
+        print("exec '{}'".format(inp))
+        data = str(exec(inp, {'bot': self.bot, 'logp': self.processLog}))
+        #await ctx.send("```py\n{}```".format(data)) 
+                  
+    
 def setup(bot):
     module = CommandJMW(bot)
     bot.loop.create_task(module.task_setStatus())
