@@ -181,9 +181,13 @@ class CommandRcon(commands.Cog):
         self.CommandRconSettings = self.bot.cogs["CommandRconSettings"]        
         self.RateBucket = RateBucket(self.streamMsg)
         
-        self.CommandArma = self.bot.cogs["CommandArma"]
-        self.readLog = self.CommandArma.readLog
-        
+        if("CommandArma" in self.bot.cogs):
+            self.CommandArma = self.bot.cogs["CommandArma"]
+            self.readLog = self.CommandArma.readLog
+        else:
+            self.readLog = None
+            self.CommandArma = None
+            
         if("streamChat" in self.rcon_settings and self.rcon_settings["streamChat"] != None):
             self.streamChat = self.bot.get_channel(self.rcon_settings["streamChat"])
             #self.streamChat.send("TEST")
@@ -840,6 +844,9 @@ class CommandRcon(commands.Cog):
         brief="Shows performance information in the dedicated server console. Tracks the performance for 10s",
         pass_context=True)
     async def monitords(self, ctx,): 
+        if(not self.readLog):
+            raise Exception("Arma module required, but not loaded!")
+    
         async def sendLoad(event, timestamp, msg, event_match):
             await ctx.send(msg)
  
