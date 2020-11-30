@@ -296,7 +296,8 @@ class ProcessLog:
                     "data": [[v1, "g"]],
                     "xlabel": "Time in min",
                     "ylabel": "Server FPS",
-                    "title": "Server FPS"
+                    "title": "Server FPS",
+                    ylim: (0, 60)
                     }) 
                     
         if(admin == True):       
@@ -345,7 +346,8 @@ class ProcessLog:
                     "data": [[v1, "g"]],
                     "xlabel": "Time in min",
                     "ylabel": "usage in %",
-                    "title": "Total CPU usage"
+                    "title": "Total CPU usage",
+                    ylim: (0, 100)
                     })  
         if(admin == True):       
             v1 = self.featchValues(data, "ram")
@@ -354,7 +356,8 @@ class ProcessLog:
                     "data": [[v1, "g"]],
                     "xlabel": "Time in min",
                     "ylabel": "usage in %",
-                    "title": "Total RAM usage"
+                    "title": "Total RAM usage",
+                    ylim: (0, 100)
                     })       
         if(admin == True):       
             v1 = self.featchValues(data, "swap")
@@ -363,7 +366,8 @@ class ProcessLog:
                     "data": [[v1, "g"]],
                     "xlabel": "Time in min",
                     "ylabel": "usage in %",
-                    "title": "Total SWAP usage"
+                    "title": "Total SWAP usage",
+                    ylim: (0, 100)
                     })  
 
         #Calculate time in min
