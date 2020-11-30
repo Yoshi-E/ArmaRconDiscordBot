@@ -14,7 +14,8 @@ import sys
 import itertools
 import asyncio
 import inspect
-
+import psutil
+import time
 from modules.core.utils import Event_Handler
 
 class ProcessLog:
@@ -25,7 +26,7 @@ class ProcessLog:
         
         self.databuilder = {}
         #self.active = False
-        
+        self.lastLine = time.time()
         self.define_EH()
         self.EH.disabled = True
         
@@ -202,6 +203,11 @@ class ProcessLog:
                             #If last element "Data_EOD" is present, 
                             if("EOD" in type):
                                 self.databuilder["CTI_DataPacket"] = "Data"
+                                if(time.time() - self.lastLine > 10):
+                                    self.databuilder["cpu"] = round(psutil.cpu_percent(),2)
+                                    self.databuilder["ram"] = round(psutil.virtual_memory().percent,2)
+                                    self.databuilder["swap"] = round(psutil.swap_memory().percent,2)
+                                self.lastLine = time.time() 
                                 datarow = self.databuilder.copy()
                                 self.databuilder = {}
                                 return datarow
@@ -329,6 +335,33 @@ class ProcessLog:
                     "xlabel": "Time in min",
                     "ylabel": "Objects",
                     "title": "Total Objects count"
+                    })  
+        if(admin == True):       
+            v1 = self.featchValues(data, "cpu")
+            if(len(v1) > 0):
+                plots.append({
+                    "data": [[v1, "g"]],
+                    "xlabel": "Time in min",
+                    "ylabel": "usage in %",
+                    "title": "Total CPU usage"
+                    })  
+        if(admin == True):       
+            v1 = self.featchValues(data, "ram")
+            if(len(v1) > 0):
+                plots.append({
+                    "data": [[v1, "g"]],
+                    "xlabel": "Time in min",
+                    "ylabel": "usage in %",
+                    "title": "Total RAM usage"
+                    })       
+        if(admin == True):       
+            v1 = self.featchValues(data, "swap")
+            if(len(v1) > 0):
+                plots.append({
+                    "data": [[v1, "g"]],
+                    "xlabel": "Time in min",
+                    "ylabel": "usage in %",
+                    "title": "Total SWAP usage"
                     })  
 
         #Calculate time in min
