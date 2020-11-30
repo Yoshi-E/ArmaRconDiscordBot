@@ -297,7 +297,8 @@ class ProcessLog:
                     "xlabel": "Time in min",
                     "ylabel": "Server FPS",
                     "title": "Server FPS",
-                    "ylim": (0, 60)
+                    "autoscaley_on": False,
+                    "ylim": (bottom=0, top=100)
                     }) 
                     
         if(admin == True):       
@@ -347,7 +348,8 @@ class ProcessLog:
                     "xlabel": "Time in min",
                     "ylabel": "usage in %",
                     "title": "Total CPU usage",
-                    "ylim": (0, 100)
+                    "autoscaley_on": False,
+                    "ylim": (bottom=0, top=100)
                     })  
         if(admin == True):       
             v1 = self.featchValues(data, "ram")
@@ -357,7 +359,8 @@ class ProcessLog:
                     "xlabel": "Time in min",
                     "ylabel": "usage in %",
                     "title": "Total RAM usage",
-                    "ylim": (0, 100)
+                    "autoscaley_on": False,
+                    "ylim": (bottom=0, top=100)
                     })       
         if(admin == True):       
             v1 = self.featchValues(data, "swap")
@@ -367,7 +370,8 @@ class ProcessLog:
                     "xlabel": "Time in min",
                     "ylabel": "usage in %",
                     "title": "Total SWAP usage",
-                    "ylim": (0, 100)
+                    "autoscaley_on": False,
+                    "ylim": (bottom=0, top=100)
                     })  
 
         #Calculate time in min
