@@ -293,6 +293,7 @@ class ProcessLog:
             v1 = self.featchValues(data, "fps")
             if(len(v1) > 0):
                 v1[0] = 60
+                v1[1] = 0
                 plots.append({
                     "data": [[v1, "g"]],
                     "xlabel": "Time in min",
@@ -345,6 +346,7 @@ class ProcessLog:
             v1 = self.featchValues(data, "cpu")
             if(len(v1) > 0):
                 v1[0] = 100
+                v1[1] = 0
                 plots.append({
                     "data": [[v1, "g"]],
                     "xlabel": "Time in min",
@@ -357,6 +359,7 @@ class ProcessLog:
             v1 = self.featchValues(data, "ram")
             if(len(v1) > 0):
                 v1[0] = 100
+                v1[1] = 0
                 plots.append({
                     "data": [[v1, "g"]],
                     "xlabel": "Time in min",
@@ -369,6 +372,7 @@ class ProcessLog:
             v1 = self.featchValues(data, "swap")
             if(len(v1) > 0):
                 v1[0] = 100
+                v1[1] = 0
                 plots.append({
                     "data": [[v1, "g"]],
                     "xlabel": "Time in min",
