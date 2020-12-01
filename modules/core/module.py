@@ -45,7 +45,7 @@ class Commandconfig(commands.Cog):
         
     
         msg = "```asciidoc\n"
-        msg += "Online since: {}\nOnline for: {}days, {}min {}s\n".format(boot_time.strftime("%Y-%m-%d %H:%M:%S"), td.days, td.seconds//3600, (td.seconds//60)%60)
+        msg += "Online since: {}\nOnline for: {}days, {}hours {}min\n".format(boot_time.strftime("%Y-%m-%d %H:%M:%S"), td.days, td.seconds//3600, (td.seconds//60)%60)
         msg += "• CPU  :: {}%\n".format(round(psutil.cpu_percent(),2))
         msg += "• RAM  :: {}% ({}mb)\n".format(round(psutil.virtual_memory().percent,2), round(psutil.virtual_memory().used / 1000000))
         msg += "• SWAP :: {}% ({}mb)\n".format(round(psutil.swap_memory().percent,2), round(psutil.swap_memory().used / 1000000))
