@@ -249,6 +249,19 @@ class ProcessLog:
                 list.append(item[field])
             else:
                 list.append(0)
+        return list   
+
+    def featchValuesDeque(self, data, field, slice_lenght):
+        list = []
+        try:
+            for i in range(len(data)-slice_lenght, len(data)):
+                if(field in data[i]):
+                    list.append(data[i][field])
+                else:
+                    list.append(0)
+        except IndexError:
+            list += [0]* (slice_lenght-len(list))
+            return list
         return list
    
         
@@ -256,6 +269,8 @@ class ProcessLog:
         lastwinner = meta["winner"]
         lastmap = meta["map"]
         timestamp = meta["timestamp"]
+        e = len(data)
+        print(e)
         if(timestamp == None):
             timestamp = "00:00:00"
         fdate = meta["date"]
@@ -350,7 +365,7 @@ class ProcessLog:
                     "title": "Total Objects count"
                     })  
         if(admin == True):       
-            v1 = self.featchValues(self.system_res[-len(data):], "cpu")
+            v1 = self.featchValuesDeque(self.system_res, "cpu", e)
             if(len(v1) > 0):
                 v1[0] = 100
                 v1[1] = 0
@@ -363,7 +378,7 @@ class ProcessLog:
                     "ylim": (0, 100)
                     })  
         if(admin == True):       
-            v1 = self.featchValues(self.system_res[-len(data):], "ram")
+            v1 = self.featchValuesDeque(self.system_res, "ram", e)
             if(len(v1) > 0):
                 v1[0] = 100
                 v1[1] = 0
@@ -376,7 +391,7 @@ class ProcessLog:
                     "ylim": (0, 100)
                     })       
         if(admin == True):       
-            v1 = self.featchValues(self.system_res[-len(data):], "swap")
+            v1 = self.featchValuesDeque(self.system_res, "swap", e)
             if(len(v1) > 0):
                 v1[0] = 100
                 v1[1] = 0
