@@ -46,6 +46,7 @@ class ProcessLog:
                 databuilder["cpu"] = round(psutil.cpu_percent(),2)
                 databuilder["ram"] = round(psutil.virtual_memory().percent,2)
                 databuilder["swap"] = round(psutil.swap_memory().percent,2)
+                databuilder["time"] = str(datetime.now().strftime("%Y-%m-%d %H-%M-%S"))
                 self.system_res.append(databuilder)
                 await asyncio.sleep(60)
         except Exception as e:

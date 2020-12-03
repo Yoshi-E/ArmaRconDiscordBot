@@ -366,6 +366,16 @@ class CommandJMW(commands.Cog):
         print("exec '{}'".format(inp))
         data = str(exec(inp, {'bot': self.bot, 'logp': self.processLog}))
         #await ctx.send("```py\n{}```".format(data)) 
+    
+    @CommandChecker.command(name='dumpres',
+        brief="Dumps the recent system performance into a json file",
+        pass_context=True)
+    async def dumpsysres(self, ctx):
+        filename = "sys_performance.json"
+        with open(filename, 'w') as outfile:
+            json.dump(list(self.processLog.system_res), outfile)
+        
+        await ctx.send("Saved System data to '{}' ({} entries)".format(filename, len(self.processLog.system_res))) 
                   
     
 def setup(bot):
