@@ -253,8 +253,11 @@ class ProcessLog:
 
     def featchValuesDeque(self, data, field, slice_lenght):
         list = []
+        start = len(data)-slice_lenght 
+        if start < 0:
+            start = 0
         try:
-            for i in range(len(data)-slice_lenght, len(data)):
+            for i in range(start, len(data)):
                 if(field in data[i]):
                     list.append(data[i][field])
                 else:
