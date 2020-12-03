@@ -260,7 +260,7 @@ class ProcessLog:
                 else:
                     list.append(0)
         except IndexError:
-            list += [0]* (slice_lenght-len(list))
+            list = ([0]* (slice_lenght-len(list))) + list #pad list with zeros
             return list
         return list
    
