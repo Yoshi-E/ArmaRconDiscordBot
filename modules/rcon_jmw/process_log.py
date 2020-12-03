@@ -7,14 +7,14 @@ from datetime import datetime
 import json
 import logging
 import re
+
+
 from collections import deque
-import collections
 import traceback
 import sys
 import itertools
 import asyncio
 import inspect
-import psutil
 import time
 from modules.core.utils import Event_Handler
 
@@ -26,7 +26,7 @@ class ProcessLog:
         
         self.databuilder = {}
         #self.active = False
-        self.lastLine = time.time()
+
         self.define_EH()
         self.EH.disabled = True
         
@@ -35,7 +35,19 @@ class ProcessLog:
         
         #self.readLog.pre_scan()
         #self.active = True
-    
+        asyncio.ensure_future(self._system_res())
+        
+        
+    async def _system_res(self):
+        self.system_res = deque(maxlen=1440*10) #1440 = 1 day
+        while True:
+            await asyncio.sleep(60)
+            databuilder = {}
+            databuilder["cpu"] = round(psutil.cpu_percent(),2)
+            databuilder["ram"] = round(psutil.virtual_memory().percent,2)
+            databuilder["swap"] = round(psutil.swap_memory().percent,2)
+            self.system_res.append(databuilder)
+            
     def define_EH(self):
         self.events = [
             "on_missionHeader",
@@ -203,11 +215,6 @@ class ProcessLog:
                             #If last element "Data_EOD" is present, 
                             if("EOD" in type):
                                 self.databuilder["CTI_DataPacket"] = "Data"
-                                if(time.time() - self.lastLine > 10):
-                                    self.databuilder["cpu"] = round(psutil.cpu_percent(),2)
-                                    self.databuilder["ram"] = round(psutil.virtual_memory().percent,2)
-                                    self.databuilder["swap"] = round(psutil.swap_memory().percent,2)
-                                self.lastLine = time.time() 
                                 datarow = self.databuilder.copy()
                                 self.databuilder = {}
                                 return datarow
@@ -343,7 +350,7 @@ class ProcessLog:
                     "title": "Total Objects count"
                     })  
         if(admin == True):       
-            v1 = self.featchValues(data, "cpu")
+            v1 = self.featchValues(self.system_res[-len(data):], "cpu")
             if(len(v1) > 0):
                 v1[0] = 100
                 v1[1] = 0
@@ -356,7 +363,7 @@ class ProcessLog:
                     "ylim": (0, 100)
                     })  
         if(admin == True):       
-            v1 = self.featchValues(data, "ram")
+            v1 = self.featchValues(self.system_res[-len(data):], "ram")
             if(len(v1) > 0):
                 v1[0] = 100
                 v1[1] = 0
@@ -369,7 +376,7 @@ class ProcessLog:
                     "ylim": (0, 100)
                     })       
         if(admin == True):       
-            v1 = self.featchValues(data, "swap")
+            v1 = self.featchValues(self.system_res[-len(data):], "swap")
             if(len(v1) > 0):
                 v1[0] = 100
                 v1[1] = 0

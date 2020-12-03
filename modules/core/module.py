@@ -3,6 +3,8 @@ from discord.ext.commands import has_permissions, CheckFailure
 import discord
 import os
 
+
+
 import psutil
 import datetime
 from modules.core import CoreConfig, CommandChecker
@@ -13,6 +15,9 @@ class Commandconfig(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.path = os.path.dirname(os.path.realpath(__file__))
+        
+        #configVars
+        self.onlineSince = datetime.datetime.now()    
         
         #Load cfg:
         self.cfg = CoreConfig.cfg.new(  self.path+"/"+
