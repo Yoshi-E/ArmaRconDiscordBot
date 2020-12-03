@@ -250,6 +250,8 @@ class ProcessLog:
         for item in data:
             if(field in item):
                 list.append(item[field])
+            else:
+                list.append(0)
         return list   
 
     def featchValuesDeque(self, data, field, slice_lenght):
@@ -409,15 +411,15 @@ class ProcessLog:
 
         #Calculate time in min
         time = self.featchValues(data, "time")
-        print("Time:", len(time))
         for i in range(len(time)):
             if(time[i] > 0):
                 time[i] = time[i]/60 #seconds->min
         
-        print("Time:", round(time[-1]))
-        print("Time:", time)
         if (len(time) > 0):
-            gameduration = round(time[-1])
+            if(round(time[-1]) == 0):
+                gameduration = round(time[-2])
+            else:
+                gameduration = round(time[-1])
         else:
             gameduration = 0
         print("{} {} {}".format(timestamp, lastwinner, gameduration))
