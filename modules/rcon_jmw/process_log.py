@@ -253,7 +253,7 @@ class ProcessLog:
                 list.append(item[field])
             else:
                 list.append(0)
-        return list   
+        return list[:-1]   
 
     def featchValuesDeque(self, data, field, slice_lenght):
         list = []
@@ -268,7 +268,7 @@ class ProcessLog:
         dif = abs(len(list) - slice_lenght)
         if(dif != 0):
             list = ([0] * dif) + list
-        return list
+        return list[:-1]
    
         
     def dataToGraph(self, meta, data, admin):
