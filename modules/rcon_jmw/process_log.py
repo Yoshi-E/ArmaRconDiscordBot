@@ -17,6 +17,7 @@ import asyncio
 import inspect
 import time
 from modules.core.utils import Event_Handler
+import psutil
 
 class ProcessLog:
     def __init__(self, readLog, cfg_jmw):
@@ -39,14 +40,17 @@ class ProcessLog:
         
         
     async def _system_res(self):
-        self.system_res = deque(maxlen=1440*10) #1440 = 1 day
-        while True:
-            await asyncio.sleep(60)
-            databuilder = {}
-            databuilder["cpu"] = round(psutil.cpu_percent(),2)
-            databuilder["ram"] = round(psutil.virtual_memory().percent,2)
-            databuilder["swap"] = round(psutil.swap_memory().percent,2)
-            self.system_res.append(databuilder)
+        try:
+            self.system_res = deque(maxlen=1440*10) #1440 = 1 day
+            while True:
+                databuilder = {}
+                databuilder["cpu"] = round(psutil.cpu_percent(),2)
+                databuilder["ram"] = round(psutil.virtual_memory().percent,2)
+                databuilder["swap"] = round(psutil.swap_memory().percent,2)
+                self.system_res.append(databuilder)
+                await asyncio.sleep(60)
+        except Exception as e:
+            print(e)
             
     def define_EH(self):
         self.events = [
@@ -256,15 +260,15 @@ class ProcessLog:
         start = len(data)-slice_lenght 
         if start < 0:
             start = 0
-        try:
-            for i in range(start, len(data)):
-                if(field in data[i]):
-                    list.append(data[i][field])
-                else:
-                    list.append(0)
-        except IndexError:
-            list = ([0]* (slice_lenght-len(list))) + list #pad list with zeros
-            return list
+        #TODO: data lenght must be either empty of match len(data)
+        for i in range(start, len(data)):
+            if(field in data[i]):
+                list.append(data[i][field])
+            else:
+                list.append(0)
+        dif = abs(len(list) - slice_lenght)
+        if(dif != 0):
+            list = ([0] * dif) + list
         return list
    
         
@@ -273,7 +277,7 @@ class ProcessLog:
         lastmap = meta["map"]
         timestamp = meta["timestamp"]
         e = len(data)
-        print(e)
+
         if(timestamp == None):
             timestamp = "00:00:00"
         fdate = meta["date"]
