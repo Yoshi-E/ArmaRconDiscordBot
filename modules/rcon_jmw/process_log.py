@@ -250,8 +250,6 @@ class ProcessLog:
         for item in data:
             if(field in item):
                 list.append(item[field])
-            else:
-                list.append(0)
         return list   
 
     def featchValuesDeque(self, data, field, slice_lenght):
