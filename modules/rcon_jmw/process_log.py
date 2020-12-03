@@ -260,7 +260,6 @@ class ProcessLog:
         start = len(data)-slice_lenght 
         if start < 0:
             start = 0
-        #TODO: data lenght must be either empty of match len(data)
         for i in range(start, len(data)):
             if(field in data[i]):
                 list.append(data[i][field])
@@ -413,6 +412,7 @@ class ProcessLog:
 
         #Calculate time in min
         time = self.featchValues(data, "time")
+        print(len(time))
         for i in range(len(time)):
             if(time[i] > 0):
                 time[i] = time[i]/60 #seconds->min
