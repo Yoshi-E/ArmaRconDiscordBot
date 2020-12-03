@@ -417,7 +417,7 @@ class ProcessLog:
                 time[i] = time[i]/60 #seconds->min
         
         print("Time:", round(time[-1]))
-        print("Time:", round(time))
+        print("Time:", time)
         if (len(time) > 0):
             gameduration = round(time[-1])
         else:
