@@ -482,8 +482,12 @@ class CommandRcon(commands.Cog):
                 else:
                     active = ":white_circle:"
                 #fetch country
-                response = self.ipReader.country(ip.split(":")[0])
-                region = str(response.country.iso_code).lower()
+                try:
+                    response = self.ipReader.country(ip.split(":")[0])
+                    region = str(response.country.iso_code).lower()
+                except:
+                    region = ":question:"
+                    
                 if(region == "none"):
                     flag = ":question:" #symbol if no country was found
                 else:
