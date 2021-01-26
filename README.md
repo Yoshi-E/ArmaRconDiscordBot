@@ -17,7 +17,7 @@ https://discord.com/developers/applications/
 
 ## Troubleshooting:
  * "The system cannot find the file specified while executing the command git clone ..."
-	* This means you do not have git installed on your computer. Either install git, or manually download the .whl [here](github.com/Yoshi-E/Python-BEC-RCon). If you choose the non git option, then you have to delete the first line in the requirments.txt and install it normally.
+	* This means you do not have git installed on your computer. Either install git, or manually download the .whl [here](https://github.com/Yoshi-E/Python-BEC-RCon). If you choose the non git option, then you have to delete the first line in the requirments.txt and install it normally.
  * "ModuleNotFoundError: No module named '____'"
 	1. You forgot to install the modules. You can just install missing modules with "pip install <module_name>"
 	2. Make sure you are running the bot with the correct python instance. E.g. run the bot with "python3 bot.py" instead of just using "bot.py". Sometimes windows uses by default python2.
