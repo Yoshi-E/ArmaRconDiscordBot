@@ -181,10 +181,10 @@ class CommandRcon(commands.Cog):
         self.CommandRconSettings = self.bot.cogs["CommandRconSettings"]        
         self.RateBucket = RateBucket(self.streamMsg)
         
-        if("CommandArma" in self.bot.cogs):
+        try:
             self.CommandArma = self.bot.cogs["CommandArma"]
             self.readLog = self.CommandArma.readLog
-        else:
+        except KeyError:
             self.readLog = None
             self.CommandArma = None
             
@@ -303,11 +303,11 @@ class CommandRcon(commands.Cog):
                 player_name = header.split(") ")[1]
                 #print(player_name)
                 #print(body)
-            #else: is join or disconnect, or similaar
+            #else: is join or disconnect, or similar
             
-        #check if the chat is streamed or not
-        if(self.streamChat != None):
-            self.RateBucket.add(message)
+                #check if the chat is streamed or not
+                if(self.streamChat != None):
+                    self.RateBucket.add(message)
     
         
     

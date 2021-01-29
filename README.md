@@ -21,7 +21,8 @@ https://discord.com/developers/applications/
  * "ModuleNotFoundError: No module named '____'"
 	1. You forgot to install the modules. You can just install missing modules with "pip install <module_name>"
 	2. Make sure you are running the bot with the correct python instance. E.g. run the bot with "python3 bot.py" instead of just using "bot.py". Sometimes windows uses by default python2.
-
+ * The settings page looks mostly empty
+	* Try a diffrent browser (IE / Edge not supported)
 ## Related:
 This Bot directly works with my RCon API:
 https://github.com/Yoshi-E/Python-BEC-RCon
