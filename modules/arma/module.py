@@ -102,10 +102,16 @@ class CommandArma(commands.Cog):
         #subprocess.call(shlex.split(self.CommandRcon.rcon_settings["start_server"]))  
         self.server_pid = subprocess.Popen(shlex.split(self.cfg["start_server"]))  
         
-    def stop_server(self):
+    def stop_server(self, pid=-1):
         if(self.server_pid != None):
             self.server_pid.kill()
             self.server_pid = None
+        elif(pid>=0):
+            try:
+                os.kill(pid, 0)
+            except SystemError as e:
+                pass
+            print("Terminated process", pid)
         else:
             return False
             
@@ -126,12 +132,12 @@ class CommandArma(commands.Cog):
     @CommandChecker.command(name='stop',
             brief="Stops the arma server (If server was started with !start)",
             pass_context=True)
-    async def stop(self, ctx):
+    async def stop(self, ctx, pid=-1):
         self.CommandRcon.autoReconnect = False
-        if(self.stop_server()==False):
+        if(self.stop_server(pid)==False):
             await ctx.send("Failed to stop server. You might want to try '!stop_all' to stop all arma 3 instances")
         else:
-            await ctx.send("Stopped the Server.")      
+            await ctx.send("Stopped the process.")      
 
     @CommandChecker.command(name='stopall',
             brief="Stop all configured arma servers",
