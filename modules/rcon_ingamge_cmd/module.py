@@ -277,7 +277,7 @@ class CommandRconIngameComs(commands.Cog):
             await rctx.say("Failed to find player with that ID")
             self.afkLock = False
             return False
-        msg= "Starting AFK check for: {} - {}".format(player_name, beid)
+        msg= "Starting AFK check for: {} - {}. He has {} seconds to respond".format(player_name, beid, time_to_respond)
         await rctx.say(msg)
         
         already_active = False

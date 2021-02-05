@@ -3,6 +3,7 @@ import os
 
 if(sys.version_info[0] != 3 or (sys.version_info[1] > 6 or sys.version_info[1] < 4)):
     sys.exit("This bot requires Python3 >= 3.4 and <= 3.6. You are currently running version {}.{}".format(*sys.version_info[:2]))
+
 import discord
 from discord.ext import commands
 from modules.core import utils

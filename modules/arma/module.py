@@ -48,6 +48,7 @@ class CommandArma(commands.Cog):
         
         self.server_pid = None
         asyncio.ensure_future(self.on_ready())
+       
         
         
     async def on_ready(self):
@@ -58,6 +59,7 @@ class CommandArma(commands.Cog):
             #if(self.channel):
             #    self.readLog.EH.add_Event("Mission script error", self.mission_script_error)
             asyncio.ensure_future(self.readLog.watch_log())
+            asyncio.ensure_future(self.memory_guard())
         except Exception as e:
             traceback.print_exc()
             print(e)
@@ -78,6 +80,19 @@ class CommandArma(commands.Cog):
         except Exception as e:
             traceback.print_exc()
             print(e)
+    
+    #triggers server restarts on high memory usage
+    async def memory_guard(self):
+        while True:
+            if(self.cfg["server_memory_protection"]):
+                if(psutil.virtual_memory().percent > 85):
+                    await self.CommandRcon.arma_rcon.restartserveraftermission()
+                    await self.CommandRcon.arma_rcon.sayGlobal("A Server restart has been scheduled at the end of this mission.")
+                    await self.channel.send("Memory usage exceeded! Server restart scheduled after mission end")
+                    print(":warning: Memory usage exceeded! Server restart scheduled after mission end")
+                #elif(psutil.virtual_memory().percent > 95): #might be too agressive should short memory spikes occour
+                #    await self.CommandRcon.arma_rcon.restartServer()
+            await asyncio.sleep(10*60)
         
 ###################################################################################################
 #####                              Arma 3 Server start - stop                                  ####
