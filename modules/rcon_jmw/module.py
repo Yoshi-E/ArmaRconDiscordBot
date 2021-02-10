@@ -12,6 +12,7 @@ import ast
 import sys
 import traceback
 import urllib.parse
+import threading
 
 from modules.core.utils import CommandChecker, sendLong, CoreConfig
 from modules.rcon_jmw.process_log import ProcessLog
@@ -328,12 +329,17 @@ class CommandJMW(commands.Cog):
         player_name = " ".join(player_name)
         if(len(player_name)==0):
             player_name = "all"
+        
+        t = threading.Thread(target=self.heatmap_helper, args=[ctx, player_name, 16])
+        t.start()
+        
+    def heatmap_helper(self, ctx, player_name, sigma=16):
         virtualFile = self.playerMapGenerator.generateMap(player_name, sigma=16)
         if(virtualFile == False):
-             await sendLong(ctx,"No data found")
+            asyncio.run_coroutine_threadsafe(sendLong(ctx,"No data found"), self.bot.loop)
         else:
-            await ctx.send(file=discord.File(virtualFile, 'heatmap{}'.format(".jpg")))   
-
+            asyncio.run_coroutine_threadsafe(ctx.send(content="Map for {}".format(player_name), file=discord.File(virtualFile, 'heatmap{}'.format(".jpg"))), self.bot.loop)
+        
     @CommandChecker.command(name='heatmapA',
         brief="generates a heatmap of a select player",
         aliases=['heatmapa'],
@@ -344,11 +350,9 @@ class CommandJMW(commands.Cog):
         player_name = " ".join(player_name)
         if(len(player_name)==0):
             player_name = "all"
-        virtualFile = self.playerMapGenerator.generateMap(player_name, sigma=8)
-        if(virtualFile == False):
-             await sendLong(ctx,"No data found")
-        else:
-            await ctx.send(file=discord.File(virtualFile, 'heatmap{}'.format(".jpg")))   
+        
+        t = threading.Thread(target=self.heatmap_helper, args=[ctx, player_name, 8])
+        t.start()
             
     @CommandChecker.command(name='r',
         brief="terminates the bot",
