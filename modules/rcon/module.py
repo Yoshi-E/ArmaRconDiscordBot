@@ -12,6 +12,7 @@ import traceback
 import discord
 from discord.ext import commands
 from discord.ext.commands import has_permissions, CheckFailure
+from discord.utils import escape_markdown
 import prettytable
 import geoip2.database
 import datetime
@@ -238,16 +239,6 @@ class CommandRcon(commands.Cog):
     def setEncoding(self, msg):
         return bytes(msg.encode()).decode("utf-8","replace") 
     
-
-    def escapeMarkdown(self, msg):
-        #Markdown: *_`~#
-        msg = msg.replace("*", "\*")
-        msg = msg.replace("_", "\_")
-        msg = msg.replace("`", "\`")
-        msg = msg.replace("~", "\~")
-        msg = msg.replace("#", "\#")
-        return msg    
-        
     def getPlayerFromMessage(self, message: str):
         if(":" in message):
             header, body = message.split(":", 1)
@@ -290,7 +281,7 @@ class CommandRcon(commands.Cog):
 ###################################################################################################  
     #function called when a new message is received by rcon
     def rcon_on_msg_received(self, args):
-        message=self.escapeMarkdown(args[0])
+        message = discord.utils.escape_markdown(args[0], as_needed=True)
 
         if("CommandRconIngameComs" in self.bot.cogs):
             asyncio.ensure_future(self.bot.cogs["CommandRconIngameComs"].RconCommandEngine.parseCommand(args[0]))
@@ -346,7 +337,7 @@ class CommandRcon(commands.Cog):
             time = pair[0]
             msg += time.strftime("%H:%M:%S")+" | "+ pair[1]+"\n"
             i+=1
-        return msg
+        return discord.utils.escape_markdown(msg, as_needed=True)
 
 ###################################################################################################
 #####                                BEC Rcon custom commands                                  ####
@@ -492,7 +483,7 @@ class CommandRcon(commands.Cog):
                     flag = ":question:" #symbol if no country was found
                 else:
                     flag = ":flag_{}:".format(region)
-                msg+= "{}#{} | {} {}".format(active, id, flag, name)+"\n"
+                msg+= "{}#{} | {} {}".format(active, id, flag, discord.utils.escape_markdown(name, as_needed=True))+"\n"
 
         await utils.sendLong(ctx, msg)
         
@@ -616,7 +607,7 @@ class CommandRcon(commands.Cog):
         msg  = ""
         for player in players:
             if(i <= limit):
-                msgtable.add_row([player[0], player[4], player[1],player[3]])
+                msgtable.add_row([player[0], discord.utils.escape_markdown(player[4], as_needed=True), player[1],player[3]])
                 if(len(str(msgtable)) < 1800):
                     i += 1
                     new = False
