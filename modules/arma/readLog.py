@@ -274,7 +274,7 @@ File mpmissions\__cur_mp.Altis\Server\Functions\Server_SpawnTownResistance.sqf..
         if(os.path.exists(self.log_path)):
             files = []
             for file in os.listdir(self.log_path):
-                if ((file.endswith(".log") or file.endswith(".rpt")) and not any(x in file for x in ignore):):
+                if ((file.endswith(".log") or file.endswith(".rpt")) and not any(x in file for x in ignore)):
                     files.append(file)
             return sorted(files)
         else:
