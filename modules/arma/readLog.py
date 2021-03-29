@@ -18,6 +18,7 @@ class readLog:
         
         self.path = os.path.dirname(os.path.realpath(__file__))
         self.log_path = log_path
+        self.currentLinePos = 0
         self.current_log = None
         self.multiEventLock = None
         self.multiEventLockData = []
@@ -89,7 +90,8 @@ class readLog:
             ["Mission id",              "^\s(Mission id: (.*))"], # Mission id: a001eb0dc827137d84595a7706f2cdd937f95fa3
             ["Mission started",         "^(Game started\.)"], #Game started.
             ["Mission finished",        "^(Game finished\.)"], #Game finished.
-            #["Mission script error",         "^(Error in expression .*)", "^(File (?P<path>.*)..., line (?P<line>[0-9]*))"], #Error in expression <= false };  #File mpmissions\__cur_mp.Altis\Server\Functions\Server_SpawnTownResistance.sqf..., line 151
+            ["Mission script error",         "^(Error in expression .*)"], #Error in expression <= false };  #File mpmissions\__cur_mp.Altis\Server\Functions\Server_SpawnTownResistance.sqf..., line 151
+            #, "^(File (?P<path>.*)..., line (?P<line>[0-9]*))"
             #TODO: Multi line Events can cause other events to be skipped. 
         #player
             ["Player modified data file",   "^((.*) uses modified data file)"], #KKD | dawkar3152 uses modified data file
@@ -223,20 +225,20 @@ File mpmissions\__cur_mp.Altis\Server\Functions\Server_SpawnTownResistance.sqf..
     def processLogLine(self, line):
         try:
             timestamp, msg = self.splitTimestamp(line)
-            self.EH.check_Event("Log line", timestamp, msg, None)
+            self.EH.check_Event("Log line", timestamp, msg, None, self.currentLinePos)
             event, event_match = self.check_log_events(msg, self.events)
             # if(self.EH.disabled==False):
                 # log.info("{} {} {}".format(line, event, event_match))      
             #log.info(event, msg, self.multiEventLockData)
             if(event_match):
-                self.EH.check_Event(event, timestamp, msg, event_match)
+                self.EH.check_Event(event, timestamp, msg, event_match, self.currentLinePos)
                 if("clutter" not in event):
                     #log.info("{} {}".format(event, event_match))
                     self.processMission(event, (timestamp, msg, event_match))
-                    self.EH.check_Event("Log line filtered", timestamp, msg, event_match)
+                    self.EH.check_Event("Log line filtered", timestamp, msg, event_match, self.currentLinePos)
             else:
                 self.processMission("", (timestamp, msg))
-                self.EH.check_Event("Log line filtered", timestamp, msg, None)
+                self.EH.check_Event("Log line filtered", timestamp, msg, None, self.currentLinePos)
         except Exception as e:
             log.print_exc()
             log.error(e)
@@ -319,8 +321,12 @@ File mpmissions\__cur_mp.Altis\Server\Functions\Server_SpawnTownResistance.sqf..
                 if(len(logs) > 0):
                     self.current_log = logs[-1]
                     log.info("current log: "+self.current_log)
+                    self.currentLinePos = 0
                     file = open(self.log_path+self.current_log, "r")
-                    file.seek(0, 2) #jump to the end of the file
+                    for i, l in enumerate(file):
+                        pass
+                    self.currentLinePos = i+1
+                    #file.seek(0, 2) #jump to the end of the file
                     try:
                         while (True):
                             #where = file.tell()
@@ -337,10 +343,12 @@ File mpmissions\__cur_mp.Altis\Server\Functions\Server_SpawnTownResistance.sqf..
                                     if(self.current_log != self.getLogs()[-1]):
                                         old_log = self.current_log
                                         self.current_log = self.getLogs()[-1] #update to new recent log
+                                        self.currentLinePos = 0
                                         file = open(self.log_path+self.current_log, "r")
                                         log.info("current log: "+self.current_log)
                                         self.EH.check_Event("Log new", old_log, self.current_log)
                             else:
+                                self.currentLinePos += 1
                                 self.line = line #access to last read line (debugging)
                                 self.processLogLine(line)
                     

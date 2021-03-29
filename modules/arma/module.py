@@ -45,6 +45,7 @@ class CommandArma(commands.Cog):
         
         
         self.mission_error_last = 0
+        self.mission_error_suppressed = 0
         self.script_errors = deque(maxlen=10000)
         
         self.server_pid = None
@@ -56,27 +57,34 @@ class CommandArma(commands.Cog):
         try:
             await self.bot.wait_until_ready()
             self.CommandRcon = self.bot.cogs["CommandRcon"]
-            self.channel = self.bot.get_channel(self.cfg["post_channel"])
-            #if(self.channel):
-            #    self.readLog.EH.add_Event("Mission script error", self.mission_script_error)
+            self.channel = self.bot.get_channel(int(self.cfg["post_channel"]))
+            if(self.cfg["report_script_errors"] and self.channel):
+                self.readLog.EH.add_Event("Mission script error", self.mission_script_error)
             asyncio.ensure_future(self.readLog.watch_log())
             asyncio.ensure_future(self.memory_guard())
         except Exception as e:
             log.print_exc()
             log.error(e)
     
-    async def mission_script_error(self, *args):
+    async def mission_script_error(self, event, stime, text, regxm, line):
         try:
             if(time() - self.mission_error_last < 60*10):
+                self.mission_error_suppressed += 1
                 return
             self.mission_error_last = time()
-            regex = "Error in expression <(?P<expression>.*?)>.*?Error position: <(?P<position>.*?)>.*?Error Undefined variable in expression: (?P<err_cause>.*?)File (?P<file>.*?)\.\.\., line (?P<line>[0-9]*)"
-            error = "".join(args[3])
-            m = re.match(regex, error, flags=re.S)
-            if m: 
-                await self.channel.send("Error in expression```sqf\n{expression}```Error position:```sqf\n{position}```Error Undefined variable in expression: ``{err_cause}`` ``{file}``... line {line}\nAdditional Errors will be supressed for 10min.".format(**m.groupdict()))
-            else:
-                await self.channel.send("```sqf\n{}```".format(error))
+            if(self.mission_error_suppressed > 0):
+                await self.channel.send(":warning: {} Errors were suppressed\n``{}`` line ``{}`` ``{}``\nAdditional Errors will be suppressed for 10min.".format(self.mission_error_suppressed, text, line, self.readLog.current_log))
+            else:    
+                await self.channel.send(":warning: ``{}`` line ``{}`` ``{}``\nAdditional Errors will be suppressed for 10min.".format(text, line, self.readLog.current_log))
+            self.mission_error_suppressed = 0
+            
+            
+            #regex = "Error in expression <(?P<expression>.*?)>.*?Error position: <(?P<position>.*?)>.*?Error Undefined variable in expression: (?P<err_cause>.*?)File (?P<file>.*?)\.\.\., line (?P<line>[0-9]*)"
+            #m = re.match(regex, error, flags=re.S)
+            # if m: 
+                # await self.channel.send("{}... line {}\nAdditional Errors will be suppressed for 10min.".format(text, line)
+            # else:
+                # await self.channel.send("```sqf\n{}```".format(error))
             
         except Exception as e:
             log.print_exc()
