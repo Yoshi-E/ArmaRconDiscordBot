@@ -192,7 +192,7 @@ class CoreConfig():
         self.cfgPermissions_Roles = {}
         self.WebServer = server.WebServer(bot, CommandChecker, type(self))
         
-    def load_role_permissions(self, roles):
+    def load_role_permissions(self, roles=[]):
         files = glob.glob(type(self).path+"/permissions_*.json")
         if(len(files)==0):
             self.generate_default_settings(roles)
@@ -212,11 +212,11 @@ class CoreConfig():
         for role in roles:
             self.cfgPermissions_Roles[role] = type(self).cfg.new(type(self).path+"/permissions_{}.json".format(role))
             
-            if(role in ["default"]):
-                val = False
-            else:
-                val = True
-                
+            # if(role in ["default"]):
+                # val = True
+            # else:
+                # val = False
+            val = False    
             for command in type(self).bot.commands:
                 self.cfgPermissions_Roles[role]["command_"+str(command)] = val
                 

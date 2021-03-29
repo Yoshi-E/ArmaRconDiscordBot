@@ -223,7 +223,7 @@ class WebServer():
 
     def get_module_settings():
         settings = {}
-        for module_name,module in utils.CoreConfig.modules.items():
+        for module_name,module in WebServer.bot.CoreConfig.modules.items():
             settings[module_name] = {}
             for name, cfg in module.items():
                 settings[module_name][name] = {}
@@ -254,7 +254,7 @@ class WebServer():
         
         keys = key.split(".")
         if(len(keys) == 3):
-            old_val = utils.CoreConfig.modules[keys[0]][keys[1]][keys[2]]
+            old_val = WebServer.bot.CoreConfig.modules[keys[0]][keys[1]][keys[2]]
             if(isinstance(old_val, str)):
                 new_val = str(new_val)                
             elif(isinstance(old_val, bool)):
@@ -268,9 +268,9 @@ class WebServer():
                     new_val = int(new_val)
             else:
                 raise Exception("Unkown datatype '{}'".format(type(value)))
-            utils.CoreConfig.modules[keys[0]][keys[1]][keys[2]] = new_val
+            WebServer.bot.CoreConfig.modules[keys[0]][keys[1]][keys[2]] = new_val
             log.info("{}, to {}".format(keys, new_val))
-            utils.CoreConfig.modules[keys[0]][keys[1]].json_save()
+            WebServer.bot.CoreConfig.modules[keys[0]][keys[1]].json_save()
         else: 
             raise Exception("Invalid data structure for '{}'".format(data))     
 
