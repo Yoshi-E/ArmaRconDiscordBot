@@ -80,15 +80,18 @@ class RconCommandEngine(object):
     admins = []
     
     #Create Log handler:
-    log_formatter = logging.Formatter('%(asctime)s %(levelname)s %(funcName)s(%(lineno)d) %(message)s')
-    logFile = os.path.dirname(os.path.realpath(__file__))+"/commands.log"
-    my_handler = RotatingFileHandler(logFile, mode='a', maxBytes=1*1000000, backupCount=10, encoding=None, delay=0)
-    my_handler.setFormatter(log_formatter)
-    my_handler.setLevel(logging.INFO)
+    _log_formatter = logging.Formatter('%(asctime)s %(levelname)s %(funcName)s(%(lineno)d) %(message)s')
+    _logFile = os.path.dirname(os.path.realpath(__file__))+"/commands.log"
+    _stdout_handler = logging.StreamHandler(sys.stdout)
+    _my_handler = RotatingFileHandler(_logFile, mode='a', maxBytes=10*1000000, backupCount=10, encoding=None, delay=0)
+    _my_handler.setFormatter(_log_formatter)
+    _my_handler.setLevel(logging.INFO)
+
     log = logging.getLogger(__name__)
     log.setLevel(logging.INFO)
-    log.addHandler(my_handler)
-    
+    log.addHandler(_my_handler)
+    log.addHandler(_stdout_handler)
+
     @staticmethod
     async def getPlayerBEID(player: str):
         #get updated player list, only if player not found

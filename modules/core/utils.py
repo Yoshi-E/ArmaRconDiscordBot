@@ -14,9 +14,6 @@ import glob
 
 assert version.parse(discord.__version__) >= version.parse("1.2.2"), "Module 'Discord' required to be >= 1.2.5"
 
-import logging
-from logging.handlers import RotatingFileHandler
-
 from modules.core.httpServer import server
 from modules.core.config import Config
 from modules.core.Log import log
