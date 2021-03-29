@@ -134,7 +134,7 @@ class RconCommandEngine(object):
     @staticmethod
     async def checkPermission(ctx, func_name):
         return True
-     
+
     @staticmethod     
     async def processCommand(ctx):
         self = RconCommandEngine.cogs["CommandRconIngameComs"]

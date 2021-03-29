@@ -2,7 +2,7 @@ import traceback
 import sys
 from discord.ext import commands
 import discord
-
+from modules.core.Log import log
 
 class CommandErrorHandler(commands.Cog):
     def __init__(self, bot):
@@ -19,7 +19,7 @@ class CommandErrorHandler(commands.Cog):
     
     @commands.Cog.listener()
     async def on_error(event, *args, **kwargs):
-        print(event,args, kwargs)
+        log.info(event,args, kwargs)
         
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
@@ -36,9 +36,9 @@ class CommandErrorHandler(commands.Cog):
         # Anything in ignored will return and prevent anything happening.
         if isinstance(error, ignored):
             try:
-                print("{}: '{}'. Ignored error: '{}'".format(ctx.author.name, ctx.command.name, error))
+                log.info("{}: '{}'. Ignored error: '{}'".format(ctx.author.name, ctx.command.name, error))
             except:
-                print("{}: Ignored error: '{}'".format(ctx, error))
+                log.info("{}: Ignored error: '{}'".format(ctx, error))
             return
         
         if(isinstance(error, commands.errors.CheckFailure)):
@@ -65,7 +65,7 @@ class CommandErrorHandler(commands.Cog):
                 pass
 
         # All other Errors not returned come here... And we can just print the default TraceBack.
-        print('Ignoring exception in command {}:'.format(ctx.command), file=sys.stderr)
+        log.info('Ignoring exception in command {}:'.format(ctx.command), file=sys.stderr)
         traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
                 
 

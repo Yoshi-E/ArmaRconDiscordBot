@@ -12,7 +12,8 @@ import asyncio
 import _thread
 
 from modules.core.config import Config
-from modules.core import utils
+from modules.core.Log import log
+
 
 class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
@@ -183,8 +184,8 @@ class WebServer():
                 if(port >= 65535):
                     raise ConnectionAbortedError("Unable to find free port".format(port))
         if(s_port != port):
-            print("[WARNING] Port '{}' already in use, using '{}' instead.".format(s_port, port))
-        print("Settings page online on: http://localhost:{}/".format(port))
+            log.info("[WARNING] Port '{}' already in use, using '{}' instead.".format(s_port, port))
+        log.info("Settings page online on: http://localhost:{}/".format(port))
         self.httpd = HTTPServer(('localhost', port), SimpleHTTPRequestHandler)
         self.httpd.serve_forever()
     
@@ -242,7 +243,7 @@ class WebServer():
         return json_dump.encode()
         
     def set_module_settings(file, data):
-        #print(data)
+        #log.info(data)
     
         #for key,row in data.items():
         key = data["name"][0]
@@ -268,7 +269,7 @@ class WebServer():
             else:
                 raise Exception("Unkown datatype '{}'".format(type(value)))
             utils.CoreConfig.modules[keys[0]][keys[1]][keys[2]] = new_val
-            print(keys, "to", new_val)
+            log.info("{}, to {}".format(keys, new_val))
             utils.CoreConfig.modules[keys[0]][keys[1]].json_save()
         else: 
             raise Exception("Invalid data structure for '{}'".format(data))     
@@ -289,4 +290,17 @@ class WebServer():
     async def _restart():
         await asyncio.sleep(2)
         await WebServer.bot.logout()
+    
+   
+    #Auslagern into the module
+    async def testRcon(ip, pw, port):
+        arma_rcon = bec_rcon.ARC(ip, pw, port) #, options = {"debug": 10}
+        arma_rcon.add_Event("login_fail", self.rconFail)
+        arma_rcon.add_Event("login_Sucess", self.rconSucess)
+        
+    def rconSucess(self):
+        pass    
+    
+    def rconFail(self):
+        pass
         

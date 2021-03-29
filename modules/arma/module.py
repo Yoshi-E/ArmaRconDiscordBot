@@ -26,6 +26,7 @@ import bec_rcon
 
 from modules.core.utils import CommandChecker, RateBucket, CoreConfig
 import modules.core.utils as utils
+from modules.core.Log import log
 from modules.arma.readLog import readLog
 
 
@@ -61,8 +62,8 @@ class CommandArma(commands.Cog):
             asyncio.ensure_future(self.readLog.watch_log())
             asyncio.ensure_future(self.memory_guard())
         except Exception as e:
-            traceback.print_exc()
-            print(e)
+            log.print_exc()
+            log.error(e)
     
     async def mission_script_error(self, *args):
         try:
@@ -78,8 +79,8 @@ class CommandArma(commands.Cog):
                 await self.channel.send("```sqf\n{}```".format(error))
             
         except Exception as e:
-            traceback.print_exc()
-            print(e)
+            log.print_exc()
+            log.error(e)
     
     #triggers server restarts on high memory usage
     async def memory_guard(self):
@@ -90,12 +91,12 @@ class CommandArma(commands.Cog):
                         await self.CommandRcon.arma_rcon.restartserveraftermission()
                         await self.CommandRcon.arma_rcon.sayGlobal("A Server restart has been scheduled at the end of this mission.")
                         await self.channel.send("Memory usage exceeded! Server restart scheduled after mission end")
-                        print(":warning: Memory usage exceeded! Server restart scheduled after mission end")
+                        log.warning("Memory usage exceeded! Server restart scheduled after mission end")
                     #elif(psutil.virtual_memory().percent > 95): #might be too agressive should short memory spikes occour
                     #    await self.CommandRcon.arma_rcon.restartServer()
             except Exception as e:
-                traceback.print_exc()
-                print(e)
+                log.print_exc()
+                log.error(e)
             await asyncio.sleep(10*60)
         
 ###################################################################################################
@@ -115,7 +116,7 @@ class CommandArma(commands.Cog):
                 os.kill(pid, 0)
             except SystemError as e:
                 pass
-            print("Terminated process", pid)
+            log.info("Terminated process '{}'".format(pid))
         else:
             return False
             

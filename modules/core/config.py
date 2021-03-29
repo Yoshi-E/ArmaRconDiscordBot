@@ -6,6 +6,7 @@ from packaging import version
 import time
 import inspect
 import json
+from modules.core.Log import log
 
 class Config():
     def __init__(self, cfg_path = None, default_cfg_path = None):
@@ -19,7 +20,7 @@ class Config():
             try:
                 self.cfg_default = json.load(open(self.default_cfg_path,"r"))
             except Exception as e:
-                traceback.print_exc()
+                log.print_exc()
                 raise Exception("{} for '{}'".format(e, self.cfg_path))
        
         if(cfg_path):
@@ -62,7 +63,7 @@ class Config():
                 return {}
             return cfg
         except Exception as e:
-            traceback.print_exc()
+            log.print_exc()
             raise Exception("{} for '{}'".format(e, self.cfg_path))
         
     def json_save(self):

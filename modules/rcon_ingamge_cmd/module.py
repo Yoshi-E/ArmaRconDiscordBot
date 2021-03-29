@@ -23,6 +23,7 @@ from random import randint
 import glob
 
 from modules.core.utils import CommandChecker, sendLong, CoreConfig, Tools
+from modules.core.Log import log
 from modules.core.config import Config
 from .cmdengine import RconCommandEngine
 
@@ -104,7 +105,7 @@ class PermissionConfig(CoreConfig):
         
     def add_role(self, data):
         role = data["add_role"][0]
-        print("Created new role: '{}'".format(role))
+        log.info("Created new role: '{}'".format(role))
         self.cfgPermissions_Roles[role] = type(self).cfg.new(type(self).path+"/permissions_{}.json".format(role))
 
         for Command in RconCommandEngine.commands:
@@ -151,7 +152,7 @@ class CommandRconIngameComs(commands.Cog):
             
            # self.bot.cogs["CommandRcon"].arma_rcon = self.CommandRcon.arma_rcon
         except Exception as e:
-            print(e)
+            log.error(e)
 
         
     def set_user_data(self, user_id=0, field="", data=[]):
@@ -173,7 +174,7 @@ class CommandRconIngameComs(commands.Cog):
             #check if user can use it
             #Lookup user in linked accounts:
             for user_id,data in self.user_data.items():
-                print(data["account_arma3"], rctx.user_guid)
+                log.info("{} {}".format(data["account_arma3"], rctx.user_guid))
                 if("account_arma3" in data and data["account_arma3"][0] == rctx.user_guid):
                     #check if user has permission:
                     server = self.bot.guilds[0]
@@ -186,8 +187,8 @@ class CommandRconIngameComs(commands.Cog):
                                     return True
             return False       
         except Exception as e:
-            print(traceback.format_exc())
-            print(e)
+            log.print_exc()
+            log.error(e)
             return False
             
     @CommandChecker.command(name='linkAccount',
@@ -199,7 +200,7 @@ class CommandRconIngameComs(commands.Cog):
         asyncio.ensure_future(code.destruct(code))
         self.account_verify_codes.append(code)
         
-        print("[ingcmd] Generated code '{}' for user {} [{}]".format(code, ctx.author.name, ctx.author.id))
+        log.info("[ingcmd] Generated code '{}' for user {} [{}]".format(code, ctx.author.name, ctx.author.id))
         msg = "To verify your account, use the in game command '{}link {}'\nThe code is valid for 5min.".format(RconCommandEngine.command_prefix, code)
         
         if(str(ctx.author.id) in self.user_data and "account_arma3" in self.user_data[str(ctx.author.id)]):
@@ -214,12 +215,12 @@ class CommandRconIngameComs(commands.Cog):
         try:
             verifyCode = self.account_verify_codes.index(verifyCode)
         except ValueError:
-            print("not found")
+            log.info("Account not found ({}, {})".format(verifyCode, link_id))
             verifyCode = None
         else: 
             verifyCode = self.account_verify_codes[verifyCode]
         if(verifyCode):
-            print("[ingcmd] Linked account '{}' with arma 3 '{}'".format(verifyCode.authorID, link_id))
+            log.info("[ingcmd] Linked account '{}' with arma 3 '{}'".format(verifyCode.authorID, link_id))
             self.set_user_data(str(verifyCode.authorID), "account_arma3", link_id)
             return True
         return False
@@ -298,7 +299,7 @@ class CommandRconIngameComs(commands.Cog):
                     for k in range(0, 3):
                         await self.bot.cogs["CommandRcon"].arma_rcon.sayPlayer(beid, "Type something in chat or you will be kicked for being AFK. ("+str(round(i/30)+1)+"/10)")
                 except: 
-                    print("Failed to send command sayPlayer (checkAFK)")
+                    log.error("Failed to send command sayPlayer (checkAFK)")
             await asyncio.sleep(1)
         if(self.CommandRcon.playerTypesMessage(player_name)):
             if(i==0):
@@ -308,7 +309,7 @@ class CommandRconIngameComs(commands.Cog):
                 try:
                     await self.bot.cogs["CommandRcon"].arma_rcon.sayPlayer(beid, "Thank you for responding in chat.")
                 except:
-                    print("Failed to send command sayPlayer")
+                    log.error("Failed to send command sayPlayer")
             self.afkLock = False        
             return False
         else:
@@ -353,7 +354,7 @@ class CommandRconIngameComs(commands.Cog):
         
     #@RconCommandEngine.command(name="score", cogs=["CommandJMW"])  
     async def score(self, rctx):
-        print("##", self, rctx)
+        log.info("##{} {}".format(self, rctx))
         pass#await self.bot.cogs["CommandRcon"].arma_rcon.reassign()
             
         
@@ -370,7 +371,7 @@ class CommandRconTaskScheduler(commands.Cog):
     async def on_ready(self):
         await self.bot.wait_until_ready()
         if("CommandRcon" not in self.bot.cogs):
-            print("[module] 'CommandRcon' required, but not found in '{}'. Module unloaded".format(type(self).__name__))
+            log.info("[module] 'CommandRcon' required, but not found in '{}'. Module unloaded".format(type(self).__name__))
             del self
             return
         self.CommandRcon = self.bot.cogs["CommandRcon"]

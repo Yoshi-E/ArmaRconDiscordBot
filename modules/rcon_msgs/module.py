@@ -12,6 +12,7 @@ import sys
 import traceback
 
 from modules.core.utils import CommandChecker, sendLong, CoreConfig
+from modules.core.Log import log
 
 class CommandJoinMSG(commands.Cog):
     def __init__(self, bot):
@@ -27,15 +28,15 @@ class CommandJoinMSG(commands.Cog):
         await self.bot.wait_until_ready()
         self.channel = self.bot.get_channel(self.cfg["post_channel"])
         if("CommandRcon" not in self.bot.cogs):
-            print("[module] 'CommandRcon' required, but not found in '{}'. Module unloaded".format(type(self).__name__))
+            log.info("[module] 'CommandRcon' required, but not found in '{}'. Module unloaded".format(type(self).__name__))
             del self
             return
         try:
             self.CommandRcon = self.bot.cogs["CommandRcon"]
             self.CommandRcon.arma_rcon.add_Event("received_ServerMessage", self.rcon_on_msg_received)
         except Exception as e:
-            traceback.print_exc()
-            print(e)
+            log.print_exc()
+            log.error(e)
             
     #function called when a new message is received by rcon
     def rcon_on_msg_received(self, args):
@@ -43,7 +44,7 @@ class CommandJoinMSG(commands.Cog):
             message=args[0].strip()
            
             if(message.startswith("Player #")):
-                #print(message)
+                #log.info(message)
                 if(self.cfg["send_player_connect_msg"]):
                     #"disconnect"
                     if(message.endswith(" disconnected") and ":" not in message):
@@ -55,8 +56,8 @@ class CommandJoinMSG(commands.Cog):
                         msg = ":white_check_mark: "+" ".join(msg.split(" ")[2:])
                         asyncio.ensure_future(self.channel.send(msg))
         except Exception as e:
-            traceback.print_exc()
-            print(e)
+            log.print_exc()
+            log.error(e)
                 
     
 ###################################################################################################

@@ -13,7 +13,7 @@ from discord.ext.commands import has_permissions, CheckFailure
 
 import csv
 from modules.core.utils import CommandChecker, RateBucket, sendLong, CoreConfig, Tools
-
+from modules.core.Log import log
 
 
 class CommandRconDatabase(commands.Cog):
@@ -35,7 +35,7 @@ class CommandRconDatabase(commands.Cog):
     async def on_ready(self):
         await self.bot.wait_until_ready()
         if("CommandRcon" not in self.bot.cogs):
-            print("[module] 'CommandRcon' required, but not found in '{}'. Module unloaded".format(type(self).__name__))
+            log.error("[module] 'CommandRcon' required, but not found in '{}'. Module unloaded".format(type(self).__name__))
             del self
             return
         self.CommandRcon = self.bot.cogs["CommandRcon"]
@@ -90,8 +90,8 @@ class CommandRconDatabase(commands.Cog):
                 self.player_db.json_save()
                 
             except Exception as e:
-                traceback.print_exc()
-                print(e)
+                log.print_exc()
+                log.error(e)
             
     async def set_status(self, players):
         game_name = "{} Players".format(len(players))
@@ -102,7 +102,7 @@ class CommandRconDatabase(commands.Cog):
         await self.bot.change_presence(activity=discord.Game(name=game_name), status=status)
     
     async def setTopicPlayerList(self, players):
-        #print("[DEBUG]", players)#
+        #log.info("[DEBUG] {}".format(players))#
         channel = self.bot.get_channel(self.cfg["setTopicPlayerList_channel"])
         if(not channel):
             return
@@ -158,7 +158,7 @@ class CommandRconDatabase(commands.Cog):
         #Save the data
         self.player_db.save = True
         self.player_db.json_save()
-        print("Databse Import sucessfull")
+        log.info("Databse Import sucessfull")
         
         
     def find_by_field(self, field, i):
@@ -196,7 +196,7 @@ class CommandRconDatabase(commands.Cog):
                     names = names.union(r["names"])
         return {"beids": beids, "ips": ips, "names": names}
 
-        #print(init)
+        #log.info(init)
     
     #Checks all users in the database for possible multi account usage.
     #The generated list will be printed into console.
@@ -204,7 +204,7 @@ class CommandRconDatabase(commands.Cog):
         for key in self.player_db.keys():
             data = self.find_by_linked(key)
             if(len(data["beids"]) >= min):
-                print(data)
+                log.info(data)
 ###################################################################################################
 #####                                       Commands                                           ####
 ###################################################################################################         

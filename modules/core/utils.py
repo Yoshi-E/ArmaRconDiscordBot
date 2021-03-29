@@ -19,16 +19,7 @@ from logging.handlers import RotatingFileHandler
 
 from modules.core.httpServer import server
 from modules.core.config import Config
-
-
-_log_formatter = logging.Formatter('%(asctime)s %(levelname)s %(funcName)s(%(lineno)d) %(message)s')
-_logFile = os.path.dirname(os.path.realpath(__file__))+"/root.log"
-_my_handler = RotatingFileHandler(_logFile, mode='a', maxBytes=10*1000000, backupCount=10, encoding=None, delay=0)
-_my_handler.setFormatter(_log_formatter)
-_my_handler.setLevel(logging.INFO)
-log = logging.getLogger('root')
-log.setLevel(logging.INFO)
-log.addHandler(_my_handler)
+from modules.core.Log import log
 
 async def sendLong(ctx, msg: str, enclosed=False, hard_post_limit=4):
     discord_limit = 1900 #discord limit is 2000
@@ -112,10 +103,10 @@ class Modules(object):
                     if(cfg["load_module"] == True):
                         bot.load_extension(module.replace("/", ".")+".module")
                 else:
-                    print("[Modules] Skipped Cogs in '{}'".format(module))
+                    log.info("[Modules] Skipped Cogs in '{}'".format(module))
             except (discord.ClientException, ModuleNotFoundError):
-                print('Failed to load extension: '+extension)
-                traceback.print_exc()   
+                log.info('Failed to load extension: '+extension)
+                traceback.log.info_exc()   
         Modules.fix_wrappers()
 
     def loadCfg(module):
@@ -201,10 +192,10 @@ class CoreConfig():
         self.cfgPermissions_Roles = {}
         self.WebServer = server.WebServer(bot, CommandChecker, type(self))
         
-    def load_role_permissions(self):
+    def load_role_permissions(self, roles):
         files = glob.glob(type(self).path+"/permissions_*.json")
         if(len(files)==0):
-            self.generate_default_settings()
+            self.generate_default_settings(roles)
         for file in files:
             role = os.path.basename(file).replace("permissions_", "").replace(".json", "")
             self.cfgPermissions_Roles[role] = Config(type(self).path+"/permissions_{}.json".format(role))
@@ -217,8 +208,8 @@ class CoreConfig():
                     self.cfgPermissions_Roles[role][cmd] = False
             
         
-    def generate_default_settings(self):
-        for role in ["@everyone", "Admin"]:
+    def generate_default_settings(self, roles=[]):
+        for role in roles:
             self.cfgPermissions_Roles[role] = type(self).cfg.new(type(self).path+"/permissions_{}.json".format(role))
             
             if(role in ["default"]):
@@ -250,7 +241,7 @@ class CoreConfig():
         
     def add_role(self, data):
         role = data["add_role"][0]
-        print("Created new role: '{}'".format(role))
+        log.info("Created new role: '{}'".format(role))
         self.cfgPermissions_Roles[role] = type(self).cfg.new(type(self).path+"/permissions_{}.json".format(role))
 
         for command in type(self).bot.commands:
@@ -259,7 +250,7 @@ class CoreConfig():
     def delete_role(self, data):
         role = data["delete_role"][0]
         self.cfgPermissions_Roles[role].delete()
-        print("Deleted role '{}'".format(role))
+        log.info("Deleted role '{}'".format(role))
         self.cfgPermissions_Roles = {}
         self.load_role_permissions()
         
@@ -278,9 +269,9 @@ class CommandChecker():
             signature = inspect.signature(func)
             wrapper.params = signature.parameters.copy() 
             func.name = wrapper.name
-            #print(dir(wrapper))
-            #print(wrapper.cog) #__cog_commands__
-            #print("####",func.__name__)
+            #log.info(dir(wrapper))
+            #log.info(wrapper.cog) #__cog_commands__
+            #log.info("####",func.__name__)
             # sys.exit()
             # for cmd in CoreConfig.bot.commands:
                 # for func in CommandChecker.registered_func:

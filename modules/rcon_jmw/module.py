@@ -16,6 +16,7 @@ import threading
 
 from modules.core.utils import CommandChecker, sendLong, CoreConfig
 from modules.rcon_jmw.process_log import ProcessLog
+from modules.core.Log import log
 
 class CommandJMW(commands.Cog):
     def __init__(self, bot):
@@ -43,33 +44,33 @@ class CommandJMW(commands.Cog):
             #self.processLog.EH.add_Event("on_missionGameOver", self.gameEnd)
            
             #self.processLog.readLog.pre_scan()
-            # print(len(self.processLog.readLog.Missions))
+            # log.info(len(self.processLog.readLog.Missions))
             # for m in self.processLog.readLog.Missions:
                 # if("Mission id" in m["dict"]):
-                    # print(len(m["data"]), len(self.processLog.processGameBlock(m)), m["dict"]["Mission id"])
+                    # log.info(len(m["data"]), len(self.processLog.processGameBlock(m)), m["dict"]["Mission id"])
             
             #--> working correctly
-            # print("#"*20)
+            # log.info("#"*20)
             # for e in list(self.processLog.readLog.dataRows)[-100:]:
-                # print(e[1])
+                # log.info(e[1])
                 
                 
             # game = self.processLog.readLog.Missions_current
             # game = self.processLog.processGameBlock(game)
-            # print(len(game))  
+            # log.info(len(game))  
             # for i in range(8):
                 # try:
                     # game = self.processLog.buildGameBlock(i)
                     # game = self.processLog.processGameBlock(game)
-                    # print(len(game))      
+                    # log.info(len(game))      
                 # except IndexError:
-                    # print("Game '{}' not found".format(i))
-            #print(self.processLog.readData(False, 0))
+                    # log.info("Game '{}' not found".format(i))
+            #log.info(self.processLog.readData(False, 0))
             
             self.playerMapGenerator = playerMapGenerator(self.cfg["data_path"])
         except Exception as e:
-            traceback.print_exc()
-            print(e)
+            log.print_exc()
+            log.error(e)
         
         
 ###################################################################################################
@@ -81,10 +82,10 @@ class CommandJMW(commands.Cog):
                 await asyncio.sleep(60)
                 await self.setStatus()
             except (KeyboardInterrupt, asyncio.CancelledError):
-                print("[asyncio] exiting", task_setStatus)
+                log.info("[asyncio] exiting", task_setStatus)
             except Exception as e:
-                print("setting status failed", e)
-                traceback.print_exc()
+                log.error("setting status failed", e)
+                log.print_exc()
 
                 
     async def setStatus(self):
@@ -171,7 +172,7 @@ class CommandJMW(commands.Cog):
         msg = "A game just ended, now is the best time to join for a new game!"
         for user in self.user_data:
             if "nextgame" in self.user_data[user] and self.user_data[user]["nextgame"] == True:
-                print("sending DM to: "+str(user))
+                log.info("sending DM to: "+str(user))
                 puser = self.bot.get_user(int(user))
                 await puser.send(msg)  
                 self.user_data[user]["nextgame"] = False
@@ -220,14 +221,14 @@ class CommandJMW(commands.Cog):
                     await channel.send(file=discord.File(log_graph), content=msg)
 
         except Exception as e:
-            traceback.print_exc()
+            log.print_exc()
             await channel.send("Unable to find game: "+str(e))
 
     
 
 
     async def gameEnd(self, *args):
-        #print("GAMESTART")
+        #log.info("GAMESTART")
         if(self.bot.is_closed()):
             return False
         channel = self.bot.get_channel(int(self.cfg["post_channel"]))
@@ -367,7 +368,7 @@ class CommandJMW(commands.Cog):
         pass_context=True)
     async def evaluate(self, ctx, *expression):
         inp = " ".join(expression)
-        print("exec '{}'".format(inp))
+        log.info("exec '{}'".format(inp))
         data = str(exec(inp, {'bot': self.bot, 'logp': self.processLog}))
         #await ctx.send("```py\n{}```".format(data)) 
     

@@ -5,7 +5,6 @@ import ast
 import os
 from datetime import datetime
 import json
-import logging
 import re
 
 
@@ -16,6 +15,7 @@ import itertools
 import asyncio
 import inspect
 from modules.core.utils import Event_Handler
+from modules.core.Log import log
 import psutil
 
 class ProcessLog:
@@ -50,7 +50,7 @@ class ProcessLog:
                 self.system_res.append(databuilder)
                 await asyncio.sleep(60)
         except Exception as e:
-            print(e)
+            log.error(e)
             
     def define_EH(self):
         self.events = [
@@ -62,7 +62,7 @@ class ProcessLog:
         self.EH = Event_Handler(self.events)
         
     def missionError(*args):
-        print(args)
+        log.info(args)
         
     def processGameData(self, pdata):
         data = pdata.copy()
@@ -92,7 +92,7 @@ class ProcessLog:
                 val["time"] = val["time"]+last_time
                 last_time_iter = val["time"] 
                 #if(val["time"] > 100000 and created_df == False):
-                #    print("[WARNING] Data timeframe out of bounds: {}".format(val))
+                #    log.info("[WARNING] Data timeframe out of bounds: {}".format(val))
                 #    with open('dataframe.json', 'a+') as outfile:
                 #        json.dump(data, outfile)
                 #    created_df = True
@@ -153,16 +153,17 @@ class ProcessLog:
         r = r.replace("true", "True")
         r = r.replace("false", "False")
         data = ast.literal_eval(r) #WARNING: Security risk
-        #print(data)
+        #log.info(data)
         return dict(data)
 
+    # Deprecated
     def checkforEnd(self, timestamp, line):
         m = re.match('^(\[\["CTI_DataPacket","(.*?)"],.*])', line)
         if(m):
             type = m.group(2)
             if(type == "GameOver"):
                 #Start generating game
-                #print("END FOUND")
+                #log.info("END FOUND")
                 self.buildGameBlock()
 
     def buildGameBlock(self, index=0):
@@ -175,7 +176,7 @@ class ProcessLog:
                 while game == None:
                     new_game = next(iterMission)
                     if("Mission id" in new_game["dict"]):
-                        game = new_game
+                        game = new_game # Get most recent mission start
                         game["crashed"] = 0
                         
                 for mission in iterMission:
@@ -235,10 +236,9 @@ class ProcessLog:
                     return datarow #return Gameover / End
                 
             except Exception as e:
-                print(e)
-                print(line)
-                line = "Error"
-                traceback.print_exc()
+                log.error(e)
+                log.info(line)
+                log.print_exc()
         #return self.databuilder
                 
    
@@ -423,7 +423,7 @@ class ProcessLog:
                 gameduration = round(time[-1])
         else:
             gameduration = 0
-        print("{} {} {}".format(timestamp, lastwinner, gameduration))
+        log.info("{} {} {}".format(timestamp, lastwinner, gameduration))
         
         #maps plot count to image size
         #plot_count: image_size

@@ -23,7 +23,7 @@ import bec_rcon
 
 from modules.core.utils import CommandChecker, RateBucket, CoreConfig
 import modules.core.utils as utils
-
+from modules.core.Log import log
 
 class CommandRconSettings(commands.Cog):
     def __init__(self, bot):
@@ -226,8 +226,8 @@ class CommandRcon(commands.Cog):
                 for d in data:
                     self.arma_rcon.serverMessage.append(d)
         except Exception as e:
-            traceback.print_exc()
-            print(e)
+            log.print_exc()
+            log.error(e)
         
                 
         
@@ -292,8 +292,8 @@ class CommandRcon(commands.Cog):
                 #check for admin notification keywords
                 asyncio.ensure_future(self.CommandRconSettings.checkKeyWords(body))
                 player_name = header.split(") ")[1]
-                #print(player_name)
-                #print(body)
+                #log.info(player_name)
+                #log.info(body)
             #else: is join or disconnect, or similar
             
                 #check if the chat is streamed or not
@@ -314,12 +314,12 @@ class CommandRcon(commands.Cog):
         except IndexError:
             pass # there are no records in the queue.
         if len(self.lastReconnect) > self.rcon_settings["max_reconnects_per_minute"]:
-            print("Stopped Reconnecting - Too many reconnects!")
+            log.warning("Stopped Reconnecting - Too many reconnects!")
             if(self.streamChat):
                 await self.streamChat.send(":warning: Stopped Reconnecting - Too many reconnects!\n Reconnect with '!reconnect'")
         else:
             self.lastReconnect.append(datetime.datetime.now())
-            print("Reconnecting to BEC Rcon")
+            log.info("Reconnecting to BEC Rcon")
             self.setupRcon(self.arma_rcon.serverMessage) #restarts form scratch (due to weird behaviour on reconnect)
 
 
@@ -418,7 +418,7 @@ class CommandRcon(commands.Cog):
                     for k in range(0, 3):
                         await self.arma_rcon.sayPlayer(player_id, "Type something in chat or you will be kicked for being AFK. ("+str(round(i/30)+1)+"/10)")
                 except: 
-                    print("Failed to send command sayPlayer (checkAFK)")
+                    log.error("Failed to send command sayPlayer (checkAFK)")
             await asyncio.sleep(1)
         if(self.playerTypesMessage(player_name)):
             if(i==0):
@@ -428,7 +428,7 @@ class CommandRcon(commands.Cog):
                 try:
                     await self.arma_rcon.sayPlayer(player_id, "Thank you for responding in chat.")
                 except:
-                    print("Failed to send command sayPlayer")
+                    log.error("Failed to send command sayPlayer")
             return
         else:
             await self.arma_rcon.kickPlayer(player_id, "AFK too long")
