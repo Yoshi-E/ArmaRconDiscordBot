@@ -170,7 +170,11 @@ input[type="text"] {
 </head>
 <body>
 
-<script>
+<h1 id="warning">
+</h1>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script type="text/javascript">
+	var box = document.getElementById("warning");
 	var msg = 'This browser is currently not supported. This site might not work as expected. Currently supported: Chrome, Edge, Firefox';
      if((navigator.userAgent.indexOf("Opera") || navigator.userAgent.indexOf('OPR')) != -1 ) 
     {
@@ -190,11 +194,11 @@ input[type="text"] {
     }
     else if((navigator.userAgent.indexOf("MSIE") != -1 ) || (!!document.documentMode == true )) //IF IE > 10
     {
-      alert(msg); 
+      box.innerHTML = msg; //alert(msg); 
     }  
     else 
     {
-       alert(msg);
+       box.innerHTML = msg; //alert(msg);
     }
     </script>
 	
@@ -253,7 +257,6 @@ Settings are saved automatically.
 </html>
 
 
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script type="text/javascript">
 
 permission_settings = document.getElementById("permission_settings");
