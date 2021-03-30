@@ -1,25 +1,19 @@
+import sys
+import os
+import time
+
+if(sys.version_info[0] != 3 or (sys.version_info[1] > 6 or sys.version_info[1] < 5)):
+    print("This bot requires Python >= 3.5 and <= 3.6. You are currently running version {}.{}".format(*sys.version_info[:2]))
+    time.sleep(5)
+    sys.exit("Terminated")
+
 import discord
 from discord.ext import commands
 from modules.core import utils
-import time
+from modules.core.Log import log
+
 import subprocess
 import asyncio
-import sys
-import os
-
-import logging
-from logging.handlers import RotatingFileHandler
-
-#Create Log handler:
-log_formatter = logging.Formatter('%(asctime)s %(levelname)s %(funcName)s(%(lineno)d) %(message)s')
-logFile = os.path.dirname(os.path.realpath(__file__))+"/discord.log"
-my_handler = RotatingFileHandler(logFile, mode='a', maxBytes=1*1000000, backupCount=10, encoding=None, delay=0)
-my_handler.setFormatter(log_formatter)
-my_handler.setLevel(logging.INFO)
-log = logging.getLogger("discord")
-log.setLevel(logging.INFO)
-log.addHandler(my_handler)
-
 
 # Make bot join server:
 # https://discordapp.com/oauth2/authorize?client_id=xxxxxx&scope=bot
@@ -34,17 +28,20 @@ intents.members = True  # Subscribe to the privileged members
 
 bot = commands.Bot(command_prefix=cfg["BOT_PREFIX"], pm_help=True, intents=intents)
 bot.CoreConfig = utils.CoreConfig(bot)
- 
+
 ###################################################################################################
 #####                                  Initialization                                          ####
 ###################################################################################################     
 
 @bot.event
 async def on_ready():
-    print('Logged in as {} [{}]'.format(bot.user.name, bot.user.id))
-    print(bot.guilds)
-    print('------------')
-    bot.CoreConfig.load_role_permissions()
+    log.info('Logged in as {} [{}]'.format(bot.user.name, bot.user.id))
+    log.info(bot.guilds)
+    log.info('------------')
+    roles = []
+    for guild in list(bot.guilds):
+        roles += await guild.fetch_roles()
+    bot.CoreConfig.load_role_permissions(roles)
 
 async def main():
     
@@ -56,8 +53,8 @@ async def main():
     except (KeyboardInterrupt, asyncio.CancelledError):
         sys.exit("Bot Terminated (KeyboardInterrupt)")
     except (KeyError, discord.errors.LoginFailure):
-        print("")
-        input("Please configure the bot on the settings page. [ENTER to terminte the bot]\n")
+        log.info("PROMPT: Please configure the bot")
+        input("\nPlease configure the bot on the settings page. [ENTER to terminte the bot]\n")
 
 
 if __name__ == '__main__':
@@ -65,10 +62,10 @@ if __name__ == '__main__':
         loop = asyncio.get_event_loop()
         loop.run_until_complete(main())
     except (KeyboardInterrupt, asyncio.CancelledError):
-        print("[DiscordBot] Interrupted")
+        log.info("[DiscordBot] Interrupted")
         
     if(hasattr(bot, "restarting") and bot.restarting == True):
-        print("Restarting")
+        log.info("Restarting")
         
         time.sleep(1)
         subprocess.Popen("python" + " bot.py", shell=True) #TODO: Will not work on all system

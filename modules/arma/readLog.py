@@ -5,7 +5,7 @@ import traceback
 import asyncio
 
 from modules.core.utils import Event_Handler
-
+from modules.core.Log import log
 
 #timeStampFormat:
 #https://community.bistudio.com/wiki/server.cfg
@@ -18,11 +18,12 @@ class readLog:
         
         self.path = os.path.dirname(os.path.realpath(__file__))
         self.log_path = log_path
+        self.currentLinePos = 0
         self.current_log = None
         self.multiEventLock = None
         self.multiEventLockData = []
         if(len(self.getLogs()) == 0):
-            print("[WARNNING] No log files found in '{}'".format(self.log_path))
+            log.info("[WARNNING] No log files found in '{}'".format(self.log_path))
             
         #all data rows are stored in here, limited to prevent memory leaks
         self.Missions=deque(maxlen=self.maxMisisons)
@@ -37,7 +38,7 @@ class readLog:
         #asyncio.ensure_future(self.watch_log())
     
     def test(self, *args):
-        print("----", args)
+        log.info("---- {}".format(args))
 
 ###################################################################################################
 #####                                       Events                                             ####
@@ -89,7 +90,8 @@ class readLog:
             ["Mission id",              "^\s(Mission id: (.*))"], # Mission id: a001eb0dc827137d84595a7706f2cdd937f95fa3
             ["Mission started",         "^(Game started\.)"], #Game started.
             ["Mission finished",        "^(Game finished\.)"], #Game finished.
-            #["Mission script error",         "^(Error in expression .*)", "^(File (?P<path>.*)..., line (?P<line>[0-9]*))"], #Error in expression <= false };  #File mpmissions\__cur_mp.Altis\Server\Functions\Server_SpawnTownResistance.sqf..., line 151
+            ["Mission script error",         "^(Error in expression .*)"], #Error in expression <= false };  #File mpmissions\__cur_mp.Altis\Server\Functions\Server_SpawnTownResistance.sqf..., line 151
+            #, "^(File (?P<path>.*)..., line (?P<line>[0-9]*))"
             #TODO: Multi line Events can cause other events to be skipped. 
         #player
             ["Player modified data file",   "^((.*) uses modified data file)"], #KKD | dawkar3152 uses modified data file
@@ -157,11 +159,11 @@ File mpmissions\__cur_mp.Altis\Server\Functions\Server_SpawnTownResistance.sqf..
                     return result
                 self.multiEventLockData.append(line)
                 if(len(self.multiEventLockData)>5): #max multi line lenght
-                    print("Warning Exceeded 'multiEventLock' length! For '{}'".format((self.multiEventLock[0], self.multiEventLockData)))
+                    log.info("Warning Exceeded 'multiEventLock' length! For '{}'".format((self.multiEventLock[0], self.multiEventLockData)))
                     self.multiEventLock = None
                     self.multiEventLockData = []
             except Exception as e:
-                traceback.print_exc()
+                log.print_exc()
                 raise Exception("Error processing MultiEventLock: '{}' '{}'".format(self.multiEventLock, e))
         else:
             try:
@@ -203,9 +205,9 @@ File mpmissions\__cur_mp.Altis\Server\Functions\Server_SpawnTownResistance.sqf..
             
             #scan most recent log. Until enough data is collected
             #go from newest to oldest log until the data buffer is filled
-            for log in reversed(logs):
-                print("Pre-scanning: "+log)
-                self.scanfile(log)
+            for _log in reversed(logs):
+                log.info("Pre-scanning: "+_log)
+                self.scanfile(_log)
                 if(len(tempdataMissions)+len(self.Missions) <= self.maxMisisons):
                     tempdataMissions.extendleft(reversed(self.Missions))
                     self.Missions = deque(maxlen=self.maxMisisons)
@@ -217,29 +219,29 @@ File mpmissions\__cur_mp.Altis\Server\Functions\Server_SpawnTownResistance.sqf..
             self.Missions = tempdataMissions
             self.EH.disabled = False    
         except Exception as e:
-            traceback.print_exc()
-            print(e)
+            log.print_exc()
+            log.error(e)
     
     def processLogLine(self, line):
         try:
             timestamp, msg = self.splitTimestamp(line)
-            self.EH.check_Event("Log line", timestamp, msg, None)
+            self.EH.check_Event("Log line", timestamp, msg, None, self.currentLinePos)
             event, event_match = self.check_log_events(msg, self.events)
             # if(self.EH.disabled==False):
-                # print(line, event, event_match)      
-            #print(event, msg, self.multiEventLockData)
+                # log.info("{} {} {}".format(line, event, event_match))      
+            #log.info(event, msg, self.multiEventLockData)
             if(event_match):
-                self.EH.check_Event(event, timestamp, msg, event_match)
+                self.EH.check_Event(event, timestamp, msg, event_match, self.currentLinePos)
                 if("clutter" not in event):
-                    #print(event, event_match)
+                    #log.info("{} {}".format(event, event_match))
                     self.processMission(event, (timestamp, msg, event_match))
-                    self.EH.check_Event("Log line filtered", timestamp, msg, event_match)
+                    self.EH.check_Event("Log line filtered", timestamp, msg, event_match, self.currentLinePos)
             else:
                 self.processMission("", (timestamp, msg))
-                self.EH.check_Event("Log line filtered", timestamp, msg, None)
+                self.EH.check_Event("Log line filtered", timestamp, msg, None, self.currentLinePos)
         except Exception as e:
-            traceback.print_exc()
-            print(e)
+            log.print_exc()
+            log.error(e)
     
     #builds mission blocks    
     def processMission(self, event, data): 
@@ -252,7 +254,7 @@ File mpmissions\__cur_mp.Altis\Server\Functions\Server_SpawnTownResistance.sqf..
             
             #mission is complete, switching to between mission block
             elif(event == "Mission finished"): 
-                print(self.Missions[-1]["dict"]["Mission id"][0], self.Missions[-1]["dict"]["Mission id"][1])
+                log.info("{} {}".format(self.Missions[-1]["dict"]["Mission id"][0], self.Missions[-1]["dict"]["Mission id"][1]))
                 self.Missions[-1]["dict"][event] = data
                 self.Missions.append({"dict": {"Server sessionID": self.server_sessionID}, "data": []})
             
@@ -261,8 +263,8 @@ File mpmissions\__cur_mp.Altis\Server\Functions\Server_SpawnTownResistance.sqf..
                 self.Missions[-1]["dict"][event] = data
             self.Missions[-1]["data"].append(data)
         except Exception as e:
-            traceback.print_exc()
-            print(e)
+            log.print_exc()
+            log.error(e)
 
 ###################################################################################################
 #####                                       Utils                                              ####
@@ -270,10 +272,11 @@ File mpmissions\__cur_mp.Altis\Server\Functions\Server_SpawnTownResistance.sqf..
          
     #get the log files from folder and sort them by oldest first
     def getLogs(self):
+        ignore = ["mpStatistics", "netlog"] #log files that will be ignored
         if(os.path.exists(self.log_path)):
             files = []
             for file in os.listdir(self.log_path):
-                if (file.endswith(".log") or file.endswith(".rpt")):
+                if ((file.endswith(".log") or file.endswith(".rpt")) and not any(x in file for x in ignore)):
                     files.append(file)
             return sorted(files)
         else:
@@ -305,8 +308,8 @@ File mpmissions\__cur_mp.Altis\Server\Functions\Server_SpawnTownResistance.sqf..
                 try:
                     line = fp.readline()
                 except Exception as e:
-                    traceback.print_exc()
-                    print(e)
+                    log.print_exc()
+                    log.error(e)
                     line = None
     
     #follows the current log and switches to a new log, should one be created
@@ -317,9 +320,13 @@ File mpmissions\__cur_mp.Altis\Server\Functions\Server_SpawnTownResistance.sqf..
                 logs = self.getLogs()
                 if(len(logs) > 0):
                     self.current_log = logs[-1]
-                    print("current log: "+self.current_log)
+                    log.info("current log: "+self.current_log)
+                    self.currentLinePos = 0
                     file = open(self.log_path+self.current_log, "r")
-                    file.seek(0, 2) #jump to the end of the file
+                    for i, l in enumerate(file):
+                        pass
+                    self.currentLinePos = i+1
+                    #file.seek(0, 2) #jump to the end of the file
                     try:
                         while (True):
                             #where = file.tell()
@@ -336,22 +343,24 @@ File mpmissions\__cur_mp.Altis\Server\Functions\Server_SpawnTownResistance.sqf..
                                     if(self.current_log != self.getLogs()[-1]):
                                         old_log = self.current_log
                                         self.current_log = self.getLogs()[-1] #update to new recent log
+                                        self.currentLinePos = 0
                                         file = open(self.log_path+self.current_log, "r")
-                                        print("current log: "+self.current_log)
+                                        log.info("current log: "+self.current_log)
                                         self.EH.check_Event("Log new", old_log, self.current_log)
                             else:
+                                self.currentLinePos += 1
                                 self.line = line #access to last read line (debugging)
                                 self.processLogLine(line)
                     
                     except (KeyboardInterrupt, asyncio.CancelledError):
-                        print("[asyncio] exiting", watch_log)
+                        log.info("[asyncio] exiting {}".format(watch_log))
                     except Exception as e:
-                        print(e)
-                        traceback.print_exc()
+                        log.error(e)
+                        log.print_exc()
                 else:
                     await asyncio.sleep(10*60)
         except (KeyboardInterrupt, asyncio.CancelledError):
-            print("[asyncio] exiting", watch_log)
+            log.info("[asyncio] exiting {}".format(watch_log))
         except Exception as e:
-            traceback.print_exc()
-            print(e)
+            log.print_exc()
+            log.error(e)

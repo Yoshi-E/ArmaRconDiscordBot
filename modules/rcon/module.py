@@ -12,6 +12,7 @@ import traceback
 import discord
 from discord.ext import commands
 from discord.ext.commands import has_permissions, CheckFailure
+from discord.utils import escape_markdown
 import prettytable
 import geoip2.database
 import datetime
@@ -22,7 +23,7 @@ import bec_rcon
 
 from modules.core.utils import CommandChecker, RateBucket, CoreConfig
 import modules.core.utils as utils
-
+from modules.core.Log import log
 
 class CommandRconSettings(commands.Cog):
     def __init__(self, bot):
@@ -181,9 +182,13 @@ class CommandRcon(commands.Cog):
         self.CommandRconSettings = self.bot.cogs["CommandRconSettings"]        
         self.RateBucket = RateBucket(self.streamMsg)
         
-        self.CommandArma = self.bot.cogs["CommandArma"]
-        self.readLog = self.CommandArma.readLog
-        
+        try:
+            self.CommandArma = self.bot.cogs["CommandArma"]
+            self.readLog = self.CommandArma.readLog
+        except KeyError:
+            self.readLog = None
+            self.CommandArma = None
+            
         if("streamChat" in self.rcon_settings and self.rcon_settings["streamChat"] != None):
             self.streamChat = self.bot.get_channel(self.rcon_settings["streamChat"])
             #self.streamChat.send("TEST")
@@ -221,8 +226,8 @@ class CommandRcon(commands.Cog):
                 for d in data:
                     self.arma_rcon.serverMessage.append(d)
         except Exception as e:
-            traceback.print_exc()
-            print(e)
+            log.print_exc()
+            log.error(e)
         
                 
         
@@ -234,16 +239,6 @@ class CommandRcon(commands.Cog):
     def setEncoding(self, msg):
         return bytes(msg.encode()).decode("utf-8","replace") 
     
-
-    def escapeMarkdown(self, msg):
-        #Markdown: *_`~#
-        msg = msg.replace("*", "\*")
-        msg = msg.replace("_", "\_")
-        msg = msg.replace("`", "\`")
-        msg = msg.replace("~", "\~")
-        msg = msg.replace("#", "\#")
-        return msg    
-        
     def getPlayerFromMessage(self, message: str):
         if(":" in message):
             header, body = message.split(":", 1)
@@ -286,7 +281,7 @@ class CommandRcon(commands.Cog):
 ###################################################################################################  
     #function called when a new message is received by rcon
     def rcon_on_msg_received(self, args):
-        message=self.escapeMarkdown(args[0])
+        message = discord.utils.escape_markdown(args[0], as_needed=True)
 
         if("CommandRconIngameComs" in self.bot.cogs):
             asyncio.ensure_future(self.bot.cogs["CommandRconIngameComs"].RconCommandEngine.parseCommand(args[0]))
@@ -297,13 +292,13 @@ class CommandRcon(commands.Cog):
                 #check for admin notification keywords
                 asyncio.ensure_future(self.CommandRconSettings.checkKeyWords(body))
                 player_name = header.split(") ")[1]
-                #print(player_name)
-                #print(body)
-            #else: is join or disconnect, or similaar
+                #log.info(player_name)
+                #log.info(body)
+            #else: is join or disconnect, or similar
             
-        #check if the chat is streamed or not
-        if(self.streamChat != None):
-            self.RateBucket.add(message)
+                #check if the chat is streamed or not
+                if(self.streamChat != None):
+                    self.RateBucket.add(message)
     
         
     
@@ -319,12 +314,12 @@ class CommandRcon(commands.Cog):
         except IndexError:
             pass # there are no records in the queue.
         if len(self.lastReconnect) > self.rcon_settings["max_reconnects_per_minute"]:
-            print("Stopped Reconnecting - Too many reconnects!")
+            log.warning("Stopped Reconnecting - Too many reconnects!")
             if(self.streamChat):
                 await self.streamChat.send(":warning: Stopped Reconnecting - Too many reconnects!\n Reconnect with '!reconnect'")
         else:
             self.lastReconnect.append(datetime.datetime.now())
-            print("Reconnecting to BEC Rcon")
+            log.info("Reconnecting to BEC Rcon")
             self.setupRcon(self.arma_rcon.serverMessage) #restarts form scratch (due to weird behaviour on reconnect)
 
 
@@ -342,7 +337,7 @@ class CommandRcon(commands.Cog):
             time = pair[0]
             msg += time.strftime("%H:%M:%S")+" | "+ pair[1]+"\n"
             i+=1
-        return msg
+        return discord.utils.escape_markdown(msg, as_needed=True)
 
 ###################################################################################################
 #####                                BEC Rcon custom commands                                  ####
@@ -423,7 +418,7 @@ class CommandRcon(commands.Cog):
                     for k in range(0, 3):
                         await self.arma_rcon.sayPlayer(player_id, "Type something in chat or you will be kicked for being AFK. ("+str(round(i/30)+1)+"/10)")
                 except: 
-                    print("Failed to send command sayPlayer (checkAFK)")
+                    log.error("Failed to send command sayPlayer (checkAFK)")
             await asyncio.sleep(1)
         if(self.playerTypesMessage(player_name)):
             if(i==0):
@@ -433,7 +428,7 @@ class CommandRcon(commands.Cog):
                 try:
                     await self.arma_rcon.sayPlayer(player_id, "Thank you for responding in chat.")
                 except:
-                    print("Failed to send command sayPlayer")
+                    log.error("Failed to send command sayPlayer")
             return
         else:
             await self.arma_rcon.kickPlayer(player_id, "AFK too long")
@@ -478,13 +473,17 @@ class CommandRcon(commands.Cog):
                 else:
                     active = ":white_circle:"
                 #fetch country
-                response = self.ipReader.country(ip.split(":")[0])
-                region = str(response.country.iso_code).lower()
+                try:
+                    response = self.ipReader.country(ip.split(":")[0])
+                    region = str(response.country.iso_code).lower()
+                except:
+                    region = ":question:"
+                    
                 if(region == "none"):
                     flag = ":question:" #symbol if no country was found
                 else:
                     flag = ":flag_{}:".format(region)
-                msg+= "{}#{} | {} {}".format(active, id, flag, name)+"\n"
+                msg+= "{}#{} | {} {}".format(active, id, flag, discord.utils.escape_markdown(name, as_needed=True))+"\n"
 
         await utils.sendLong(ctx, msg)
         
@@ -608,7 +607,7 @@ class CommandRcon(commands.Cog):
         msg  = ""
         for player in players:
             if(i <= limit):
-                msgtable.add_row([player[0], player[4], player[1],player[3]])
+                msgtable.add_row([player[0], discord.utils.escape_markdown(player[4], as_needed=True), player[1],player[3]])
                 if(len(str(msgtable)) < 1800):
                     i += 1
                     new = False
@@ -840,6 +839,9 @@ class CommandRcon(commands.Cog):
         brief="Shows performance information in the dedicated server console. Tracks the performance for 10s",
         pass_context=True)
     async def monitords(self, ctx,): 
+        if(not self.readLog):
+            raise Exception("Arma module required, but not loaded!")
+    
         async def sendLoad(event, timestamp, msg, event_match):
             await ctx.send(msg)
  

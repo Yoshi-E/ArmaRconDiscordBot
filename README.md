@@ -5,7 +5,7 @@ Make sure to enable "Privileged Gateway Intents" for the discord bot:
 https://discord.com/developers/applications/
 -> SERVER MEMBERS INTENT
 
-1. Install Python3.6+
+1. Install Python3.5-3.6 (3.7, 3.8, 3.9 currently not suppored) 
 2. Clone the git `https://github.com/Yoshi-E/ArmaRconDiscordBot.git`
 3. Run `pip install -r requirements.txt` to install required modules
 4. Run the `bot.py` once.
@@ -15,6 +15,14 @@ https://discord.com/developers/applications/
 8. The bot should now be functional. However the permission have to be configured first, otherwise you wont be able to use any commands. Open the settings again, and set up the permissions.
 9. Now you are done.
 
+## Troubleshooting:
+ * "The system cannot find the file specified while executing the command git clone ..."
+	* This means you do not have git installed on your computer. Either install git, or manually download the .whl [here](https://github.com/Yoshi-E/Python-BEC-RCon). If you choose the non git option, then you have to delete the first line in the requirments.txt and install it normally.
+ * "ModuleNotFoundError: No module named '____'"
+	1. You forgot to install the modules. You can just install missing modules with "pip install <module_name>"
+	2. Make sure you are running the bot with the correct python instance. E.g. run the bot with "python3 bot.py" instead of just using "bot.py". Sometimes windows uses by default python2.
+ * The settings page looks mostly empty
+	* Try a diffrent browser (IE / Edge not supported)
 ## Related:
 This Bot directly works with my RCon API:
 https://github.com/Yoshi-E/Python-BEC-RCon
@@ -35,7 +43,7 @@ https://github.com/Yoshi-E/Python-BEC-RCon
 
 ## Donate
 
-[![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://paypal.me/TeamYoshiE)
+[![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://paypal.me/YoshiEU)
 
 ## Features
 

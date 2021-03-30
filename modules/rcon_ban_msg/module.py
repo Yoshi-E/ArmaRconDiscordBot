@@ -12,7 +12,7 @@ import numpy as np
 from collections import deque
 
 from modules.core.utils import CommandChecker, RateBucket, sendLong, CoreConfig, Tools
-
+from modules.core.Log import log
 
 class CommandRcon_Custom(commands.Cog):
 
@@ -31,7 +31,7 @@ class CommandRcon_Custom(commands.Cog):
         #await asyncio.sleep(60) #wait addional time for everything to be ready
         try:
             if("CommandRcon" not in self.bot.cogs):
-                print("[module] 'CommandRcon' required, but not found in '{}'. Module unloaded".format(type(self).__name__))
+                log.info("[module] 'CommandRcon' required, but not found in '{}'. Module unloaded".format(type(self).__name__))
                 del self
                 return
             self.CommandRcon = self.bot.cogs["CommandRcon"]
@@ -39,10 +39,10 @@ class CommandRcon_Custom(commands.Cog):
             self.CommandRcon.arma_rcon.add_Event("received_ServerMessage", self.rcon_on_msg_received)
             await self.init_bans_watchdog()
         except (KeyboardInterrupt, asyncio.CancelledError):
-            print("[asyncio] exiting", on_ready)
+            log.info("[asyncio] exiting {}".format(on_ready))
         except Exception as e:
-            traceback.print_exc()
-            print(e)
+            log.print_exc()
+            log.error(e)
     
     def rcon_on_msg_received(self, args):
         message=args[0]
@@ -53,7 +53,7 @@ class CommandRcon_Custom(commands.Cog):
                 player_name = header.split(") ")[1]
             else:
                 #is join or disconnect, or similaar
-                #print(message)
+                #log.info(message)
                 asyncio.ensure_future(self.banned_user_kick(message))
     
     #fetches the user name from the recent chat entries
@@ -80,7 +80,7 @@ class CommandRcon_Custom(commands.Cog):
     
     async def check_newBan(self):
         new_bans = await self.CommandRcon.arma_rcon.getBansArray()
-        #print(len(self.bans), len(new_bans))
+        #log.info("{} {}".format(len(self.bans), len(new_bans)))
         
         #Compare old & new list for changes:
         a = np.array(new_bans)
@@ -88,7 +88,7 @@ class CommandRcon_Custom(commands.Cog):
         change_added = list(set(a[:,0]) - set(b[:,0]))
         change_removed = list(set(b[:,0]) - set(a[:,0]))
         self.bans = new_bans #update old list
-        #print(change_added, change_removed)
+        #log.info({} {}".format(change_added, change_removed))
             
         if(len(a) > 0 and len(change_added) > 0 and len(change_added) < 10):
             for i in change_added:
@@ -107,13 +107,13 @@ class CommandRcon_Custom(commands.Cog):
         #for large ban lists its recommended to keep the update rate >60s
         
         #bans format: ["ID", "GUID", "Time", "Reason"]
-        print("Starting ban watchdog")
+        log.info("Starting ban watchdog")
         try:
             while True:
                 await asyncio.sleep(60)
                 await self.check_newBan()
         except (KeyboardInterrupt, asyncio.CancelledError):
-            print("[asyncio] exiting", bans_watchdog)
+            log.info("[asyncio] exiting {}".format(bans_watchdog))
             
     async def announce_ban_added(self, data):
         if(self.post_channel == None):

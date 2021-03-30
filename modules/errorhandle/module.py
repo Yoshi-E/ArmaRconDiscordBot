@@ -2,7 +2,7 @@ import traceback
 import sys
 from discord.ext import commands
 import discord
-
+from modules.core.Log import log
 
 class CommandErrorHandler(commands.Cog):
     def __init__(self, bot):
@@ -19,7 +19,7 @@ class CommandErrorHandler(commands.Cog):
     
     @commands.Cog.listener()
     async def on_error(event, *args, **kwargs):
-        print(event,args, kwargs)
+        log.info(event,args, kwargs)
         
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
@@ -27,7 +27,7 @@ class CommandErrorHandler(commands.Cog):
         ctx   : Context
         error : Exception"""
         
-        ignored = (commands.CommandNotFound, commands.UserInputError, commands.errors.CheckFailure)
+        ignored = (commands.CommandNotFound, commands.UserInputError) #commands.errors.CheckFailure
         
         # Allows us to check for original exceptions raised and sent to CommandInvokeError.
         # If nothing is found. We keep the exception passed to on_command_error.
@@ -36,11 +36,14 @@ class CommandErrorHandler(commands.Cog):
         # Anything in ignored will return and prevent anything happening.
         if isinstance(error, ignored):
             try:
-                print("{}: '{}'. Ignored error: '{}'".format(ctx.author.name, ctx.command.name, error))
+                log.info("{}: '{}'. Ignored error: '{}'".format(ctx.author.name, ctx.command.name, error))
             except:
-                print("{}: Ignored error: '{}'".format(ctx, error))
+                log.info("{}: Ignored error: '{}'".format(ctx, error))
             return
-            
+        
+        if(isinstance(error, commands.errors.CheckFailure)):
+            await self.sendLong(ctx, "{}, You do not have permission to use the command '{}'".format(ctx.author.name, ctx.command.name))
+            return
         stack = traceback.extract_stack()[:-3] + traceback.extract_tb(error.__traceback__)
         pretty = traceback.format_list(stack)
         #stacktrace = ''.join(pretty) + '\n  {} {}'.format(error.__class__,error)
@@ -62,7 +65,7 @@ class CommandErrorHandler(commands.Cog):
                 pass
 
         # All other Errors not returned come here... And we can just print the default TraceBack.
-        print('Ignoring exception in command {}:'.format(ctx.command), file=sys.stderr)
+        log.info('Ignoring exception in command {}:'.format(ctx.command))
         traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
                 
 

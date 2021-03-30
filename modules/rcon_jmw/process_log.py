@@ -5,17 +5,18 @@ import ast
 import os
 from datetime import datetime
 import json
-import logging
 import re
+
+
 from collections import deque
-import collections
 import traceback
 import sys
 import itertools
 import asyncio
 import inspect
-
 from modules.core.utils import Event_Handler
+from modules.core.Log import log
+import psutil
 
 class ProcessLog:
     def __init__(self, readLog, cfg_jmw):
@@ -25,7 +26,7 @@ class ProcessLog:
         
         self.databuilder = {}
         #self.active = False
-        
+
         self.define_EH()
         self.EH.disabled = True
         
@@ -34,7 +35,23 @@ class ProcessLog:
         
         #self.readLog.pre_scan()
         #self.active = True
-    
+        asyncio.ensure_future(self._system_res())
+        
+        
+    async def _system_res(self):
+        try:
+            self.system_res = deque(maxlen=1440*10) #1440 = 1 day
+            while True:
+                databuilder = {}
+                databuilder["cpu"] = round(psutil.cpu_percent(),2)
+                databuilder["ram"] = round(psutil.virtual_memory().percent,2)
+                databuilder["swap"] = round(psutil.swap_memory().percent,2)
+                databuilder["time"] = str(datetime.now().strftime("%Y-%m-%d %H-%M-%S"))
+                self.system_res.append(databuilder)
+                await asyncio.sleep(60)
+        except Exception as e:
+            log.error(e)
+            
     def define_EH(self):
         self.events = [
             "on_missionHeader",
@@ -45,7 +62,7 @@ class ProcessLog:
         self.EH = Event_Handler(self.events)
         
     def missionError(*args):
-        print(args)
+        log.info(args)
         
     def processGameData(self, pdata):
         data = pdata.copy()
@@ -75,7 +92,7 @@ class ProcessLog:
                 val["time"] = val["time"]+last_time
                 last_time_iter = val["time"] 
                 #if(val["time"] > 100000 and created_df == False):
-                #    print("[WARNING] Data timeframe out of bounds: {}".format(val))
+                #    log.info("[WARNING] Data timeframe out of bounds: {}".format(val))
                 #    with open('dataframe.json', 'a+') as outfile:
                 #        json.dump(data, outfile)
                 #    created_df = True
@@ -136,16 +153,17 @@ class ProcessLog:
         r = r.replace("true", "True")
         r = r.replace("false", "False")
         data = ast.literal_eval(r) #WARNING: Security risk
-        #print(data)
+        #log.info(data)
         return dict(data)
 
+    # Deprecated
     def checkforEnd(self, timestamp, line):
         m = re.match('^(\[\["CTI_DataPacket","(.*?)"],.*])', line)
         if(m):
             type = m.group(2)
             if(type == "GameOver"):
                 #Start generating game
-                #print("END FOUND")
+                #log.info("END FOUND")
                 self.buildGameBlock()
 
     def buildGameBlock(self, index=0):
@@ -158,7 +176,7 @@ class ProcessLog:
                 while game == None:
                     new_game = next(iterMission)
                     if("Mission id" in new_game["dict"]):
-                        game = new_game
+                        game = new_game # Get most recent mission start
                         game["crashed"] = 0
                         
                 for mission in iterMission:
@@ -218,10 +236,9 @@ class ProcessLog:
                     return datarow #return Gameover / End
                 
             except Exception as e:
-                print(e)
-                print(line)
-                line = "Error"
-                traceback.print_exc()
+                log.error(e)
+                log.info(line)
+                log.print_exc()
         #return self.databuilder
                 
    
@@ -234,13 +251,32 @@ class ProcessLog:
         for item in data:
             if(field in item):
                 list.append(item[field])
-        return list
+            else:
+                list.append(0)
+        return list[:-1]   
+
+    def featchValuesDeque(self, data, field, slice_lenght):
+        list = []
+        start = len(data)-slice_lenght 
+        if start < 0:
+            start = 0
+        for i in range(start, len(data)):
+            if(field in data[i]):
+                list.append(data[i][field])
+            else:
+                list.append(0)
+        dif = abs(len(list) - slice_lenght)
+        if(dif != 0):
+            list = ([0] * dif) + list
+        return list[:-1]
    
         
     def dataToGraph(self, meta, data, admin):
         lastwinner = meta["winner"]
         lastmap = meta["map"]
         timestamp = meta["timestamp"]
+        e = len(data)
+
         if(timestamp == None):
             timestamp = "00:00:00"
         fdate = meta["date"]
@@ -284,11 +320,15 @@ class ProcessLog:
         if(admin == True):
             v1 = self.featchValues(data, "fps")
             if(len(v1) > 0):
+                v1[0] = 60
+                v1[1] = 0
                 plots.append({
                     "data": [[v1, "g"]],
                     "xlabel": "Time in min",
                     "ylabel": "Server FPS",
-                    "title": "Server FPS"
+                    "title": "Server FPS",
+                    "autoscaley_on": False,
+                    "ylim": (0, 60)
                     }) 
                     
         if(admin == True):       
@@ -330,17 +370,60 @@ class ProcessLog:
                     "ylabel": "Objects",
                     "title": "Total Objects count"
                     })  
+        if(admin == True):       
+            v1 = self.featchValuesDeque(self.system_res, "cpu", e)
+            if(len(v1) > 0):
+                v1[0] = 100
+                v1[1] = 0
+                plots.append({
+                    "data": [[v1, "g"]],
+                    "xlabel": "Time in min",
+                    "ylabel": "usage in %",
+                    "title": "Total CPU usage",
+                    "autoscaley_on": False,
+                    "ylim": (0, 100)
+                    })  
+        if(admin == True):       
+            v1 = self.featchValuesDeque(self.system_res, "ram", e)
+            if(len(v1) > 0):
+                v1[0] = 100
+                v1[1] = 0
+                plots.append({
+                    "data": [[v1, "g"]],
+                    "xlabel": "Time in min",
+                    "ylabel": "usage in %",
+                    "title": "Total RAM usage",
+                    "autoscaley_on": False,
+                    "ylim": (0, 100)
+                    })       
+        if(admin == True):       
+            v1 = self.featchValuesDeque(self.system_res, "swap", e)
+            if(len(v1) > 0):
+                v1[0] = 100
+                v1[1] = 0
+                plots.append({
+                    "data": [[v1, "g"]],
+                    "xlabel": "Time in min",
+                    "ylabel": "usage in %",
+                    "title": "Total SWAP usage",
+                    "autoscaley_on": False,
+                    "ylim": (0, 100)
+                    })  
 
         #Calculate time in min
         time = self.featchValues(data, "time")
         for i in range(len(time)):
             if(time[i] > 0):
                 time[i] = time[i]/60 #seconds->min
+        
         if (len(time) > 0):
-            gameduration = round(time[-1])
+            if(round(time[-1]) == 0):
+                gameduration = round(time[-2])
+            else:
+                gameduration = round(time[-1])
         else:
             gameduration = 0
-        print("{} {} {}".format(timestamp, lastwinner, gameduration))
+        log.info("{} {} {}".format(timestamp, lastwinner, gameduration))
         
         #maps plot count to image size
         #plot_count: image_size
