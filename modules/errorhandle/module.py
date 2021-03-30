@@ -65,7 +65,7 @@ class CommandErrorHandler(commands.Cog):
                 pass
 
         # All other Errors not returned come here... And we can just print the default TraceBack.
-        log.info('Ignoring exception in command {}:'.format(ctx.command), file=sys.stderr)
+        log.info('Ignoring exception in command {}:'.format(ctx.command))
         traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
                 
 

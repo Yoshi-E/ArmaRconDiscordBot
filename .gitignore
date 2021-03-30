@@ -115,3 +115,4 @@ error.log
 *.json
 *.png
 *.rpt
+*.db

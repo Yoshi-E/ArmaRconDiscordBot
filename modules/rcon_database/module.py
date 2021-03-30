@@ -3,6 +3,7 @@
 # Discord 1.2.2
 import asyncio
 import json
+import sqlite3 as sl
 import os
 import sys
 import traceback
@@ -20,7 +21,13 @@ class CommandRconDatabase(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.path = os.path.dirname(os.path.realpath(__file__))
-        self.player_db = CoreConfig.cfg.new(self.path+"/player_db.json")
+        
+        self.con = sl.connect(self.path+'/users.db')       
+        self.c = self.con.cursor()
+
+        
+        self.upgrade_database()
+        #self.player_db = CoreConfig.cfg.new(self.path+"/player_db.json")
 
         self.cfg = CoreConfig.modules["modules/rcon_database"]["general"]
         
@@ -42,6 +49,62 @@ class CommandRconDatabase(commands.Cog):
         asyncio.ensure_future(self.fetch_player_data_loop())
         #self.check_all_users()
         
+    def upgrade_database(self):
+        try:
+            json_f = self.path+"/player_db.json"
+            if(not os.path.isfile(json_f)):
+                
+                return
+            
+            #get the count of tables with the name
+            self.c.execute(''' SELECT count(name) FROM sqlite_master WHERE type='table' AND name='users' ''')
+            if self.c.fetchone()[0]==0 : 
+                
+                #load old table
+                with open(json_f) as json_file:
+                    data_db = json.load(json_file)
+
+                data = []
+                for key, item in data_db.items():
+                    for _item in item:
+                        id = None
+                        name = None
+                        beid = None
+                        ip  = None
+                        date = None
+                        if "ID" in _item:
+                            id = int(_item["ID"])        
+                        if "name" in _item:
+                            name = _item["name"]        
+                        if "beid" in _item:
+                            beid = _item["beid"]       
+                        if "ip" in _item:
+                            ip = _item["ip"]       
+                        if "last-seen" in _item:
+                            date = _item["last-seen"]
+                        data.append((id, name, beid, ip, date))
+
+                self.c.execute("""
+                    CREATE TABLE users (
+                        id INTEGER NOT NULL,
+                        name  TEXT,
+                        beid TEXT,
+                        ip TEXT,
+                        stamp DATETIME
+                    );
+                """)
+                
+                #date yyyy-MM-dd HH:mm:ss    
+                sql = 'INSERT INTO users (id, name, beid, ip, stamp) values(?, ?, ?, ?, ?)'
+                self.c.executemany(sql, data)
+                self.con.commit()
+                json_f_new = json_f.replace(".json", "_old.json")
+                os.rename(json_f, json_f_new)
+                log.info("*** Database has been upgraded! ***")
+        except Exception as e:
+            log.print_exc()
+            log.error(e)
+            
     async def fetch_player_data_loop(self):
         while True: 
             await asyncio.sleep(60)
@@ -52,7 +115,7 @@ class CommandRconDatabase(commands.Cog):
                     self.players = await self.CommandRcon.arma_rcon.getPlayersArray()
                 except Exception as e:
                     continue
-                self.player_db.save = False 
+                #self.player_db.save = False 
                 
                 
                 c_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") 
@@ -68,26 +131,18 @@ class CommandRconDatabase(commands.Cog):
                     if(name.endswith(" (Lobby)")): #Strip lobby from name
                         name = name[:-8]
                     d_row = {
-                        "ID": player[0],
+                        "id": player[0],
                         "name": name,
                         "beid": player[3],
                         "ip": player[1].split(":")[0], #removes port from ip
-                        "note": "",
-                        "last-seen": c_time
+                        "note": None,
+                        "stamp": c_time
                     }   
-                    in_data = self.in_data(d_row)
-                    if(in_data==False):
-                        #Create new entry in database
-                        if(player[3] not in self.player_db):
-                            self.player_db[d_row["beid"]] = []
-                        await self.new_data_entry(d_row)
-                        self.player_db[d_row["beid"]].append(d_row)
-                    else:
-                        #Update the last seen timestamp
-                        in_data["last-seen"] = c_time
+                    self.update_insert(d_row)
+                    
                 
-                self.player_db.save = True
-                self.player_db.json_save()
+                #self.player_db.save = True
+                #self.player_db.json_save()
                 
             except Exception as e:
                 log.print_exc()
@@ -124,77 +179,81 @@ class CommandRconDatabase(commands.Cog):
                 await channel.send(":warning: Player '{name}' with BEID '{beid}' might be using >=2 accounts from the same ip".format(**row))
         
 
-    def in_data(self, row):
-        if(row["beid"] not in self.player_db):
-            return False
-        data = self.player_db[row["beid"]]
-        for d in data:
-            if(row["name"]==d["name"] and row["ip"]==d["ip"]):
-                return d
-        return False
+    def update_insert(self, row):
+        #update only if user if last seen > 1 day or diffrent ip/beid
+        self.c.execute("SELECT * FROM users WHERE name = '{name}' AND beid = '{beid}' AND ip = '{ip}' AND stamp < date('now','-1 day')".format(**row))
+        r = self.c.fetchone()
+        if r is None: 
+            sql = 'INSERT INTO users (id, name, beid, ip, stamp) values({id}, "{name}", "{beid}", "{ip}", "{stamp}")'.format(**row)
+            self.c.execute(sql)
+            self.con.commit()
+
                 
-    def import_epm_csv(self, file='Players.csv'):
+    # def import_epm_csv(self, file='Players.csv'):
         #disable auto saving, so the files is not written for every data entry
-        self.player_db.save = False 
+        # self.player_db.save = False 
     
-        with open(file, newline='',encoding='utf8') as csvfile:
-            spamreader = csv.reader(csvfile, delimiter=',', quotechar='"')
-            head = None
-            for row in spamreader:
-                if(head):
-                    d_row = {
-                        "ID": row[0],
-                        "name": row[1],
-                        "beid": row[2],
-                        "ip": row[3],
-                        "note": row[4]
-                    }
-                    if(row[2] not in self.player_db):
-                        self.player_db[row[2]] = []
-                    self.player_db[row[2]].append(d_row)
-                else:
-                    head = row
+        # with open(file, newline='',encoding='utf8') as csvfile:
+            # spamreader = csv.reader(csvfile, delimiter=',', quotechar='"')
+            # head = None
+            # for row in spamreader:
+                # if(head):
+                    # d_row = {
+                        # "ID": row[0],
+                        # "name": row[1],
+                        # "beid": row[2],
+                        # "ip": row[3],
+                        # "note": row[4]
+                    # }
+                    # if(row[2] not in self.player_db):
+                        # self.player_db[row[2]] = []
+                    # self.player_db[row[2]].append(d_row)
+                # else:
+                    # head = row
         
         #Save the data
-        self.player_db.save = True
-        self.player_db.json_save()
-        log.info("Databse Import sucessfull")
+        # self.player_db.save = True
+        # self.player_db.json_save()
+        # log.info("Databse Import sucessfull")
         
-        
-    def find_by_field(self, field, i):
-        results = []
-        for key, val in self.player_db.items():
-            for data_row in val:
-                if(data_row[field] == i):
-                    results.append(data_row)
-        return results
         
     def find_by_linked(self, beid, beids = None, ips = None, names = None):
-        if(beids == None):
-            beids = set()       
-        if(ips == None):
-            ips = set()      
-        if(names == None):
-            names = set()
-        if(beid not in self.player_db):
+        try:
+            if(beids == None):
+                beids = set()       
+            if(ips == None):
+                ips = set()      
+            if(names == None):
+                names = set()
+            self.c.execute("SELECT count(beid) FROM users WHERE beid='{}'".format(beid))
+            if self.c.fetchone()[0]==0: 
+                return {"beids": beids, "ips": ips, "names": names}
+                
+            entries = self.c.execute("SELECT * FROM users WHERE beid = '{}'".format(beid))
+            entries = entries.fetchall()
+            for data in entries:
+                beids.add(data[2])
+                ips.add(data[3])
+                names.add(data[1])
+                print(data[3])
+
+                ip_list = self.c.execute("SELECT * FROM users WHERE ip = '{}'".format(data[3]))
+                ip_list = ip_list.fetchall()
+                for row in ip_list:
+                    print(row[1])
+                    ips.add(row[3]) 
+                    if(row[1] not in names):
+                        names.add(row[1])
+                    if(row[2] not in beids):
+                        beids.add(row[2])
+                        r = self.find_by_linked(row[2], beids, ips, names)
+                        beids = beids.union(r["beids"])
+                        ips = ips.union(r["ips"])
+                        names = names.union(r["names"])
             return {"beids": beids, "ips": ips, "names": names}
-            
-        entries = self.player_db[beid]
-        for data in entries:
-            beids.add(data["beid"])
-            ips.add(data["ip"])
-            names.add(data["name"])
-            
-            ip_list = self.find_by_field("ip", data["ip"])
-            for row in ip_list:
-                ips.add(row["ip"]) 
-                if(row["beid"] not in beids):
-                    beids.add(row["beid"])
-                    r = self.find_by_linked(row["beid"], beids, ips, names)
-                    beids = beids.union(r["beids"])
-                    ips = ips.union(r["ips"])
-                    names = names.union(r["names"])
-        return {"beids": beids, "ips": ips, "names": names}
+        except Exception as e:
+            log.print_exc()
+            log.error(e)
 
         #log.info(init)
     
@@ -214,11 +273,16 @@ class CommandRconDatabase(commands.Cog):
             brief="find user data by field",
             pass_context=True)
     async def find_data(self, ctx, field, data):
-        result = self.find_by_field(field, data)
-        if(len(result) > 0):
+        valid = ["name", "beid", "ip", "stamp"]
+        if field not in valid:
+            raise Exception("Invalid field '{}', must be one of these values: {}".format(field, valid))
+
+        result = self.c.execute("SELECT * FROM users WHERE {} = '{}' GROUP BY beid ORDER BY stamp DESC".format(field, data))
+        
+        if(result):
             msg = ""
             for row in result:
-                msg += str(row)+"\n"
+                msg += "{} ``{}`` ({})\n".format(row[1], row[2], row[4])
             await sendLong(ctx, msg)  
         else:
             await sendLong(ctx, "Sorry, I could not find anything")      
@@ -227,6 +291,7 @@ class CommandRconDatabase(commands.Cog):
             brief="Does a cross search over IPs and BEID",
             pass_context=True)
     async def find_linked(self, ctx, beid):
+
         result = self.find_by_linked(beid)
         msg = ""
         if(len(result["beids"]) > 0):
