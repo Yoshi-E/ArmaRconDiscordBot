@@ -165,9 +165,39 @@ input[type="text"] {
 
 .error {color: #FF0000;}
 </style>
+<html lang="en">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 </head>
 <body>
 
+<script>
+	var msg = 'This browser is currently not supported. This site might not work as expected. Currently supported: Chrome, Edge, Firefox';
+     if((navigator.userAgent.indexOf("Opera") || navigator.userAgent.indexOf('OPR')) != -1 ) 
+    {
+        //alert('Opera');
+    }
+    else if(navigator.userAgent.indexOf("Chrome") != -1 )
+    {
+        //alert('Chrome');
+    }
+    else if(navigator.userAgent.indexOf("Safari") != -1)
+    {
+        //alert('Safari');
+    }
+    else if(navigator.userAgent.indexOf("Firefox") != -1 ) 
+    {
+        //alert(msg);
+    }
+    else if((navigator.userAgent.indexOf("MSIE") != -1 ) || (!!document.documentMode == true )) //IF IE > 10
+    {
+      alert(msg); 
+    }  
+    else 
+    {
+       alert(msg);
+    }
+    </script>
+	
 <h2>Discord Bot Settings</h2>
 
 
@@ -188,6 +218,8 @@ input[type="text"] {
 It is recommended to restart the bot after changing settings.<br>
 Settings are saved automatically. 
 </div>
+
+
 <div id="module_settings">
 
 </div>
@@ -353,9 +385,9 @@ function delete_role(e) {
 		$.post('/delete_role.json', { 
 		delete_role: e.id
 		}, function(data) { 
-			//console.log(data);
+			//console.log("COMPLETED POST", data);
 		});
-		window.location.reload(false);
+		setTimeout(() => {  window.location.reload(false); }, 100);
 	}	
 };
 
