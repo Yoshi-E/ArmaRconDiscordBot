@@ -68,7 +68,9 @@ class CommandArma(commands.Cog):
             log.error(e)
     
     async def newLog(self, oldLog, newLog):
-        self.memoryRestart = False
+        if(self.memoryRestart == True):
+            await self.channel.send("Server restarted.")
+            self.memoryRestart = False
     
     async def mission_script_error(self, event, stime, text, regxm, line):
         try:
