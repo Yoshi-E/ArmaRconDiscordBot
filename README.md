@@ -43,7 +43,7 @@ https://github.com/Yoshi-E/Python-BEC-RCon
 
 ## Donate
 
-[![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://paypal.me/TeamYoshiE)
+[![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://paypal.me/YoshiEU)
 
 ## Features
 
