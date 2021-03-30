@@ -235,12 +235,10 @@ class CommandRconDatabase(commands.Cog):
                 beids.add(data[2])
                 ips.add(data[3])
                 names.add(data[1])
-                print(data[3])
 
                 ip_list = self.c.execute("SELECT * FROM users WHERE ip = '{}'".format(data[3]))
                 ip_list = ip_list.fetchall()
                 for row in ip_list:
-                    print(row[1])
                     ips.add(row[3]) 
                     if(row[1] not in names):
                         names.add(row[1])
