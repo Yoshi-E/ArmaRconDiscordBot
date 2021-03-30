@@ -2,7 +2,7 @@ import sys
 import os
 import time
 
-if(sys.version_info[0] != 3 or (sys.version_info[1] > 5 or sys.version_info[1] < 5)):
+if(sys.version_info[0] != 3 or (sys.version_info[1] > 6 or sys.version_info[1] < 5)):
     print("This bot requires Python >= 3.5 and <= 3.6. You are currently running version {}.{}".format(*sys.version_info[:2]))
     time.sleep(5)
     sys.exit("Terminated")
