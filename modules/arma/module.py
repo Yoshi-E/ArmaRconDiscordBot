@@ -42,7 +42,7 @@ class CommandArma(commands.Cog):
         #read the Log files
         self.readLog = readLog(self.cfg["log_path"], maxMisisons=self.cfg["buffer_maxMisisons"])
         self.readLog.pre_scan()
-        
+        self.memoryRestart = False
         
         self.mission_error_last = 0
         self.mission_error_suppressed = 0
@@ -60,11 +60,15 @@ class CommandArma(commands.Cog):
             self.channel = self.bot.get_channel(int(self.cfg["post_channel"]))
             if(self.cfg["report_script_errors"] and self.channel):
                 self.readLog.EH.add_Event("Mission script error", self.mission_script_error)
+                self.readLog.EH.add_Event("Log new", self.newLog)
             asyncio.ensure_future(self.readLog.watch_log())
             asyncio.ensure_future(self.memory_guard())
         except Exception as e:
             log.print_exc()
             log.error(e)
+    
+    async def newLog(self, oldLog, newLog):
+        self.memoryRestart = False
     
     async def mission_script_error(self, event, stime, text, regxm, line):
         try:
@@ -98,7 +102,9 @@ class CommandArma(commands.Cog):
                     if(psutil.virtual_memory().percent > 85):
                         await self.CommandRcon.arma_rcon.restartserveraftermission()
                         await self.CommandRcon.arma_rcon.sayGlobal("A Server restart has been scheduled at the end of this mission.")
-                        await self.channel.send("Memory usage exceeded! Server restart scheduled after mission end")
+                        if(self.memoryRestart == False):
+                            await self.channel.send("Memory usage exceeded! Server restart scheduled after mission end")
+                            self.memoryRestart = True
                         log.warning("Memory usage exceeded! Server restart scheduled after mission end")
                     #elif(psutil.virtual_memory().percent > 95): #might be too agressive should short memory spikes occour
                     #    await self.CommandRcon.arma_rcon.restartServer()
