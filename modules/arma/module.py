@@ -158,7 +158,35 @@ class CommandArma(commands.Cog):
     async def stop_all(self, ctx):
         self.CommandRcon.autoReconnect = False
         self.stop_all_server()
-        await ctx.send("Stop all Servers.")      
+        await ctx.send("Stop all Servers.")         
+        
+    @CommandChecker.command(name='view',
+            brief="View a snipped of a server log",
+            pass_context=True)
+    async def viewLog(self, ctx, logfile, line=0):
+        #remove .. and / \
+        logfile = logfile.replace("/", "")
+        logfile = logfile.replace("\\", "")
+        logfile = logfile.replace("..", "")
+        if not(logfile.endswith(".log") or logfile.endswith(".rpt")):
+            raise Exception("File must be a .log or .rpt file")
+        path = self.readLog.log_path+logfile
+        logAccumulated = ""
+        sfile = open(path, "r")
+        rowlimit = 30
+        rows = 0
+        linesCounter = 1
+         
+        for row in sfile:
+            #discord limit = 2000
+            if linesCounter >= line and len(logAccumulated) < 1000 and rows < rowlimit:
+                logAccumulated += row
+                rows += 1
+            linesCounter += 1
+        logAccumulated = logAccumulated[:1000]
+        logAccumulated = logAccumulated[:logAccumulated.rfind("\n")]
+        await ctx.send("```{}```".format(logAccumulated))      
+        sfile.close()
         
     @CommandChecker.command(name='history',
             brief="Returns recently played missions",
