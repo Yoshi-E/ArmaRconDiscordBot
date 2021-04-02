@@ -81,7 +81,7 @@ class CommandArma(commands.Cog):
             if(self.mission_error_suppressed > 0):
                 await self.channel.send(":warning: {} Errors were suppressed\n``{}`` ``{}`` line ``{}``\nAdditional Errors will be suppressed for 10min.".format(self.mission_error_suppressed, text, self.readLog.current_log, line))
             else:    
-                await self.channel.send(":warning: ``{}`` line ``{}`` ``{}``\nAdditional Errors will be suppressed for 10min.".format(text, line, self.readLog.current_log))
+                await self.channel.send(":warning: ``{}`` ``{}`` line ``{}``\nAdditional Errors will be suppressed for 10min.".format(text, self.readLog.current_log, line))
             self.mission_error_suppressed = 0
             
             
