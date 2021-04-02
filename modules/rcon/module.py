@@ -395,11 +395,11 @@ class CommandRcon(commands.Cog):
         for player in players:
             if(int(player[0]) == player_id):
                 player_name = player[4]
-        if(player_name.endswith(" (Lobby)")): #Strip lobby from name
-            player_name = player_name[:-8]
         if(player_name == None):
             await ctx.send("Player not found")
             return
+        if(player_name.endswith(" (Lobby)")): #Strip lobby from name
+            player_name = player_name[:-8]
         msg= "Starting AFK check for: ``"+str(player_name)+"``"
         await ctx.send(msg)  
         already_active = False
@@ -723,7 +723,7 @@ class CommandRcon(commands.Cog):
         await ctx.send(msg)    
         
     @CommandChecker.command(name='getBans',
-        brief="Removes a ban",
+        brief="Lists the most recent bans",
         aliases=['getbans'],
         pass_context=True)
     async def getBans(self, ctx): 
