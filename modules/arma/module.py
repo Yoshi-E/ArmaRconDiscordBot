@@ -105,9 +105,9 @@ class CommandArma(commands.Cog):
                         await self.CommandRcon.arma_rcon.restartserveraftermission()
                         await self.CommandRcon.arma_rcon.sayGlobal("A Server restart has been scheduled at the end of this mission.")
                         if(self.memoryRestart == False):
-                            await self.channel.send("Memory usage exceeded! Server restart scheduled after mission end")
+                            await self.channel.send(":warning: Memory usage exceeded! Server restart scheduled after mission end")
                             self.memoryRestart = True
-                        log.warning("Memory usage exceeded! Server restart scheduled after mission end")
+                        log.warning(":warning: Memory usage exceeded! Server restart scheduled after mission end")
                     #elif(psutil.virtual_memory().percent > 95): #might be too agressive should short memory spikes occour
                     #    await self.CommandRcon.arma_rcon.restartServer()
             except Exception as e:
