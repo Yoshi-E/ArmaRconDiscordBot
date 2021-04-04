@@ -118,7 +118,7 @@ class ProcessLog:
     #uses recent data entries to create a full game
     def readData(self, admin, gameindex):
         meta, game, dict = self.generateGame(gameindex)
-        return self.dataToGraph(meta, game, admin)
+        return self.dataToGraph(meta, game, admin, gameindex)
 
     #generates a game from recent entries    
     # index: 0 = current game
@@ -271,7 +271,7 @@ class ProcessLog:
         return list[:-1]
    
         
-    def dataToGraph(self, meta, data, admin):
+    def dataToGraph(self, meta, data, admin, index=0):
         lastwinner = meta["winner"]
         lastmap = meta["map"]
         timestamp = meta["timestamp"]
@@ -466,6 +466,15 @@ class ProcessLog:
         if not os.path.exists(self.cfg_jmw['image_path']):
             os.makedirs(self.cfg_jmw['image_path'])
         
+        # match sys res to mission data:
+        # if is game just finished:
+        try:
+            if(lastwinner!="currentGame" and index==0):
+                for i in range(1, len(data)):
+                    data[-i]["sys"] = self.system_res[-i]
+        except IndexError:
+            pass
+            
         t=""
         if(lastwinner=="currentGame"):
             t = "-CUR"
