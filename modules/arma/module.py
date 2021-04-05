@@ -67,9 +67,10 @@ class CommandArma(commands.Cog):
             log.print_exc()
             log.error(e)
     
-    async def serverRestarted(self, oldLog, newLog):
+    async def serverRestarted(self, event, timestamp, msg, event_match, currentLinePos):
         if(self.memoryRestart == True):
-            await self.channel.send("Server restarted.")
+            log.info("Server Restarted")
+            await self.channel.send(":ballot_box_with_check: Server restarted.")
             self.memoryRestart = False
     
     async def mission_script_error(self, event, stime, text, regxm, line):
