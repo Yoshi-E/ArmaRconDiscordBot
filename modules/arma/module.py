@@ -46,7 +46,7 @@ class CommandArma(commands.Cog):
         
         self.mission_error_last = 0
         self.mission_error_suppressed = 0
-        self.script_errors = deque(maxlen=10000)
+        self.script_errors = {}
         
         self.server_pid = None
         asyncio.ensure_future(self.on_ready())
@@ -75,24 +75,23 @@ class CommandArma(commands.Cog):
     
     async def mission_script_error(self, event, stime, text, regxm, line):
         try:
-            if(time() - self.mission_error_last < 60*10):
-                self.mission_error_suppressed += 1
-                return
-            self.mission_error_last = time()
-            if(self.mission_error_suppressed > 0):
-                await self.channel.send(":warning: {} Errors were suppressed\n``{}`` ``{}`` line ``{}``\nAdditional Errors will be suppressed for 10min.".format(self.mission_error_suppressed, text, self.readLog.current_log, line))
-            else:    
-                await self.channel.send(":warning: ``{}`` ``{}`` line ``{}``\nAdditional Errors will be suppressed for 10min.".format(text, self.readLog.current_log, line))
-            self.mission_error_suppressed = 0
+            if text in self.script_errors: 
+                self.script_errors[text]["count"] += 1
+                self.script_errors[text]["last"] = datetime.datetime.now()
+            else:
+                self.script_errors[text] = {"log": self.readLog.current_log, "line": line, "count": 1, "last": datetime.datetime.now()}
+                await self.channel.send(":warning: ``{}`` ``{}`` line ``{}``".format(text, self.readLog.current_log, line))
+            #TODO display repeated errors
             
-            
-            #regex = "Error in expression <(?P<expression>.*?)>.*?Error position: <(?P<position>.*?)>.*?Error Undefined variable in expression: (?P<err_cause>.*?)File (?P<file>.*?)\.\.\., line (?P<line>[0-9]*)"
-            #m = re.match(regex, error, flags=re.S)
-            # if m: 
-                # await self.channel.send("{}... line {}\nAdditional Errors will be suppressed for 10min.".format(text, line)
-            # else:
-                # await self.channel.send("```sqf\n{}```".format(error))
-            
+            # if(time() - self.mission_error_last < 60*10):
+                # self.mission_error_suppressed += 1
+                # return
+            # self.mission_error_last = time()
+            # if(self.mission_error_suppressed > 0):
+                # await self.channel.send(":warning: {} Errors were suppressed\n``{}`` ``{}`` line ``{}``\nAdditional Errors will be suppressed for 10min.".format(self.mission_error_suppressed, text, self.readLog.current_log, line))
+            # else:    
+                # await self.channel.send(":warning: ``{}`` ``{}`` line ``{}``\nAdditional Errors will be suppressed for 10min.".format(text, self.readLog.current_log, line))
+            # self.mission_error_suppressed = 0
         except Exception as e:
             log.print_exc()
             log.error(e)
@@ -220,6 +219,16 @@ class CommandArma(commands.Cog):
         msg += "\n".join(mlist)
         await utils.sendLong(ctx, msg)  
   
+    @CommandChecker.command(name='viewErrors',
+            brief="View recent script errors",
+            pass_context=True)
+    async def viewError(self, ctx):
+        msg = ""
+        for key, item in self.script_errors.items():
+            msg += "``{}`` ``{}`` ``{}`` ({}) [{}]\n".format(key, item["log"], item["line"], item["count"], item["last"].strftime("%m/%d/%Y, %H:%M:%S"))
+            if(len(msg)>1000):
+                break
+        await ctx.send(msg)  
 
 def setup(bot):
     bot.add_cog(CommandArma(bot))
