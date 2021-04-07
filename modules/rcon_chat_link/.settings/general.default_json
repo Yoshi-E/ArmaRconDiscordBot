@@ -1,0 +1,10 @@
+{
+    "load_module": false,
+    "linked_channel": 0,
+    "linked_channel_description": "<a href='https://support.discord.com/hc/en-us/articles/206346498-Where-can-I-find-my-User-Server-Message-ID-' target='_blank'>Discord channel</a> used to post mission results and stats.<br>Leave empty to disable it.",
+    "verifyMessage": false,
+    "verifyMessage_description": "Verifies if the message was correctly posted on the arma server.",
+    "arma_channel_all": false,
+    "arma_channel_all_description": "Show message of all players, in all channels. If disabled, it only shows the Global channel",
+	"module_description": "This module allows for direct communication with the users on the server without requiring additional commands. <br>Any messsage (with the exception of commands) will be displayed on the arma server and the other way around."
+}
