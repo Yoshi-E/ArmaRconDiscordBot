@@ -68,7 +68,7 @@ class CommandChatLink(commands.Cog):
         await self.linkedChannel.send(":desktop: Server is back online!")    
     
     async def missionRead(self, event, timestamp, msg, event_match, currentLinePos):
-        await self.linkedChannel.send(":map: Loading mission '{}'".format(event_match.group(1)))   
+        await self.linkedChannel.send(":map: Loading mission '{}'".format(event_match.group(2)))   
 
     async def missionStarted(self, event, timestamp, msg, event_match, currentLinePos):
         await self.linkedChannel.send(":map: Mission Started")    
