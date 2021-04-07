@@ -49,6 +49,8 @@ class CommandChatLink(commands.Cog):
         
     @commands.Cog.listener()
     async def on_message(self, message):
+        if(message.channel.id!=self.cfg["linked_channel"]):
+            return
         if(self.linkedChannel):
             #check if message is command
             if(message.content.startswith(self.bot.command_prefix)):
