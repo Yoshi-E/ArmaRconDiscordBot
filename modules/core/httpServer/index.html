@@ -527,8 +527,6 @@ function setting_changed(e) {
 
 
 function discord_channel_dropbox(parent, input_field) {
-	var options = ["1", "2", "3", "4", "5"];
-	
 	var select = document.createElement("select");
 	select.className = "selectChannel";
 	select.onchange = debounce(setting_changed,100);
@@ -679,8 +677,8 @@ $.post('/get_module_settings.json', {
 						//element.oninput = setting_changed;
 						element.oninput = debounce(setting_changed,500);
 						inner_container.appendChild(element); 
-						
-						if(element.name.includes("channel")) {
+
+						if(typeof val3 !== "boolean" && element.name.includes("channel")) {
 							element.style.display = "none";
 							discord_channel_dropbox(inner_container, element);
 						}
