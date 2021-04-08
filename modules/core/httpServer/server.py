@@ -131,6 +131,17 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
             
             response = BytesIO()
             response.write(WebServer.get_module_settings())
+            self.wfile.write(response.getvalue())        
+        elif self.path == '/get_discord_channels.json':
+            #Default response
+            content_length = int(self.headers['Content-Length'])
+            body = self.rfile.read(content_length)
+            self.send_response(200)
+            self.send_header('Content-type', 'text/json')
+            self.end_headers()
+            
+            response = BytesIO()
+            response.write(WebServer.getChannels())
             self.wfile.write(response.getvalue())
         else:
             #Default response
@@ -188,6 +199,15 @@ class WebServer():
         log.info("Settings page online on: http://localhost:{}/".format(port))
         self.httpd = HTTPServer(('localhost', port), SimpleHTTPRequestHandler)
         self.httpd.serve_forever()
+    
+    def getChannels():
+        text_channel_list = {}
+        for guild in WebServer.bot.guilds:
+            for channel in guild.text_channels:
+                text_channel_list[channel.id] = channel.name
+        
+        json_dump = json.dumps(text_channel_list)
+        return json_dump.encode()          
     
     def generate_permissionList():
         if(WebServer.CommandChecker):

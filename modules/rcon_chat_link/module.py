@@ -107,7 +107,7 @@ class CommandChatLink(commands.Cog):
                         msg = body.split(") ", 1)[1]
                         author, msg = msg.split(": ", 1)
                         await self.verifyMessage(author, msg)
-                        log.info("[OTHER] {} {}".format(author, msg))
+                        log.info("[ChatLink] {} {}".format(author, msg))
             else: #is join or disconnect, or similar 
                 pass 
         except Exception as e:
