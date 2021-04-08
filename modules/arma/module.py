@@ -187,7 +187,7 @@ class CommandArma(commands.Cog):
          
         for row in sfile:
             #discord limit = 2000
-            if linesCounter >= line and len(logAccumulated) < 1000 and rows < rowlimit:
+            if linesCounter >= line-1 and len(logAccumulated) < 1000 and rows < rowlimit:
                 logAccumulated += row
                 rows += 1
             linesCounter += 1
