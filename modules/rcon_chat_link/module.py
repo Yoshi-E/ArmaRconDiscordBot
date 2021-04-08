@@ -93,18 +93,23 @@ class CommandChatLink(commands.Cog):
         message = discord.utils.escape_markdown(args[0], as_needed=True)
         try:
             #example: getting player name
-            if(":" in message):
-                header, body = message.split(":", 1)
+            if(": " in message):
+                header, body = message.split(": ", 1)
                 if(self.CommandRcon.isChannel(header)): #was written in a channel
                     channel, player_name = header.split(") ", 1)
                     if(self.cfg["arma_channel_all"] or "Global" in channel):
-                        await self.linkedChannel.send("({}) {}: {}".format(channel[1:], player_name, body))    
-                else: #is join or disconnect, or similar (e.g Admin message)
+                        if(self.cfg["display_channel_name"]):
+                            await self.linkedChannel.send("({}) {}: {}".format(channel[1:], player_name, body))    
+                        else:
+                            await self.linkedChannel.send("{}: {}".format(player_name, body))    
+                else: #(e.g Admin messages)
                     if("RCon admin #" in message and "(Global)" in message):
                         msg = body.split(") ", 1)[1]
                         author, msg = msg.split(": ", 1)
                         await self.verifyMessage(author, msg)
                         log.info("[OTHER] {} {}".format(author, msg))
+            else: #is join or disconnect, or similar 
+                pass 
         except Exception as e:
             log.info(message)
             log.print_exc()
