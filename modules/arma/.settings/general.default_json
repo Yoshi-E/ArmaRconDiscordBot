@@ -6,7 +6,7 @@
     "stop_server": "",
     "stop_server_description": "Used for the command 'stop_server'. Kills all tasks with the given name (e.g. arma3server_x64.exe)",
     "server_memory_protection": false,
-    "server_memory_protection_description": "Schedules automatic restarts at mission end should the servers memory exceed 85%, and instantly restarts for >95%. (Updates every 10min)",
+    "server_memory_protection_description": "Schedules automatic shutdown at mission end should the servers memory exceed 85%, and instantly shutdowns for >95%. (Updates every 10min, Manually restarting required)",
     "log_path": "D:/Server/Arma3/logs",
     "log_path_description": "Path to the server log files (e.g. D:/Server/Arma3/TADST/default)",
 	"buffer_maxMisisons": 5,
