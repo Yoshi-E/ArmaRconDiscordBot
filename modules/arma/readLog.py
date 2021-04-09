@@ -83,6 +83,7 @@ class readLog:
             ["Mission roles assigned",  "^(Roles assigned\.)"], #Roles assigned.
             ["Mission reading",         "^(Reading mission \.\.\.)"], #Reading mission ...
             ["Mission starting",        "^(Starting mission:)"], #Starting mission:
+            ["Mission restarted",        "^(Game restarted)"], #Game restarted:
             ["Mission file",            "^\s(Mission file: (.*) \((.*)\))"], # Mission file: becti_current (__cur_mp)
             ["Mission world",           "^\s(Mission world: (.*))"], # Mission world: Altis
             ["Mission directory",       "^\s(Mission directory: (.*))"], # Mission directory: mpmissions\__cur_mp.Altis\
@@ -253,7 +254,7 @@ File mpmissions\__cur_mp.Altis\Server\Functions\Server_SpawnTownResistance.sqf..
                 self.server_sessionID = data[2].group(2)
             
             #mission is complete, switching to between mission block
-            elif(event == "Mission finished"): 
+            elif(event == "Mission finished" or event == "Mission restarted"): 
                 log.info("{} {}".format(self.Missions[-1]["dict"]["Mission id"][0], self.Missions[-1]["dict"]["Mission id"][1]))
                 self.Missions[-1]["dict"][event] = data
                 self.Missions.append({"dict": {"Server sessionID": self.server_sessionID}, "data": []})

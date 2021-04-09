@@ -96,18 +96,18 @@ class CommandArma(commands.Cog):
             log.print_exc()
             log.error(e)
     
-    #triggers server restarts on high memory usage
+    #triggers server shutdown on high memory usage
     async def memory_guard(self):
         while True:
             try:
                 if(self.cfg["server_memory_protection"]):
                     if(psutil.virtual_memory().percent > 85):
-                        await self.CommandRcon.arma_rcon.restartserveraftermission()
-                        await self.CommandRcon.arma_rcon.sayGlobal("A Server restart has been scheduled at the end of this mission.")
+                        await self.CommandRcon.arma_rcon.shutdownserveraftermission()
+                        await self.CommandRcon.arma_rcon.sayGlobal("A Server shutdown has been scheduled at the end of this mission.")
                         if(self.memoryRestart == False):
-                            await self.channel.send(":warning: Memory usage exceeded! Server restart scheduled after mission end")
+                            await self.channel.send(":warning: Memory usage exceeded! Server shutdown scheduled after mission end")
                             self.memoryRestart = True
-                        log.warning(":warning: Memory usage exceeded! Server restart scheduled after mission end")
+                        log.warning(":warning: Memory usage exceeded! Server shutdown scheduled after mission end")
                     #elif(psutil.virtual_memory().percent > 95): #might be too agressive should short memory spikes occour
                     #    await self.CommandRcon.arma_rcon.restartServer()
             except Exception as e:
