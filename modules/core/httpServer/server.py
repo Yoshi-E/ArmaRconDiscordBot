@@ -235,7 +235,6 @@ class WebServer():
             settings["head_modules"] = modules
             settings["registered"] = WebServer.CommandChecker.registered
             json_dump = json.dumps(settings)
-            print(json_dump)
             return json_dump.encode()          
 
     def generate_permissionList_ingcmd():
