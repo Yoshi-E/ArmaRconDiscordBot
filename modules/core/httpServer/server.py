@@ -209,19 +209,33 @@ class WebServer():
         json_dump = json.dumps(text_channel_list)
         return json_dump.encode()          
     
+    def getModuleFromCMD(name):
+        for key, item in WebServer.bot.cogs.items():
+            for cmd in item.__cog_commands__:
+                if(name == cmd.name):
+                    return key
+                
     def generate_permissionList():
-        if(WebServer.CommandChecker):
-            WebServer.bot.CoreConfig.load_role_permissions() #Load permissions from file
 
+                
+        if(WebServer.CommandChecker):
+            modules = []
+            for cog in WebServer.bot.cogs:
+                modules.append(cog)
+            
+            WebServer.bot.CoreConfig.load_role_permissions() #Load permissions from file
             settings = {}
             roles = WebServer.bot.CoreConfig.cfgPermissions_Roles.keys()
             for command in WebServer.bot.CoreConfig.bot.commands:
                 settings[str(command)] = {}
+                settings[str(command)]["__module__"] = WebServer.getModuleFromCMD(str(command))
                 for role in roles:
                     settings[str(command)][role] = WebServer.bot.CoreConfig.cfgPermissions_Roles[role]["command_"+str(command)]
             settings["head"] = list(roles)
+            settings["head_modules"] = modules
             settings["registered"] = WebServer.CommandChecker.registered
             json_dump = json.dumps(settings)
+            print(json_dump)
             return json_dump.encode()          
 
     def generate_permissionList_ingcmd():

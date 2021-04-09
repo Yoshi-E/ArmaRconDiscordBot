@@ -258,7 +258,7 @@ Settings are saved automatically.
 
 
 <script type="text/javascript">
-
+var cog_modules = {}
 permission_settings = document.getElementById("permission_settings");
 permission_settings_ingcmd = document.getElementById("permission_settings_ingcmd");
 
@@ -279,6 +279,7 @@ for (i = 0; i < coll.length; i++) {
 
 function generateTableHead(table, data) {
 	data.unshift("Command");
+	data.unshift("Module");
 	let thead = table.createTHead();
 	let row = thead.insertRow();
 	for (let key of data) {
@@ -286,7 +287,7 @@ function generateTableHead(table, data) {
 		let text = document.createTextNode(key);
 		th.appendChild(text);
 		row.appendChild(th);
-		if(key != "Command") {
+		if(key != "Command" && key != "Module") {
 			th.appendChild(generate_delete_role_button(key)); 
 			th.appendChild(generate_role_all_button(key)); 
 			th.appendChild(generate_role_deall_button(key)); 
@@ -314,20 +315,43 @@ function generateTableHead_ingcmd(table, data) {
 function generateTablePermissions(table, data) {
 	var enabled =  data["registered"]; //TODO: get only commands with decorator
 	delete data["registered"];
-	jQuery.each(data, function(i, val) {
-		let row = table.insertRow(); 
-		let cell = row.insertCell();
-		let text = document.createTextNode(i);
-		cell.appendChild(text);
-		var name = i;
-		jQuery.each(data[i], function(i, val) {
-			if(enabled.includes(name)) {
+	var lastcog = "";
+	var cog_cell = null;
+	cog_modules.forEach(function(cog) {
+		jQuery.each(data, function(i, val) {
+			if(val["__module__"] == cog) {
+				let row = table.insertRow(); 
+				if(lastcog == val["__module__"]) {
+					cog_cell.rowSpan = cog_cell.rowSpan+1;
+				} else {
+					let cell2 = row.insertCell();
+					cell2.rowSpan = 1;
+					if(cog_cell && cog_cell.style.backgroundColor == "rgb(221, 221, 221)") {
+						cell2.style = "background-color: white;";
+					} else {
+						cell2.style = "background-color: #dddddd;";
+					}
+					let text2 = document.createTextNode(val["__module__"]);
+					cell2.appendChild(text2);
+					cog_cell = cell2;
+				}
+				lastcog = val["__module__"];
 				let cell = row.insertCell();
-				//let text = document.createTextNode(val);
-				//console.log(name);
-				cell.appendChild(createCheckbox(i, name, val, permission_changed));
-			}
+				let text = document.createTextNode(i);
+				cell.appendChild(text);
+				var name = i;
+				
+				//console.log(data[i]);
+				jQuery.each(data[i], function(i, val) {
+					if(enabled.includes(name) && i != "__module__" ) {
+						let cell = row.insertCell();
+						//let text = document.createTextNode(val);
+						//console.log(name);
+						cell.appendChild(createCheckbox(i, name, val, permission_changed));
+					}
 
+				});
+			};
 		});
 	});
 }
@@ -696,14 +720,17 @@ $.post('/get_permissions.json', {
 	}, function(data) { 
 		//console.log(data);
 		generateTableHead(permission_settings, data["head"])
+		cog_modules = data["head_modules"];
+		//console.log(cog_modules);
 		delete data["head"];
+		delete data["head_modules"];
 		generateTablePermissions(permission_settings, data)
 });
 
 //Load Permissions
 $.post('/get_permissions_ingcmd.json', { 
 	}, function(data) { 
-		console.log(data);
+		//console.log(data);
 		if(data){
 			generateTableHead_ingcmd(permission_settings_ingcmd, data["head"])
 			delete data["head"];
