@@ -276,11 +276,43 @@ class ProcessLog:
         lastmap = meta["map"]
         timestamp = meta["timestamp"]
         e = len(data)
-
+        loadedFromFile = False
         if(timestamp == None):
             timestamp = "00:00:00"
         fdate = meta["date"]
         
+        
+        #Calculate time in min
+        time = self.featchValues(data, "time")
+        for i in range(len(time)):
+            if(time[i] > 0):
+                time[i] = time[i]/60 #seconds->min
+        
+        if (len(time) > 0):
+            if(round(time[-1]) == 0):
+                gameduration = round(time[-2])
+            else:
+                gameduration = round(time[-1])
+        else:
+            gameduration = 0
+        log.info("{} {} {}".format(timestamp, lastwinner, gameduration))
+        
+        
+        
+        t=""
+        if(lastwinner=="currentGame"):
+            t = "-CUR"
+        if(admin==True):
+            t +="-ADV"
+        #path / date # time # duration # winner # addtional_tags
+        filename_pic =(self.cfg_jmw['image_path']+fdate+"#"+timestamp.replace(":","-")+"#"+str(gameduration)+"#"+lastwinner+"#"+lastmap+"#"+t+'.png').replace("\\","/")
+        filename =    (self.cfg_jmw['data_path']+ fdate+"#"+timestamp.replace(":","-")+"#"+str(gameduration)+"#"+lastwinner+"#"+lastmap+"#"+t+'.json').replace("\\","/")
+        
+        
+        if(os.path.isfile(filename)):
+            with open(filename) as json_file:
+                data = json.load(json_file)
+                loadedFromFile = True
         #register plots
         plots = []
         v1 = self.featchValues(data, "score_east")
@@ -370,7 +402,7 @@ class ProcessLog:
                     "ylabel": "Objects",
                     "title": "Total Objects count"
                     })  
-        if(admin == True):       
+        if(admin == True and (loadedFromFile == True or index==0)):       
             v1 = self.featchValuesDeque(self.system_res, "cpu", e)
             if(len(v1) > 0):
                 v1[0] = 100
@@ -383,7 +415,7 @@ class ProcessLog:
                     "autoscaley_on": False,
                     "ylim": (0, 100)
                     })  
-        if(admin == True):       
+        if(admin == True and (loadedFromFile == True or index==0)):       
             v1 = self.featchValuesDeque(self.system_res, "ram", e)
             if(len(v1) > 0):
                 v1[0] = 100
@@ -396,7 +428,7 @@ class ProcessLog:
                     "autoscaley_on": False,
                     "ylim": (0, 100)
                     })       
-        if(admin == True):       
+        if(admin == True and (loadedFromFile == True or index==0)):       
             v1 = self.featchValuesDeque(self.system_res, "swap", e)
             if(len(v1) > 0):
                 v1[0] = 100
@@ -410,20 +442,6 @@ class ProcessLog:
                     "ylim": (0, 100)
                     })  
 
-        #Calculate time in min
-        time = self.featchValues(data, "time")
-        for i in range(len(time)):
-            if(time[i] > 0):
-                time[i] = time[i]/60 #seconds->min
-        
-        if (len(time) > 0):
-            if(round(time[-1]) == 0):
-                gameduration = round(time[-2])
-            else:
-                gameduration = round(time[-1])
-        else:
-            gameduration = 0
-        log.info("{} {} {}".format(timestamp, lastwinner, gameduration))
         
         #maps plot count to image size
         #plot_count: image_size
@@ -475,22 +493,15 @@ class ProcessLog:
         except IndexError:
             pass
             
-        t=""
-        if(lastwinner=="currentGame"):
-            t = "-CUR"
-        if(admin==True):
-            t +="-ADV"
-                        #path / date # time # duration # winner # addtional_tags
-        filename_pic =(self.cfg_jmw['image_path']+fdate+"#"+timestamp.replace(":","-")+"#"+str(gameduration)+"#"+lastwinner+"#"+lastmap+"#"+t+'.png').replace("\\","/")
-        filename =    (self.cfg_jmw['data_path']+ fdate+"#"+timestamp.replace(":","-")+"#"+str(gameduration)+"#"+lastwinner+"#"+lastmap+"#"+t+'.json').replace("\\","/")
-        
         #save image
-        fig.savefig(filename_pic, dpi=100, pad_inches=3)
+        if(not os.path.isfile(filename_pic)):
+            fig.savefig(filename_pic, dpi=100, pad_inches=3)
         #fig.gcf()
         plt.close('all')
         #save rawdata
-        with open(filename, 'w') as outfile:
-            json.dump(data, outfile)
+        if(not os.path.isfile(filename)):
+            with open(filename, 'w') as outfile:
+                json.dump(data, outfile)
         
         return {"date": fdate, "time": timestamp, "lastwinner": lastwinner, "gameduration": gameduration, "picname": filename_pic, "dataname": filename, "data": data}
 
