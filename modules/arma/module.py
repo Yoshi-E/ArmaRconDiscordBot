@@ -44,9 +44,16 @@ class CommandArma(commands.Cog):
         self.readLog.pre_scan()
         self.memoryRestart = False
         
+        if not os.path.exists(self.path+"/logs/"):
+            os.makedirs(self.path+"/logs/")
         self.mission_error_last = 0
         self.mission_error_suppressed = 0
-        self.script_errors = {}
+        
+        try:
+            with open(self.path+"/logs/script_errors.log") as json_file:
+                self.script_errors = json.load(json_file)
+        except:
+            self.script_errors = {}
         
         self.server_pid = None
         asyncio.ensure_future(self.on_ready())
@@ -63,6 +70,7 @@ class CommandArma(commands.Cog):
                 self.readLog.EH.add_Event("Server sessionID", self.serverRestarted)
             asyncio.ensure_future(self.readLog.watch_log())
             asyncio.ensure_future(self.memory_guard())
+            asyncio.ensure_future(self.saveErrors())
         except Exception as e:
             log.print_exc()
             log.error(e)
@@ -75,27 +83,35 @@ class CommandArma(commands.Cog):
     
     async def mission_script_error(self, event, stime, text, regxm, line):
         try:
+            stime = datetime.datetime.now().strftime("%Y-%m-%d %H-%M-%S")
             if text in self.script_errors: 
+                self.script_errors[text]["log"] = self.readLog.current_log
+                self.script_errors[text]["line"] = line
                 self.script_errors[text]["count"] += 1
-                self.script_errors[text]["last"] = datetime.datetime.now()
+                self.script_errors[text]["last"] = stime
+                self.script_errors[text]["positions"].append({"log": self.readLog.current_log, "line": line, "time": stime})
             else:
-                self.script_errors[text] = {"log": self.readLog.current_log, "line": line, "count": 1, "last": datetime.datetime.now()}
+                self.script_errors[text] = {"log": self.readLog.current_log, "line": line, "count": 1, "last": stime, "positions": [{"log": self.readLog.current_log, "line": line, "time": stime}]}
                 await self.channel.send(":warning: ``{}`` ``{}`` line ``{}``".format(text, self.readLog.current_log, line))
-            #TODO display repeated errors
             
-            # if(time() - self.mission_error_last < 60*10):
-                # self.mission_error_suppressed += 1
-                # return
-            # self.mission_error_last = time()
-            # if(self.mission_error_suppressed > 0):
-                # await self.channel.send(":warning: {} Errors were suppressed\n``{}`` ``{}`` line ``{}``\nAdditional Errors will be suppressed for 10min.".format(self.mission_error_suppressed, text, self.readLog.current_log, line))
-            # else:    
-                # await self.channel.send(":warning: ``{}`` ``{}`` line ``{}``\nAdditional Errors will be suppressed for 10min.".format(text, self.readLog.current_log, line))
-            # self.mission_error_suppressed = 0
+
+            self.mission_error_last = time()
         except Exception as e:
             log.print_exc()
             log.error(e)
     
+    #triggers server shutdown on high memory usage
+    async def saveErrors(self):
+        while True:
+            try:
+                if((self.mission_error_last+60) < time()):
+                    with open(self.path+"/logs/script_errors.log", 'w+') as outfile:
+                        json.dump(self.script_errors, outfile, indent=4)
+            except Exception as e:
+                log.print_exc()
+                log.error(e)
+            await asyncio.sleep(60)    
+            
     #triggers server shutdown on high memory usage
     async def memory_guard(self):
         while True:
@@ -221,14 +237,27 @@ class CommandArma(commands.Cog):
   
     @CommandChecker.command(name='viewErrors',
             brief="View recent script errors",
+            aliases=['viewerrors'], 
             pass_context=True)
-    async def viewError(self, ctx):
+    async def viewErrors(self, ctx):
         msg = ""
-        for key, item in self.script_errors.items():
-            msg += "``{}`` ``{}`` ``{}`` ({}) [{}]\n".format(key, item["log"], item["line"], item["count"], item["last"].strftime("%m/%d/%Y, %H:%M:%S"))
+        list = reversed(sorted(self.script_errors.items(), key=lambda item: item[1]["last"]))
+        for key, item in list:
+            msg += "``{}`` ``{}`` ``{}`` ({}) [{}]\n".format(key, item["log"], item["line"], item["count"], item["last"])
             if(len(msg)>1000):
                 break
-        await ctx.send(msg)  
+        await ctx.send(msg)     
+
+    @CommandChecker.command(name='resetErrors',
+            brief="Reset the error tracker",
+            aliases=['reseterrors'], 
+            pass_context=True)
+    async def resetErrors(self, ctx):
+        stime = datetime.datetime.now().strftime("%Y-%m-%d %H-%M-%S")
+        if os.path.exists(self.path+"/logs/script_errors.log"):
+            os.rename(self.path+"/logs/script_errors.log", self.path+"/logs/script_errors_{}.log".format(stime))
+        self.script_errors = {}
+        await ctx.send("Done!")  
 
 def setup(bot):
     bot.add_cog(CommandArma(bot))

@@ -272,6 +272,7 @@ class ProcessLog:
    
         
     def dataToGraph(self, meta, data, admin, index=0):
+        system_res = self.system_res
         lastwinner = meta["winner"]
         lastmap = meta["map"]
         timestamp = meta["timestamp"]
@@ -312,6 +313,7 @@ class ProcessLog:
         if(os.path.isfile(filename)):
             with open(filename) as json_file:
                 data = json.load(json_file)
+                #system_res = data["sys"] --> Doesnt work due to matched format
                 loadedFromFile = True
         #register plots
         plots = []
@@ -403,7 +405,7 @@ class ProcessLog:
                     "title": "Total Objects count"
                     })  
         if(admin == True and (loadedFromFile == True or index==0)):       
-            v1 = self.featchValuesDeque(self.system_res, "cpu", e)
+            v1 = self.featchValuesDeque(system_res, "cpu", e)
             if(len(v1) > 0):
                 v1[0] = 100
                 v1[1] = 0
@@ -416,7 +418,7 @@ class ProcessLog:
                     "ylim": (0, 100)
                     })  
         if(admin == True and (loadedFromFile == True or index==0)):       
-            v1 = self.featchValuesDeque(self.system_res, "ram", e)
+            v1 = self.featchValuesDeque(system_res, "ram", e)
             if(len(v1) > 0):
                 v1[0] = 100
                 v1[1] = 0
@@ -429,7 +431,7 @@ class ProcessLog:
                     "ylim": (0, 100)
                     })       
         if(admin == True and (loadedFromFile == True or index==0)):       
-            v1 = self.featchValuesDeque(self.system_res, "swap", e)
+            v1 = self.featchValuesDeque(system_res, "swap", e)
             if(len(v1) > 0):
                 v1[0] = 100
                 v1[1] = 0
