@@ -63,6 +63,7 @@ class CommandArma(commands.Cog):
         log.info(msg)
         log.warning(msg)
         log.error(msg)
+        return "Sucess"
         
     async def on_ready(self):
         try:
