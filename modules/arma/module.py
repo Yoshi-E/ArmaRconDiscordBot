@@ -121,7 +121,7 @@ class CommandArma(commands.Cog):
         while True:
             try:
                 if(self.cfg["server_memory_protection"]):
-                    if(psutil.virtual_memory().percent > 85):
+                    if(psutil.virtual_memory().percent > 70):
                         await self.CommandRcon.arma_rcon.command("#shutdownaftermission")
                         await self.CommandRcon.arma_rcon.sayGlobal("A Server shutdown has been scheduled at the end of this mission.")
                         if(self.memoryRestart == False):
