@@ -59,6 +59,10 @@ class CommandArma(commands.Cog):
         asyncio.ensure_future(self.on_ready())
        
         
+    def test(self, msg):
+        log.info(msg)
+        log.warning(msg)
+        log.error(msg)
         
     async def on_ready(self):
         try:
@@ -118,14 +122,15 @@ class CommandArma(commands.Cog):
             try:
                 if(self.cfg["server_memory_protection"]):
                     if(psutil.virtual_memory().percent > 85):
-                        await self.CommandRcon.arma_rcon.shutdownserveraftermission()
+                        await self.CommandRcon.arma_rcon.command("#shutdownaftermission")
                         await self.CommandRcon.arma_rcon.sayGlobal("A Server shutdown has been scheduled at the end of this mission.")
                         if(self.memoryRestart == False):
                             await self.channel.send(":warning: Memory usage exceeded! Server shutdown scheduled after mission end")
                             self.memoryRestart = True
                         log.warning(":warning: Memory usage exceeded! Server shutdown scheduled after mission end")
-                    #elif(psutil.virtual_memory().percent > 95): #might be too agressive should short memory spikes occour
-                    #    await self.CommandRcon.arma_rcon.restartServer()
+                    elif(psutil.virtual_memory().percent > 95): #might be too aggressive should short memory spikes occur
+                        await self.CommandRcon.arma_rcon.shutdown()
+                        log.warning(":warning: Memory usage exceeded! Server was forced shutdown")
             except Exception as e:
                 log.print_exc()
                 log.error(e)
