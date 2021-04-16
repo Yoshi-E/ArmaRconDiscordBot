@@ -60,10 +60,15 @@ class CommandArma(commands.Cog):
        
         
     def test(self, msg):
-        log.info(msg)
-        log.warning(msg)
-        log.error(msg)
-        return "Sucess"
+        try:
+            print(log)
+            print(log.info)
+            log.info(msg)
+            log.warning(msg)
+            log.error(msg)
+            return "Sucess"
+        except Exception as e:
+            print(e)
         
     async def on_ready(self):
         try:
