@@ -27,5 +27,5 @@ with open(file, newline='',encoding='utf8') as csvfile:
     sql = 'INSERT INTO users (id, name, beid, ip) values(?, ?, ?, ?)'
     c.executemany(sql, db)
     con.commit()
-print("Database Import sucessfull")
+input("Database Import sucessfull. [ENTER] ")
 
