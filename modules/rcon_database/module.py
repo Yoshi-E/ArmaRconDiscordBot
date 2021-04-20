@@ -180,6 +180,7 @@ class CommandRconDatabase(commands.Cog):
         self.c.execute("SELECT * FROM users WHERE name = '{name}' AND beid = '{beid}' AND ip = '{ip}' AND stamp < date('now','-1 day')".format(**row))
         r = self.c.fetchone()
         if r is None: 
+            #TODO Handel stamp = Null
             sql = 'INSERT INTO users (id, name, beid, ip, stamp) values({id}, "{name}", "{beid}", "{ip}", "{stamp}")'.format(**row)
             self.c.execute(sql)
             self.con.commit()

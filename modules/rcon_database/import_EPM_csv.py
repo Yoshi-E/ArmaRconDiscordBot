@@ -14,6 +14,18 @@ import csv
 con = sl.connect('users.db')  
 c = con.cursor()
 
+c.execute(''' SELECT count(name) FROM sqlite_master WHERE type='table' AND name='users' ''')
+if c.fetchone()[0]==0: 
+    c.execute("""
+        CREATE TABLE users (
+            id INTEGER NOT NULL,
+            name  TEXT,
+            beid TEXT,
+            ip TEXT,
+            stamp DATETIME
+        );
+    """)
+
 file='Players.csv' #your csv file
 with open(file, newline='',encoding='utf8') as csvfile:
     spamreader = csv.reader(csvfile, delimiter=',', quotechar='"')
