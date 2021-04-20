@@ -33,11 +33,7 @@ class CommandRconDatabase(commands.Cog):
         
         asyncio.ensure_future(self.on_ready())
         self.players = None
-        #Import an EPM rcon database
-        #First convert the EPM export (.sdf) to csv:
-        #Convert SDF with https://www.rebasedata.com/convert-sdf-to-csv-online
-        #then just import it:
-        #self.import_epm_csv('Players.csv')
+
 
     async def on_ready(self):
         await self.bot.wait_until_ready()
@@ -188,35 +184,6 @@ class CommandRconDatabase(commands.Cog):
             self.c.execute(sql)
             self.con.commit()
 
-                
-    # def import_epm_csv(self, file='Players.csv'):
-        #disable auto saving, so the files is not written for every data entry
-        # self.player_db.save = False 
-    
-        # with open(file, newline='',encoding='utf8') as csvfile:
-            # spamreader = csv.reader(csvfile, delimiter=',', quotechar='"')
-            # head = None
-            # for row in spamreader:
-                # if(head):
-                    # d_row = {
-                        # "ID": row[0],
-                        # "name": row[1],
-                        # "beid": row[2],
-                        # "ip": row[3],
-                        # "note": row[4]
-                    # }
-                    # if(row[2] not in self.player_db):
-                        # self.player_db[row[2]] = []
-                    # self.player_db[row[2]].append(d_row)
-                # else:
-                    # head = row
-        
-        #Save the data
-        # self.player_db.save = True
-        # self.player_db.json_save()
-        # log.info("Databse Import sucessfull")
-        
-        
     def find_by_linked(self, beid, beids = None, ips = None, names = None):
         try:
             if(beids == None):
