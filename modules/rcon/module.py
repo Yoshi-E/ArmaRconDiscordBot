@@ -838,11 +838,11 @@ class CommandRcon(commands.Cog):
     @CommandChecker.command(name='monitords',
         brief="Shows performance information in the dedicated server console. Tracks the performance for 10s",
         pass_context=True)
-    async def monitords(self, ctx,): 
+    async def monitords(self, ctx): 
         if(not self.readLog):
             raise Exception("Arma module required, but not loaded!")
     
-        async def sendLoad(event, timestamp, msg, event_match):
+        async def sendLoad(event, timestamp, msg, *args, **dict):
             await ctx.send(msg)
  
         self.readLog.EH.add_Event("Server load", sendLoad)
@@ -850,6 +850,7 @@ class CommandRcon(commands.Cog):
         await asyncio.sleep(5)
         await self.arma_rcon.monitords(0)
         self.readLog.EH.remove_Event("Server load", sendLoad)
+        await ctx.send("Done")
         
     @CommandChecker.command(name='goVote',
         brief="Users can vote for the mission selection.",
