@@ -172,7 +172,10 @@ class CommandArma(commands.Cog):
             and self.serverStateInfo["mission state"] != "finished"):
             timedelta = datetime.datetime.now()-self.serverStateInfo["mission start time"]
             game_name += " {}min".format(round(timedelta.total_seconds()/60))
-            
+        
+        if(game_name == ""):
+            game_name = "Waiting..."
+
         status = discord.Status.do_not_disturb #discord.Status.online
         if(self.CommandRcon.arma_rcon.disconnected==False):
             status = discord.Status.online
