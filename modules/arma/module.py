@@ -44,6 +44,8 @@ class CommandArma(commands.Cog):
         self.readLog.pre_scan()
         self.memoryRestart = False
         
+        self.serverStateInfo = {}
+        
         if not os.path.exists(self.path+"/logs/"):
             os.makedirs(self.path+"/logs/")
         self.mission_error_last = 0
@@ -78,27 +80,54 @@ class CommandArma(commands.Cog):
             if(self.cfg["report_script_errors"] and self.channel):
                 self.readLog.EH.add_Event("Mission script error", self.mission_script_error)
                 self.readLog.EH.add_Event("Server sessionID", self.serverRestarted)
+                self.readLog.EH.add_Event("Mission world", self.MissionWorld)
+                self.readLog.EH.add_Event("Mission started", self.MissionStarted)
+                self.readLog.EH.add_Event("Mission finished", self.MissionFinished)
+                self.readLog.EH.add_Event("Mission restarted", self.MissionFinished)
             asyncio.ensure_future(self.readLog.watch_log())
             asyncio.ensure_future(self.memory_guard())
             asyncio.ensure_future(self.saveErrors())
+            asyncio.ensure_future(self.statusSetter())
         except Exception as e:
             log.print_exc()
             log.error(e)
     
-    async def serverRestarted(self, event, timestamp, msg, event_match, currentLinePos):
+    
+###################################################################################################
+#####                                    Mission Events                                        ####
+###################################################################################################   
+
+
+    def MissionFinished(self, event, payload):
+        self.serverStateInfo["mission state"] = ("finished", time())        
+        
+    def MissionStarted(self, event, payload):
+        self.serverStateInfo["mission state"] = ("started", time())    
+        self.serverStateInfo["mission start time"] = datetime.datetime.now()
+        
+    def MissionWorld(self, event, payload):
+        self.serverStateInfo["world"] = (payload["event_match"].group(2), time())    
+    
+        
+    def Players(self, list):
+        self.serverStateInfo["players"] = (list, time())
+    
+    async def serverRestarted(self, event, payload):
         if(self.memoryRestart == True):
             log.info("Server Restarted")
             await self.channel.send(":ballot_box_with_check: Server restarted.")
             self.memoryRestart = False
     
-    async def mission_script_error(self, event, stime, text, regxm, line):
-        try:
+    async def mission_script_error(self, event, payload):
+        try:    
+            text = payload["msg"]
+            line = payload["currentLinePos"]
             stime = datetime.datetime.now().strftime("%Y-%m-%d %H-%M-%S")
             if text in self.script_errors: 
                 self.script_errors[text]["log"] = self.readLog.current_log
                 self.script_errors[text]["line"] = line
                 self.script_errors[text]["count"] += 1
-                self.script_errors[text]["last"] = stime
+                self.script_errors[text]["last"] = payload["timestamp"]
                 self.script_errors[text]["positions"].append({"log": self.readLog.current_log, "line": line, "time": stime})
             else:
                 self.script_errors[text] = {"log": self.readLog.current_log, "line": line, "count": 1, "last": stime, "positions": [{"log": self.readLog.current_log, "line": line, "time": stime}]}
@@ -109,6 +138,47 @@ class CommandArma(commands.Cog):
         except Exception as e:
             log.print_exc()
             log.error(e)
+
+###################################################################################################
+#####                                         Other                                            ####
+###################################################################################################   
+    async def statusSetter(self):
+        while True:
+            try:
+                if(self.cfg["set_custom_status"]):
+                    await self.set_status()
+            except Exception as e:
+                log.print_exc()
+                log.error(e)
+            await asyncio.sleep(60)  
+            
+    async def set_status(self):
+        players = None
+        if("CommandRconDatabase" in self.bot.cogs):
+            players = self.bot.cogs["CommandRconDatabase"].players
+    
+        game_name = ""
+        if(players):
+            game_name += "{} Players".format(len(players))
+        
+        if("mission state" in self.serverStateInfo and self.serverStateInfo["mission state"] == "finished"):
+            game_name += " Lobby"
+            
+        if("world" in self.serverStateInfo and self.serverStateInfo["world"]):
+            game_name += self.serverStateInfo["world"]
+        
+        if("mission start time" in self.serverStateInfo 
+            and "mission state" in self.serverStateInfo 
+            and self.serverStateInfo["mission state"] != "finished"):
+            timedelta = datetime.datetime.now()-self.serverStateInfo["mission start time"]
+            game_name += " {}min".format(round(timedelta.total_seconds()/60))
+            
+        status = discord.Status.do_not_disturb #discord.Status.online
+        if(self.CommandRcon.arma_rcon.disconnected==False):
+            status = discord.Status.online
+        
+        await self.bot.change_presence(activity=discord.Game(name=game_name), status=status)
+    
     
     #triggers server shutdown on high memory usage
     async def saveErrors(self):

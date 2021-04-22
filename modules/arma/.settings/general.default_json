@@ -13,6 +13,8 @@
 	"buffer_maxMisisons_description": "Limits how many missions logs are loaded into memory.<br><a href='https://github.com/Yoshi-E/ArmaRconDiscordBot/tree/dev/modules/arma' target='_blank'>Learn more about Mission parsing.</a><br>To disable mission caching set to 0 or leave it empty.",
 	"post_channel": 0,
 	"post_channel_description": "Mission script errors are send to this <a href='https://support.discord.com/hc/en-us/articles/206346498-Where-can-I-find-my-User-Server-Message-ID-' target='_blank'>discord channel</a>.<br>Leave empty to disable it.",
+	"set_custom_status": true,
+	"set_custom_statuse_description": "Displays the current player count, map, and mission time in the bots status. Updates ever 60s.",
 	"report_script_errors": false,
 	"report_script_errors_description": "Will post when the bot sees a script error in the log file."
 }

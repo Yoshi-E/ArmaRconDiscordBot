@@ -41,6 +41,7 @@ class CommandRconDatabase(commands.Cog):
             log.error("[module] 'CommandRcon' required, but not found in '{}'. Module unloaded".format(type(self).__name__))
             del self
             return
+
         self.CommandRcon = self.bot.cogs["CommandRcon"]
         asyncio.ensure_future(self.fetch_player_data_loop())
         #self.check_all_users()
@@ -115,10 +116,7 @@ class CommandRconDatabase(commands.Cog):
                 
                 
                 c_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") 
-                #Set status
-                if(self.cfg["set_custom_status"]==True):
-                    await self.set_status(self.players)                
-                    
+
                 if(self.cfg["setTopicPlayerList_channel"]>0):
                     await self.setTopicPlayerList(self.players)
                 
@@ -144,14 +142,6 @@ class CommandRconDatabase(commands.Cog):
                 log.print_exc()
                 log.error(e)
             
-    async def set_status(self, players):
-        game_name = "{} Players".format(len(players))
-        status = discord.Status.do_not_disturb #discord.Status.online
-        if(self.CommandRcon.arma_rcon.disconnected==False):
-            status = discord.Status.online
-        
-        await self.bot.change_presence(activity=discord.Game(name=game_name), status=status)
-    
     async def setTopicPlayerList(self, players):
         #log.info("[DEBUG] {}".format(players))#
         channel = self.bot.get_channel(self.cfg["setTopicPlayerList_channel"])

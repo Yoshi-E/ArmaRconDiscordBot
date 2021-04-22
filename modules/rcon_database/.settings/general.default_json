@@ -2,8 +2,6 @@
     "load_module": false,
 	"post_channel": 0,
 	"post_channel_description": "Warnings about users with multiple names are posted in this <a href='https://support.discord.com/hc/en-us/articles/206346498-Where-can-I-find-my-User-Server-Message-ID-' target='_blank'>discord channel</a>.<br>Leave empty to disable it.",
-	"set_custom_status": true,
-	"set_custom_statuse_description": "Displays the current player count in the bots status. Updates ever 60s.",
 	"setTopicPlayerList_channel": 0,
 	"setTopicPlayerList_channel_description": "Player list will be set in the channels description",
 	"module_description": "This module tracks users Name, IP, BEID and last_seen.<br>It is required to set the bots status 'X players playing'."

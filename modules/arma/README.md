@@ -21,7 +21,7 @@ In the current configuration it is optimized for Arma 3 log entries.
 reader = readLog("D:/Server/Arma/Logs/", maxMisisons=25)
 reader.register_custom_log_event(event_name="clutter", regex="^(Overflow)") #register custom revents
 reader.EH.add_Event("clutter", someFunction) #Calls "someFunction" when a log line of type "clutter" is read
-                                             #Passed arguments are: timestamp, msg, [regexMatch]
+                                             #Passed arguments are: event: str, payload:dict 
 reader.pre_scan() #Scan existing log files, does not fire EventHandlers
 asyncio.ensure_future(self.readLog.watch_log()) #Read Logs in real time
 ```

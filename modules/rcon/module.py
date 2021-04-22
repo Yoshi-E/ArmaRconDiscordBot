@@ -842,8 +842,8 @@ class CommandRcon(commands.Cog):
         if(not self.readLog):
             raise Exception("Arma module required, but not loaded!")
     
-        async def sendLoad(event, timestamp, msg, *args, **dict):
-            await ctx.send(msg)
+        async def sendLoad(event, payload):
+            await ctx.send(payload["msg"])
  
         self.readLog.EH.add_Event("Server load", sendLoad)
         await self.arma_rcon.monitords(1)

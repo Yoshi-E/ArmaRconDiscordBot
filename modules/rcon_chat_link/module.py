@@ -64,16 +64,16 @@ class CommandChatLink(commands.Cog):
 ###################################################################################################
 #####                                  common functions                                        ####
 ###################################################################################################
-    async def server_online(self, event, timestamp, msg, event_match, currentLinePos):
+    async def server_online(self, event, payload):
         await self.linkedChannel.send(":desktop: Server is back online!")    
     
-    async def missionRead(self, event, timestamp, msg, event_match, currentLinePos):
-        await self.linkedChannel.send(":map: Loading mission '{}'".format(event_match.group(2)))   
+    async def missionRead(self, event, payload):
+        await self.linkedChannel.send(":map: Loading mission '{}'".format(payload["event_match"].group(2)))   
 
-    async def missionStarted(self, event, timestamp, msg, event_match, currentLinePos):
+    async def missionStarted(self, event, payload):
         await self.linkedChannel.send(":map: Mission Started")    
         
-    async def missionFinished(self, event, timestamp, msg, event_match, currentLinePos):
+    async def missionFinished(self, event, payload):
         await self.linkedChannel.send(":map: Mission Finished!")
         
     async def verifyMessage(self, author, message):

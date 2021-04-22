@@ -224,22 +224,27 @@ File mpmissions\__cur_mp.Altis\Server\Functions\Server_SpawnTownResistance.sqf..
             log.error(e)
     
     def processLogLine(self, line):
+        payload = {}
         try:
             timestamp, msg = self.splitTimestamp(line)
-            self.EH.check_Event("Log line", timestamp, msg, None, self.currentLinePos)
+            payload["timestamp"] = timestamp
+            payload["msg"] = msg
+            payload["currentLinePos"] = self.currentLinePos
+            self.EH.check_Event("Log line", payload)
             event, event_match = self.check_log_events(msg, self.events)
             # if(self.EH.disabled==False):
                 # log.info("{} {} {}".format(line, event, event_match))      
             #log.info(event, msg, self.multiEventLockData)
             if(event_match):
-                self.EH.check_Event(event, timestamp, msg, event_match, self.currentLinePos)
+                payload["event_match"] = event_match
+                self.EH.check_Event(event, payload)
                 if("clutter" not in event):
                     #log.info("{} {}".format(event, event_match))
                     self.processMission(event, (timestamp, msg, event_match))
-                    self.EH.check_Event("Log line filtered", timestamp, msg, event_match, self.currentLinePos)
+                    self.EH.check_Event("Log line filtered", payload)
             else:
                 self.processMission("", (timestamp, msg))
-                self.EH.check_Event("Log line filtered", timestamp, msg, None, self.currentLinePos)
+                self.EH.check_Event("Log line filtered", payload)
         except Exception as e:
             log.print_exc()
             log.error(e)
