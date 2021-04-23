@@ -454,10 +454,10 @@ class CommandRcon(commands.Cog):
         msg = self.generateChat(limit)
         await utils.sendLong(ctx, msg)
 
-    @CommandChecker.command(name='players+',
+    @CommandChecker.command(name='players',
         brief="Lists current players on the server",
         pass_context=True)
-    async def playersPlus(self, ctx):
+    async def playersFancy(self, ctx):
         players = await self.arma_rcon.getPlayersArray()
 
         limit = 100
@@ -507,7 +507,7 @@ class CommandRcon(commands.Cog):
 
     @CommandChecker.command(name='kickPlayer',
         brief="Kicks a player who is currently on the server",
-        aliases=['kickplayer'],
+        aliases=['kickplayer', 'kpl'],
         pass_context=True)
     async def kickPlayer(self, ctx, player_id: int, *message): 
         message = " ".join(message)
@@ -589,7 +589,7 @@ class CommandRcon(commands.Cog):
         await ctx.send(msg)    
 
 
-    @CommandChecker.command(name='players',
+    @CommandChecker.command(name='players+',
         brief="Lists current players on the server",
         pass_context=True)
     async def players(self, ctx):
@@ -681,7 +681,7 @@ class CommandRcon(commands.Cog):
     @CommandChecker.command(name='banPlayer',
         brief="Ban a player with his player id from the server.",
         help="Kicks and Bans a player with the specifed BE player id (usually 0-100)",
-        aliases=['banplayer'],
+        aliases=['banplayer', 'bpl'],
         pass_context=True)
     async def banPlayer(self, ctx, player_id, time=0, *message): 
         message = " ".join(message)
