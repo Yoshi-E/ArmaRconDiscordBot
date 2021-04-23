@@ -15,7 +15,6 @@ import threading
 
 from modules.core.utils import CommandChecker, sendLong, CoreConfig
 from modules.core.Log import log
-log.setLevel(20)
 
 class CommandChatLink(commands.Cog):
     def __init__(self, bot):

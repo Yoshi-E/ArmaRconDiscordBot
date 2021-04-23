@@ -24,7 +24,6 @@ import glob
 
 from modules.core.utils import CommandChecker, sendLong, CoreConfig, Tools
 from modules.core.Log import log
-log.setLevel(20)
 from modules.core.config import Config
 from .cmdengine import RconCommandEngine
 

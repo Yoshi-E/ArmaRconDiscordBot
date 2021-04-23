@@ -15,7 +15,6 @@ from discord.ext.commands import has_permissions, CheckFailure
 import csv
 from modules.core.utils import CommandChecker, RateBucket, sendLong, CoreConfig, Tools
 from modules.core.Log import log
-log.setLevel(20)
 
 
 class CommandRconDatabase(commands.Cog):

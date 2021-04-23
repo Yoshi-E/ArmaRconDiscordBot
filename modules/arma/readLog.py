@@ -6,7 +6,6 @@ import asyncio
 
 from modules.core.utils import Event_Handler
 from modules.core.Log import log
-log.setLevel(20)
 
 #timeStampFormat:
 #https://community.bistudio.com/wiki/server.cfg

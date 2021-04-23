@@ -16,7 +16,6 @@ import asyncio
 import inspect
 from modules.core.utils import Event_Handler
 from modules.core.Log import log
-log.setLevel(20)
 import psutil
 
 class ProcessLog:

@@ -27,7 +27,6 @@ import bec_rcon
 from modules.core.utils import CommandChecker, RateBucket, CoreConfig
 import modules.core.utils as utils
 from modules.core.Log import log
-log.setLevel(20)
 from modules.arma.readLog import readLog
 
 
@@ -61,12 +60,6 @@ class CommandArma(commands.Cog):
         self.server_pid = None
         asyncio.ensure_future(self.on_ready())
        
-       
-    def setlevel(self):
-        print(log)
-        log.setLevel(20)
-        print(log)
-        
     def test(self, msg):
         try:
             print(log)

@@ -13,7 +13,6 @@ import _thread
 
 from modules.core.config import Config
 from modules.core.Log import log
-log.setLevel(20)
 
 
 class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):

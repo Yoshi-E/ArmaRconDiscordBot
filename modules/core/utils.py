@@ -17,7 +17,6 @@ assert version.parse(discord.__version__) >= version.parse("1.2.2"), "Module 'Di
 from modules.core.httpServer import server
 from modules.core.config import Config
 from modules.core.Log import log
-log.setLevel(20)
 
 async def sendLong(ctx, msg: str, enclosed=False, hard_post_limit=4):
     discord_limit = 1900 #discord limit is 2000

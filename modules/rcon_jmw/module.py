@@ -17,7 +17,6 @@ import threading
 from modules.core.utils import CommandChecker, sendLong, CoreConfig
 from modules.rcon_jmw.process_log import ProcessLog
 from modules.core.Log import log
-log.setLevel(20)
 
 class CommandJMW(commands.Cog):
     def __init__(self, bot):
