@@ -13,6 +13,7 @@ import sys
 import traceback
 import urllib.parse
 import threading
+import datetime
 
 from modules.core.utils import CommandChecker, sendLong, CoreConfig
 from modules.rcon_jmw.process_log import ProcessLog
@@ -129,6 +130,9 @@ class CommandJMW(commands.Cog):
             map = dict["Mission world"][2].group(2)
             #Get Starting time
             starting_time = dict["Mission world"][0]
+            if "mission start time" not in self.CommandArma.serverStateInfo:
+                self.CommandArma.serverStateInfo["mission start time"] = datetime.datetime.now() - datetime.timedelta(minutes=time_running)
+            
         if( map!="unknown" 
             and ("world" in self.CommandArma.serverStateInfo
             and self.CommandArma.serverStateInfo["world"][1] == 0) 

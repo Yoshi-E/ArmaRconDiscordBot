@@ -160,10 +160,10 @@ class CommandArma(commands.Cog):
         if(players):
             game_name += "{} Players".format(len(players))
         
-        if("mission state" in self.serverStateInfo and self.serverStateInfo["mission state"] == "finished"):
+        if("mission state" in self.serverStateInfo and self.serverStateInfo["mission state"][0] == "finished"):
             game_name += " Lobby"
             
-        if("world" in self.serverStateInfo and self.serverStateInfo["world"]):
+        if("world" in self.serverStateInfo):
             game_name += " {}".format(self.serverStateInfo["world"][0])
         
         if("mission start time" in self.serverStateInfo 
