@@ -24,6 +24,7 @@ import bec_rcon
 from modules.core.utils import CommandChecker, RateBucket, CoreConfig
 import modules.core.utils as utils
 from modules.core.Log import log
+log.setLevel(20)
 
 class CommandRconSettings(commands.Cog):
     def __init__(self, bot):

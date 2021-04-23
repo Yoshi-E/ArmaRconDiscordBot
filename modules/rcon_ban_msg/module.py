@@ -13,6 +13,7 @@ from collections import deque
 
 from modules.core.utils import CommandChecker, RateBucket, sendLong, CoreConfig, Tools
 from modules.core.Log import log
+log.setLevel(20)
 
 class CommandRcon_Custom(commands.Cog):
 

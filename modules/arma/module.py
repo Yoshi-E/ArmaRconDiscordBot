@@ -26,7 +26,8 @@ import bec_rcon
 
 from modules.core.utils import CommandChecker, RateBucket, CoreConfig
 import modules.core.utils as utils
-from modules.core.Log import log, _stdout_handler, _my_handler
+from modules.core.Log import log
+log.setLevel(20)
 from modules.arma.readLog import readLog
 
 
@@ -63,7 +64,7 @@ class CommandArma(commands.Cog):
         
     def test(self, msg):
         try:
-            log.setLevel(20)
+            
             print(log)
             print(log.info)
             print(_my_handler)

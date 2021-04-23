@@ -13,6 +13,7 @@ import traceback
 
 from modules.core.utils import CommandChecker, sendLong, CoreConfig
 from modules.core.Log import log
+log.setLevel(20)
 
 class CommandJoinMSG(commands.Cog):
     def __init__(self, bot):

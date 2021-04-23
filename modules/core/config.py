@@ -7,6 +7,7 @@ import time
 import inspect
 import json
 from modules.core.Log import log
+log.setLevel(20)
 
 class Config():
     def __init__(self, cfg_path = None, default_cfg_path = None):

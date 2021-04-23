@@ -12,6 +12,7 @@ import discord
 from discord.ext import commands
 from modules.core import utils
 from modules.core.Log import log
+log.setLevel(20)
 
 import subprocess
 import asyncio
