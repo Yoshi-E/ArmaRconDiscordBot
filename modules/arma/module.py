@@ -70,6 +70,7 @@ class CommandArma(commands.Cog):
             log.info(msg)
             log.warning(msg)
             log.error(msg)
+            print(log.handlers)
             return "Sucess"
         except Exception as e:
             print(e)
