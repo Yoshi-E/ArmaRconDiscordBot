@@ -113,6 +113,7 @@ class CommandJMW(commands.Cog):
             time_running = round(packet["time"]/60)  
             if "mission start time" not in self.CommandArma.serverStateInfo:
                 self.CommandArma.serverStateInfo["mission start time"] = datetime.datetime.now() - datetime.timedelta(minutes=time_running)            
+                self.CommandArma.serverStateInfo["mission state"] = "playing"    
         winner = "currentGame"
         if("winner" in meta):
             winner = meta["winner"]   
