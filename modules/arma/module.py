@@ -61,14 +61,16 @@ class CommandArma(commands.Cog):
         self.server_pid = None
         asyncio.ensure_future(self.on_ready())
        
+       
+    def setlevel(self):
+        print(log)
+        log.setLevel(20)
+        print(log)
         
     def test(self, msg):
         try:
-            
             print(log)
             print(log.info)
-            print(_my_handler)
-            print(_stdout_handler)
             log.info(msg)
             log.warning(msg)
             log.error(msg)
