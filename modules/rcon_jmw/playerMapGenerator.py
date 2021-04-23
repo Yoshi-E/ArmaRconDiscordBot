@@ -15,12 +15,18 @@ from scipy import misc
 
 class playerMapGenerator():
     def __init__(self, path):
-        self.MAP_SIZE = 30720
+        self.Maps = {}
+        self.Maps["Altis"] = {"size": 30720, "file": "Altis_sat_s.jpg"}
+        self.Maps["Malden"] = {"size": 12800, "file": "Malden_s.jpg"}
+        self.Maps["Stratis"] = {"size": 8192, "file": "Statis_s.jpg"}
+        self.Maps["Tanoa"] =  {"size": 15360, "file": "Tanoa.jpg"}
+        self.Maps["Livonia"] =  {"size": 12800, "file": "Livonia.jpg"}
+        
         self.data_path = path
         self.path = os.path.dirname(os.path.realpath(__file__))
         self.color = matplotlib.cm.get_cmap('jet')
         
-    def getPlayers(self, data, player_name="all"):
+    def getPlayers(self, data, player_name="all", map="Altis"):
         p = []
         if(not "players" in data):
             return []
@@ -29,19 +35,19 @@ class playerMapGenerator():
             if(player_name != "all" and player[0]!=player_name):
                 continue
             
-            if(player[3][0] >= 0 and player[3][0] <= self.MAP_SIZE and player[3][1] >= 0 and player[3][1] <= self.MAP_SIZE):
+            if(player[3][0] >= 0 and player[3][0] <= self.Maps[map]["size"] and player[3][1] >= 0 and player[3][1] <= self.Maps[map]["size"]):
                 p.append([player[3][0],player[3][1]])
             
             #if(player[3][0] > 50000 or player[3][1] > 50000):
             #    print(player)
         return p
 
-    def generateData(self, player_name="all"):
+    def generateData(self, player_name="all", map="Altis"):
         files = [f for f in listdir(self.data_path) if isfile(join(self.data_path, f))]
 
         players=[] #[[0,0],[self.MAP_SIZE,self.MAP_SIZE]]  
         for file in files:
-            if("CUR" not in file and "ADV" in file and "Altis" in file):
+            if("CUR" not in file and "ADV" in file and map in file):
                 with open(self.data_path+"/"+file) as f:
                     data = json.load(f)
                     if(len(data) > 0):
@@ -89,9 +95,9 @@ class playerMapGenerator():
 
 
         
-    def generateMap(self, player_name="all", bins=1000, sigma=16, new=True):
-        img = Image.open(self.path+'/mapTemplates/Altis_sat_s.jpg').convert('LA').convert("RGBA")
-        players = self.generateData(player_name)
+    def generateMap(self, player_name="all", map="Altis", bins=1000, sigma=16, new=True):
+        img = Image.open(self.path+'/mapTemplates/{}'.format(self.Maps[map]["file")).convert('LA').convert("RGBA")
+        players = self.generateData(player_name, map)
         print("Cords Count:", len(players))
         if(len(players) == 0):
             return False
@@ -100,7 +106,7 @@ class playerMapGenerator():
         x = players[:,0]
         y = players[:,1]
 
-        heatmapD, xedges, yedges = np.histogram2d(x, y, bins=bins, range=[[0,self.MAP_SIZE],[0,self.MAP_SIZE]])
+        heatmapD, xedges, yedges = np.histogram2d(x, y, bins=bins, range=[[0,self.Maps[map]["size"]],[0,self.Maps[map]["size"]]])
         if(new):
             heatmapD = gaussian_filter(heatmapD, sigma=sigma)
         img = self.drawheatmap(heatmapD, img)

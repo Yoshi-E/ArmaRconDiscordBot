@@ -335,18 +335,18 @@ class CommandJMW(commands.Cog):
         brief="generates a heatmap of a select player",
         aliases=['heatMap'],
         pass_context=True)
-    async def heatmap(self, ctx, *player_name):
+    async def heatmap(self, ctx, map, *player_name):
         await sendLong(ctx,"Generating data...")
         
         player_name = " ".join(player_name)
         if(len(player_name)==0):
             player_name = "all"
         
-        t = threading.Thread(target=self.heatmap_helper, args=[ctx, player_name, 16])
+        t = threading.Thread(target=self.heatmap_helper, args=[ctx, player_name, map, 16])
         t.start()
         
-    def heatmap_helper(self, ctx, player_name, sigma=16):
-        virtualFile = self.playerMapGenerator.generateMap(player_name, sigma=16)
+    def heatmap_helper(self, ctx, player_name, map="Altis", sigma=16):
+        virtualFile = self.playerMapGenerator.generateMap(player_name, map=map, sigma=16)
         if(virtualFile == False):
             asyncio.run_coroutine_threadsafe(sendLong(ctx,"No data found"), self.bot.loop)
         else:
@@ -356,14 +356,14 @@ class CommandJMW(commands.Cog):
         brief="generates a heatmap of a select player",
         aliases=['heatmapa'],
         pass_context=True)
-    async def heatmapA(self, ctx, *player_name):
+    async def heatmapA(self, ctx, map, *player_name):
         await sendLong(ctx,"Generating data...")
         
         player_name = " ".join(player_name)
         if(len(player_name)==0):
             player_name = "all"
         
-        t = threading.Thread(target=self.heatmap_helper, args=[ctx, player_name, 8])
+        t = threading.Thread(target=self.heatmap_helper, args=[ctx, player_name, map, 8])
         t.start()
             
     @CommandChecker.command(name='r',
