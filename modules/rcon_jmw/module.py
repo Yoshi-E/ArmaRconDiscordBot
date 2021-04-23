@@ -130,8 +130,9 @@ class CommandJMW(commands.Cog):
             #Get Starting time
             starting_time = dict["Mission world"][0]
         if( map!="unknown" 
-            and ("world" in self.CommandArma and self.CommandArma.serverStateInfo["world"][1] == 0) 
-            or "world" not in self.CommandArma):
+            and ("world" in self.CommandArma.serverStateInfo
+            and self.CommandArma.serverStateInfo["world"][1] == 0) 
+            or "world" not in self.CommandArma.serverStateInfo):
             self.CommandArma.serverStateInfo["world"] = (map, 0)
         
         
