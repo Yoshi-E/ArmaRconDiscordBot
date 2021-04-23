@@ -22,3 +22,5 @@ log.setLevel(logging.INFO)
 log.addHandler(_my_handler)
 log.addHandler(_stdout_handler)
 log.print_exc = print_exc
+#print(dir(log))
+print(log.handlers)
