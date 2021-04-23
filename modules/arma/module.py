@@ -26,7 +26,7 @@ import bec_rcon
 
 from modules.core.utils import CommandChecker, RateBucket, CoreConfig
 import modules.core.utils as utils
-from modules.core.Log import log
+from modules.core.Log import log, _stdout_handler, _my_handler
 from modules.arma.readLog import readLog
 
 
@@ -65,13 +65,18 @@ class CommandArma(commands.Cog):
         try:
             print(log)
             print(log.info)
+            print(_my_handler)
+            print(_stdout_handler)
             log.info(msg)
             log.warning(msg)
             log.error(msg)
             return "Sucess"
         except Exception as e:
             print(e)
-        
+    
+    def testException(self):
+        raise Exception("TEST")
+    
     async def on_ready(self):
         try:
             await self.bot.wait_until_ready()
