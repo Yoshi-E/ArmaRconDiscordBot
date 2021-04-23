@@ -104,7 +104,6 @@ class CommandRconDatabase(commands.Cog):
             
     async def fetch_player_data_loop(self):
         while True: 
-            await asyncio.sleep(60)
             try:
                 if(self.CommandRcon.arma_rcon.disconnected==True):
                     continue
@@ -141,6 +140,7 @@ class CommandRconDatabase(commands.Cog):
             except Exception as e:
                 log.print_exc()
                 log.error(e)
+            await asyncio.sleep(60)
             
     async def setTopicPlayerList(self, players):
         #log.info("[DEBUG] {}".format(players))#
