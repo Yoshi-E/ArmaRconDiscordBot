@@ -477,7 +477,7 @@ class CommandRcon(commands.Cog):
                     response = self.ipReader.country(ip.split(":")[0])
                     region = str(response.country.iso_code).lower()
                 except:
-                    region = ":question:"
+                    region = "none"
                     
                 if(region == "none"):
                     flag = ":question:" #symbol if no country was found
