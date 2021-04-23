@@ -20,7 +20,7 @@ class playerMapGenerator():
         self.Maps["Malden"] = {"size": 12800, "file": "Malden_s.jpg"}
         self.Maps["Stratis"] = {"size": 8192, "file": "Statis_s.jpg"}
         self.Maps["Tanoa"] =  {"size": 15360, "file": "Tanoa.jpg"}
-        self.Maps["Livonia"] =  {"size": 12800, "file": "Livonia.jpg"}
+        self.Maps["Enoch"] =  {"size": 12800, "file": "Livonia.jpg"}
         
         self.data_path = path
         self.path = os.path.dirname(os.path.realpath(__file__))
