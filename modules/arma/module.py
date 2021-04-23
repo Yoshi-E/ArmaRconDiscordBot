@@ -63,6 +63,7 @@ class CommandArma(commands.Cog):
         
     def test(self, msg):
         try:
+            log.setLevel(20)
             print(log)
             print(log.info)
             print(_my_handler)
