@@ -110,7 +110,9 @@ class CommandJMW(commands.Cog):
         #fetch data
         time_running = 0
         if(last_packet != None and "time" in last_packet and packet["time"] > 0):
-            time_running = round(packet["time"]/60)    
+            time_running = round(packet["time"]/60)  
+            if "mission start time" not in self.CommandArma.serverStateInfo:
+                self.CommandArma.serverStateInfo["mission start time"] = datetime.datetime.now() - datetime.timedelta(minutes=time_running)            
         winner = "currentGame"
         if("winner" in meta):
             winner = meta["winner"]   
@@ -130,8 +132,7 @@ class CommandJMW(commands.Cog):
             map = dict["Mission world"][2].group(2)
             #Get Starting time
             starting_time = dict["Mission world"][0]
-            if "mission start time" not in self.CommandArma.serverStateInfo:
-                self.CommandArma.serverStateInfo["mission start time"] = datetime.datetime.now() - datetime.timedelta(minutes=time_running)
+            
             
         if( map!="unknown" 
             and ("world" in self.CommandArma.serverStateInfo
