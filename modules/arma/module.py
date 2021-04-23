@@ -162,15 +162,15 @@ class CommandArma(commands.Cog):
         
         if("mission state" in self.serverStateInfo and self.serverStateInfo["mission state"][0] == "finished"):
             game_name += " Lobby"
+        else:
+            if("world" in self.serverStateInfo):
+                game_name += " {}".format(self.serverStateInfo["world"][0])
             
-        if("world" in self.serverStateInfo):
-            game_name += " {}".format(self.serverStateInfo["world"][0])
-        
-        if("mission start time" in self.serverStateInfo 
-            and "mission state" in self.serverStateInfo 
-            and self.serverStateInfo["mission state"][0] != "finished"):
-            timedelta = datetime.datetime.now()-self.serverStateInfo["mission start time"]
-            game_name += " {}min".format(round(timedelta.total_seconds()/60))
+            if("mission start time" in self.serverStateInfo 
+                and "mission state" in self.serverStateInfo 
+                and self.serverStateInfo["mission state"][0] != "finished"):
+                timedelta = datetime.datetime.now()-self.serverStateInfo["mission start time"]
+                game_name += " {}min".format(round(timedelta.total_seconds()/60))
         
         if(game_name == ""):
             game_name = "Waiting..."
