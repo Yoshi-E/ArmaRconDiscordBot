@@ -111,10 +111,6 @@ class CommandArma(commands.Cog):
     def MissionWorld(self, event, payload):
         self.serverStateInfo["world"] = (payload["event_match"].group(2), time())    
     
-        
-    def Players(self, list):
-        self.serverStateInfo["players"] = (list, time())
-    
     async def serverRestarted(self, event, payload):
         if(self.memoryRestart == True):
             log.info("Server Restarted")
@@ -168,11 +164,11 @@ class CommandArma(commands.Cog):
             game_name += " Lobby"
             
         if("world" in self.serverStateInfo and self.serverStateInfo["world"]):
-            game_name += self.serverStateInfo["world"]
+            game_name += self.serverStateInfo["world"][0]
         
         if("mission start time" in self.serverStateInfo 
             and "mission state" in self.serverStateInfo 
-            and self.serverStateInfo["mission state"] != "finished"):
+            and self.serverStateInfo["mission state"][0] != "finished"):
             timedelta = datetime.datetime.now()-self.serverStateInfo["mission start time"]
             game_name += " {}min".format(round(timedelta.total_seconds()/60))
         
