@@ -164,7 +164,7 @@ class CommandArma(commands.Cog):
             game_name += " Lobby"
             
         if("world" in self.serverStateInfo and self.serverStateInfo["world"]):
-            game_name += self.serverStateInfo["world"][0]
+            game_name += " {}".format(self.serverStateInfo["world"][0])
         
         if("mission start time" in self.serverStateInfo 
             and "mission state" in self.serverStateInfo 

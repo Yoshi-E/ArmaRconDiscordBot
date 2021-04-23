@@ -89,11 +89,6 @@ class CommandJMW(commands.Cog):
 
                 
     async def setStatus(self):
-        if(self.cfg["set_custom_status"]==False):
-            return
-        if(self.bot.is_closed()):
-            return
-            
         game = ""
         status = discord.Status.do_not_disturb #discord.Status.online
         
@@ -104,7 +99,7 @@ class CommandJMW(commands.Cog):
             meta, game, dict = self.processLog.generateGame()
         except EOFError:
             return #No valid logs found, just return
-            
+
         last_packet = None
         for packet in reversed(game):
             if(packet["CTI_DataPacket"]=="Data"):
@@ -129,11 +124,15 @@ class CommandJMW(commands.Cog):
         starting_time = None
         if("map" in meta):
             map = meta["map"]
+            self.CommandArma.serverStateInfo["world"] = map
         elif("Mission world" in dict):
             map = dict["Mission world"][2].group(2)
-        
+            self.CommandArma.serverStateInfo["world"] = map
             #Get Starting time
             starting_time = dict["Mission world"][0]
+        
+        
+        
         
         #set checkRcon status
         game_name = "..."
@@ -154,6 +153,9 @@ class CommandJMW(commands.Cog):
         else:
             status = discord.Status.online
             game_name = "Online"
+ 
+        if(self.cfg["set_custom_status"]==False):
+            return
         if(self.bot.is_closed()):
             return False
         await self.bot.change_presence(activity=discord.Game(name=game_name), status=status)
