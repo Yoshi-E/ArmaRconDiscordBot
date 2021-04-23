@@ -96,7 +96,7 @@ class playerMapGenerator():
 
         
     def generateMap(self, player_name="all", map="Altis", bins=1000, sigma=16, new=True):
-        img = Image.open(self.path+'/mapTemplates/{}'.format(self.Maps[map]["file")).convert('LA').convert("RGBA")
+        img = Image.open(self.path+'/mapTemplates/{}'.format(self.Maps[map]["file"])).convert('LA').convert("RGBA")
         players = self.generateData(player_name, map)
         print("Cords Count:", len(players))
         if(len(players) == 0):
