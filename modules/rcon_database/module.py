@@ -168,7 +168,7 @@ class CommandRconDatabase(commands.Cog):
 
     def update_insert(self, row):
         #update only if user if last seen > 1 day or diffrent ip/beid
-        self.c.execute("SELECT * FROM users WHERE name = '{name}' AND beid = '{beid}' AND ip = '{ip}' AND stamp < date('now','-1 day')".format(**row))
+        self.c.execute("SELECT * FROM users WHERE name = '{name}' AND beid = '{beid}' AND ip = '{ip}' AND stamp > date('now','-1 day')".format(**row))
         r = self.c.fetchone()
         if r is None: 
             #TODO Handel stamp = Null
@@ -313,7 +313,73 @@ class CommandRconDatabase(commands.Cog):
             msg += "```"
             msg += str(msgtable)
             msg += "```"
-            await ctx.send(msg)    
-    
+            await ctx.send(msg)      
+            
+    @CommandChecker.command(name='regulars',
+        brief="Lists the most seen players",
+        pass_context=True)
+    async def regulars(self, ctx):
+        sql = """   SELECT name,COUNT(beid) AS cnt FROM users
+                    GROUP BY beid
+                    ORDER BY cnt DESC;
+        """
+        players = self.c.execute(sql)
+        players = (list(players)[:10])
+        
+        msgtable = prettytable.PrettyTable()
+        msgtable.field_names = ["Name", "Visits"]
+        msgtable.align["Name"] = "l"
+        msgtable.align["Visits"] = "r"
+
+        limit = 100
+        i = 1
+        new = False
+        msg  = ""
+        for player in players:
+            if(i <= limit):
+                msgtable.add_row([discord.utils.escape_markdown(player[0], as_needed=True), player[1]])
+                if(len(str(msgtable)) < 1800):
+                    i += 1
+                    new = False
+                else:
+                    msg += "```"
+                    msg += str(msgtable)
+                    msg += "```"
+                    await ctx.send(msg)
+                    msgtable.clear_rows()
+                    msg = ""
+                    new = True
+        if(new==False):
+            msg += "```"
+            msg += str(msgtable)
+            msg += "```"
+            await ctx.send(msg)      
+            
+    @CommandChecker.command(name='query',
+        brief="Runs and commits an SQL command",
+        help="""table: 'users'
+        rows: 
+        id INTEGER NOT NULL,
+        name  TEXT,
+        beid TEXT,
+        ip TEXT,
+        stamp DATETIME
+        
+        returns at most 15 rows
+        """,
+        pass_context=True)
+    async def query(self, ctx, *query):
+        query = " ".join(query)
+        result = self.c.execute(query)
+        result = list(result)
+        self.con.commit()
+        
+        msg = ""
+        for row in result[:15]:
+            msg += "{}\n".format(row)
+        if(msg == ""):
+            msg = "Query returned nothing"
+        await ctx.send(msg)
+        
 def setup(bot):
     bot.add_cog(CommandRconDatabase(bot))
