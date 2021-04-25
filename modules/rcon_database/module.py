@@ -358,7 +358,7 @@ class CommandRconDatabase(commands.Cog):
     @CommandChecker.command(name='query',
         brief="Runs and commits an SQL command",
         help="""table: 'users'
-        rows: 
+        columns: 
         id INTEGER NOT NULL,
         name  TEXT,
         beid TEXT,
