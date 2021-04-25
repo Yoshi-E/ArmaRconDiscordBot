@@ -369,16 +369,19 @@ class CommandRconDatabase(commands.Cog):
         """,
         pass_context=True)
     async def query(self, ctx, *query):
-        query = " ".join(query)
-        result = self.c.execute(query)
-        result = list(result)
-        self.con.commit()
-        
-        msg = ""
-        for row in result[:15]:
-            msg += "{}\n".format(row)
-        if(msg == ""):
-            msg = "Query returned nothing"
+        try:
+            query = " ".join(query)
+            result = self.c.execute(query)
+            result = list(result)
+            self.con.commit()
+            
+            msg = ""
+            for row in result[:15]:
+                msg += "{}\n".format(row)
+            if(msg == ""):
+                msg = "Query returned nothing"
+        except Exception as e:
+            msg = str(e)
         await ctx.send(msg)
         
 def setup(bot):
