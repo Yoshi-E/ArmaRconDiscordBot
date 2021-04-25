@@ -588,43 +588,6 @@ class CommandRcon(commands.Cog):
         msg = "Loaded Bans!"
         await ctx.send(msg)    
 
-
-    @CommandChecker.command(name='players+',
-        brief="Lists current players on the server",
-        pass_context=True)
-    async def players(self, ctx):
-        players = await self.arma_rcon.getPlayersArray()
-        msgtable = prettytable.PrettyTable()
-        msgtable.field_names = ["ID", "Name", "IP", "GUID"]
-        msgtable.align["ID"] = "r"
-        msgtable.align["Name"] = "l"
-        msgtable.align["IP"] = "l"
-        msgtable.align["GUID"] = "l"
-
-        limit = 100
-        i = 1
-        new = False
-        msg  = ""
-        for player in players:
-            if(i <= limit):
-                msgtable.add_row([player[0], discord.utils.escape_markdown(player[4], as_needed=True), player[1],player[3]])
-                if(len(str(msgtable)) < 1800):
-                    i += 1
-                    new = False
-                else:
-                    msg += "```"
-                    msg += str(msgtable)
-                    msg += "```"
-                    await ctx.send(msg)
-                    msgtable.clear_rows()
-                    msg = ""
-                    new = True
-        if(new==False):
-            msg += "```"
-            msg += str(msgtable)
-            msg += "```"
-            await ctx.send(msg)    
-
     @CommandChecker.command(name='admins',
         brief="Lists current admins on the server",
         pass_context=True)

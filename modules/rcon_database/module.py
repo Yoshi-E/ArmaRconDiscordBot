@@ -11,6 +11,7 @@ import datetime
 import discord
 from discord.ext import commands
 from discord.ext.commands import has_permissions, CheckFailure
+import prettytable
 
 import csv
 from modules.core.utils import CommandChecker, RateBucket, sendLong, CoreConfig, Tools
@@ -264,7 +265,55 @@ class CommandRconDatabase(commands.Cog):
         else:
             await sendLong(ctx, "Sorry, I could not find anything")  
 
-    
+    @CommandChecker.command(name='players+',
+        brief="Lists players on the server and checks if they are regulars",
+        pass_context=True)
+    async def players(self, ctx):
+        players = await self.CommandRcon.arma_rcon.getPlayersArray()
+        msgtable = prettytable.PrettyTable()
+        msgtable.field_names = ["ID", "Name", "IP", "GUID", "First Seen", "Visits"]
+        msgtable.align["ID"] = "r"
+        msgtable.align["Name"] = "l"
+        msgtable.align["IP"] = "l"
+        msgtable.align["GUID"] = "l"
+        msgtable.align["First Seen"] = "l"
+        msgtable.align["Visits"] = "r"
+
+        limit = 100
+        i = 1
+        new = False
+        msg  = ""
+        for player in players:
+            if(i <= limit):
+                first_seen = self.c.execute("SELECT * FROM users WHERE beid = '{}' AND stamp IS NOT NULL ORDER BY stamp ASC LIMIT 1".format(player[3]))
+                first_seen = list(first_seen)
+                if(len(first_seen) > 0):
+                    first_seen = first_seen[0][4].split(" ")[0]
+                else:
+                    first_seen = ""
+                visits = self.c.execute("SELECT COUNT(*) FROM users WHERE beid = '{}'".format(player[3]))
+                visits = list(visits)
+                if(len(visits) > 0):
+                    visits = visits[0][0]
+                else:
+                    visits = 0
+                msgtable.add_row([player[0], discord.utils.escape_markdown(player[4], as_needed=True), player[1],player[3], first_seen, visits])
+                if(len(str(msgtable)) < 1800):
+                    i += 1
+                    new = False
+                else:
+                    msg += "```"
+                    msg += str(msgtable)
+                    msg += "```"
+                    await ctx.send(msg)
+                    msgtable.clear_rows()
+                    msg = ""
+                    new = True
+        if(new==False):
+            msg += "```"
+            msg += str(msgtable)
+            msg += "```"
+            await ctx.send(msg)    
     
 def setup(bot):
     bot.add_cog(CommandRconDatabase(bot))
