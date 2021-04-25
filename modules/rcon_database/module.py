@@ -371,6 +371,7 @@ class CommandRconDatabase(commands.Cog):
     async def query(self, ctx, *query):
         try:
             query = " ".join(query)
+            log.info(query)
             result = self.c.execute(query)
             result = list(result)
             self.con.commit()
