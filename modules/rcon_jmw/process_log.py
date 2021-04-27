@@ -18,6 +18,8 @@ from modules.core.utils import Event_Handler
 from modules.core.Log import log
 import psutil
 
+from func_timeout import func_timeout, FunctionTimedOut
+
 class ProcessLog:
     def __init__(self, readLog, cfg_jmw):
         self.readLog = readLog
@@ -120,16 +122,22 @@ class ProcessLog:
         meta, game, dict = self.generateGame(gameindex)
         return self.dataToGraph(meta, game, admin, gameindex)
 
+    # helper function
+    def generateGame(self, gameindex=None):
+        return func_timeout(10, self._generateGame, args=[gameindex])
+            
     #generates a game from recent entries    
     # index: 0 = current game
-    def generateGame(self, gameindex=None):
+    def _generateGame(self, gameindex=None):
         if(gameindex == None):
             gameindex = 0
-
+        log.info("Generating Game, index: '{}'".format(gameindex))
         game = self.buildGameBlock(gameindex)
         dict, game = self.processGameBlock(game)
         meta, pdata = self.processGameData(game)
         return [meta, pdata, dict]
+
+        
 
     def updateDicArray(self, parent, data):
         if("players" in parent and "players" in data):

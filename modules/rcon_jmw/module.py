@@ -78,7 +78,7 @@ class CommandJMW(commands.Cog):
 #####                                  common functions                                        ####
 ###################################################################################################
     async def task_setStatus(self):
-        while True:
+        #while True:
             try:
                 await asyncio.sleep(60)
                 await self.setStatus()
