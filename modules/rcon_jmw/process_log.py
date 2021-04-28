@@ -164,16 +164,6 @@ class ProcessLog:
         #log.info(data)
         return dict(data)
 
-    # Deprecated
-    def checkforEnd(self, timestamp, line):
-        m = re.match('^(\[\["CTI_DataPacket","(.*?)"],.*])', line)
-        if(m):
-            type = m.group(2)
-            if(type == "GameOver"):
-                #Start generating game
-                #log.info("END FOUND")
-                self.buildGameBlock()
-
     def buildGameBlock(self, index=0):
         current_index = 0
         iterMission = iter(reversed(self.readLog.Missions))

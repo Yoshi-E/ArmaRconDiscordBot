@@ -396,6 +396,6 @@ class CommandJMW(commands.Cog):
     
 def setup(bot):
     module = CommandJMW(bot)
-    bot.loop.create_task(module.task_setStatus())
+    #bot.loop.create_task(module.task_setStatus())
     bot.add_cog(module)
     
