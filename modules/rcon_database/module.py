@@ -112,6 +112,7 @@ class CommandRconDatabase(commands.Cog):
                 try:
                     self.players = await self.CommandRcon.arma_rcon.getPlayersArray()
                 except Exception as e:
+                    await asyncio.sleep(60)
                     continue
                 #self.player_db.save = False 
                 
