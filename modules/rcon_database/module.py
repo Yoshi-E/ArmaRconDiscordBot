@@ -107,6 +107,7 @@ class CommandRconDatabase(commands.Cog):
         while True: 
             try:
                 if(self.CommandRcon.arma_rcon.disconnected==True):
+                    await asyncio.sleep(60)
                     continue
                 try:
                     self.players = await self.CommandRcon.arma_rcon.getPlayersArray()
@@ -142,7 +143,6 @@ class CommandRconDatabase(commands.Cog):
                 log.print_exc()
                 log.error(e)
             await asyncio.sleep(60)
-            
     async def setTopicPlayerList(self, players):
         #log.info("[DEBUG] {}".format(players))#
         channel = self.bot.get_channel(self.cfg["setTopicPlayerList_channel"])
