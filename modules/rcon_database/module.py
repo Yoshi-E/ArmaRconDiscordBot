@@ -235,7 +235,7 @@ class CommandRconDatabase(commands.Cog):
         if field not in valid:
             raise Exception("Invalid field '{}', must be one of these values: {}".format(field, valid))
 
-        result = self.c.execute("SELECT * FROM users WHERE {} = '{}' GROUP BY beid ORDER BY stamp DESC".format(field, data))
+        result = self.c.execute("SELECT * FROM users WHERE {} LIKE '{}' GROUP BY beid ORDER BY stamp DESC".format(field, data))
         
         if(result):
             msg = ""
