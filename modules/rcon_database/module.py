@@ -204,6 +204,7 @@ class CommandRconDatabase(commands.Cog):
                                             name=name, 
                                             beid=beid,
                                             ip=ip)
+                        log.info(sql)
                         self.c.execute(sql)
                         self.con.commit()
                         break
