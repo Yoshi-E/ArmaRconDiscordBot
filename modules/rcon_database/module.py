@@ -12,6 +12,7 @@ import discord
 from discord.ext import commands
 from discord.ext.commands import has_permissions, CheckFailure
 import prettytable
+import requests
 
 import csv
 from modules.core.utils import CommandChecker, RateBucket, sendLong, CoreConfig, Tools
@@ -183,8 +184,8 @@ class CommandRconDatabase(commands.Cog):
         try:
             player_name = data["event_match"].group(2)
             player_profileID = int(data["event_match"].group(3))
-            
             for i in range(2):
+                print(player_name, player_profileID, self.players)
                 for player in self.players:
                     name = player[4]
                     if(name.endswith(" (Lobby)")): #Strip lobby from name
@@ -443,6 +444,24 @@ class CommandRconDatabase(commands.Cog):
                 msg = "Query returned nothing"
         except Exception as e:
             msg = str(e)
+        await ctx.send(msg)    
+        
+    @CommandChecker.command(name='convertID',
+        brief="Convert a players ID. Can be Steam ID, BattlEye ID or Bohemia ID",
+        aliases=["convertid"],
+        pass_context=True)
+    async def convertid(self, ctx, id):
+        url = '	https://api.devt0ols.net/converter/'
+
+        params = dict(id=id)
+        resp = requests.get(url=url, params=params, verify=False)
+        data = resp.json() # Check the JSON Response Content documentation below
+        msg=""
+        for key, val in data["result"].items():
+            if(key == "steam_url"):
+                msg += "{} {}\n".format(key, val)
+            else:
+                msg += "{} ``{}``\n".format(key, val)
         await ctx.send(msg)
         
 def setup(bot):
