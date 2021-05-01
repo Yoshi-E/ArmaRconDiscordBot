@@ -195,13 +195,10 @@ class CommandRconDatabase(commands.Cog):
                         ip = player[1].split(":")[0]
                         sql = """   UPDATE users
                                     SET profileid = {player_profileID}
-                                    WHERE EXISTS (
-                                                SELECT beid, ip, stamp
-                                                FROM users
-                                                WHERE name = '{name}'
-                                                    AND beid = '{beid}'
-                                                    AND ip = '{ip}'
-                                                    AND stamp > date('now','-1 day'))"""
+                                    WHERE name = '{name}'
+                                          AND beid = '{beid}'
+                                          AND ip = '{ip}'
+                                          AND stamp > date('now','-1 day')"""
                                                                                 
                         sql = sql.format(player_profileID=player_profileID, 
                                             name=name, 
