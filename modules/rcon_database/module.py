@@ -185,7 +185,6 @@ class CommandRconDatabase(commands.Cog):
             player_name = data["event_match"].group(2)
             player_profileID = int(data["event_match"].group(3))
             for i in range(2):
-                print(player_name, player_profileID, self.players)
                 for player in self.players:
                     name = player[4]
                     if(name.endswith(" (Lobby)")): #Strip lobby from name
@@ -205,7 +204,7 @@ class CommandRconDatabase(commands.Cog):
                                             name=name, 
                                             beid=beid,
                                             ip=ip)
-                        log.info(sql)
+                        log.debug(sql)
                         self.c.execute(sql)
                         self.con.commit()
                         break
