@@ -28,6 +28,7 @@ class CommandRconDatabase(commands.Cog):
 
         
         self.upgrade_database()
+        self.alter_database()
         #self.player_db = CoreConfig.cfg.new(self.path+"/player_db.json")
 
         self.cfg = CoreConfig.modules["modules/rcon_database"]["general"]
@@ -42,8 +43,13 @@ class CommandRconDatabase(commands.Cog):
             log.error("[module] 'CommandRcon' required, but not found in '{}'. Module unloaded".format(type(self).__name__))
             del self
             return
-
+        try:
+            self.CommandArma = self.bot.cogs["CommandArma"]
+            self.CommandArma.readLog.EH.add_Event("Player connected", self.playerConnected)
+        except KeyError:
+            self.CommandArma = None
         self.CommandRcon = self.bot.cogs["CommandRcon"]
+        
         asyncio.ensure_future(self.fetch_player_data_loop())
         #self.check_all_users()
         
@@ -51,7 +57,6 @@ class CommandRconDatabase(commands.Cog):
         try:
             json_f = self.path+"/player_db.json"
             if(not os.path.isfile(json_f)):
-                
                 return
             
             #get the count of tables with the name
@@ -88,7 +93,8 @@ class CommandRconDatabase(commands.Cog):
                         name  TEXT,
                         beid TEXT,
                         ip TEXT,
-                        stamp DATETIME
+                        stamp DATETIME,
+                        profileid INTEGER
                     );
                 """)
                 
@@ -102,6 +108,21 @@ class CommandRconDatabase(commands.Cog):
         except Exception as e:
             log.print_exc()
             log.error(e)
+    
+    def alter_database(self):
+        try:
+            ## Alter table (upgrade by adding the profileid column)
+            self.c.execute("SELECT COUNT(*) AS CNTREC FROM pragma_table_info('users') WHERE name='profileid'")
+            if self.c.fetchone()[0]==0: 
+                
+                sql = """   ALTER TABLE users
+                            ADD COLUMN profileid INTEGER;"""
+                self.c.execute(sql)
+                self.con.commit()
+                log.info("Altered DB Table: 'Added COLUMN profileid'")
+        except Exception as e:
+            log.print_exc()
+            log.error(e)  
             
     async def fetch_player_data_loop(self):
         while True: 
@@ -144,6 +165,7 @@ class CommandRconDatabase(commands.Cog):
                 log.print_exc()
                 log.error(e)
             await asyncio.sleep(60)
+            
     async def setTopicPlayerList(self, players):
         #log.info("[DEBUG] {}".format(players))#
         channel = self.bot.get_channel(self.cfg["setTopicPlayerList_channel"])
@@ -153,6 +175,45 @@ class CommandRconDatabase(commands.Cog):
         for player in players:
             playerlist += player[4]+", "
         await channel.edit(topic=playerlist[:-2])
+    
+    
+    # fetches players profile ID from the log file, 
+    # and adds it to the database if it can be matched to a user.
+    async def playerConnected(self, event, data):
+        try:
+            player_name = data["event_match"].group(2)
+            player_profileID = int(data["event_match"].group(3))
+            
+            for i in range(2):
+                for player in self.players:
+                    name = player[4]
+                    if(name.endswith(" (Lobby)")): #Strip lobby from name
+                        name = name[:-8]
+                        
+                    if name == player_name:
+                        beid = player[3]
+                        ip = player[1].split(":")[0]
+                        sql = """   UPDATE users
+                                    SET profileid = {player_profileID}
+                                    WHERE EXISTS (
+                                                SELECT beid, ip, stamp
+                                                FROM users
+                                                WHERE name = '{name}'
+                                                    AND beid = '{beid}'
+                                                    AND ip = '{ip}'
+                                                    AND stamp > date('now','-1 day'))"""
+                                                                                
+                        sql = sql.format(player_profileID=player_profileID, 
+                                            name=name, 
+                                            beid=beid,
+                                            ip=ip)
+                        self.c.execute(sql)
+                        self.con.commit()
+                        break
+                    await asyncio.sleep(60)
+        except Exception as e:
+            log.print_exc()
+            log.error(e)
         
 ###################################################################################################
 #####                                   General functions                                      ####

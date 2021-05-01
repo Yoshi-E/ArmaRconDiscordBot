@@ -45,16 +45,20 @@ class CommandRcon_Custom(commands.Cog):
             log.error(e)
     
     def rcon_on_msg_received(self, args):
-        message=args[0]
+        try:
+            message=args[0]
 
-        if(":" in message):
-            header, body = message.split(":", 1)
-            if(self.CommandRcon.isChannel(header)): #was written in a channel
-                player_name = header.split(") ")[1]
-            else:
-                #is join or disconnect, or similaar
-                #log.info(message)
-                asyncio.ensure_future(self.banned_user_kick(message))
+            if(":" in message):
+                header, body = message.split(":", 1)
+                if(self.CommandRcon.isChannel(header)): #was written in a channel
+                    player_name = header.split(") ")[1]
+                else:
+                    #is join or disconnect, or similaar
+                    #log.info(message)
+                    asyncio.ensure_future(self.banned_user_kick(message))
+        except Exception as e:
+            log.print_exc()
+            log.error(e)
     
     #fetches the user name from the recent chat entries
     #user names are not saved in the banlist, so we do a temp list here base on the chat entries
@@ -100,6 +104,7 @@ class CommandRcon_Custom(commands.Cog):
                 index = np.where((b[:,0] == i))
                 index = index[0][0]
                 await self.announce_ban_removed(b[index])
+        
             
     async def bans_watchdog(self):
         #watches for changes that are not noted in the log (e.g. removal of bans)
