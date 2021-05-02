@@ -105,9 +105,12 @@ class CommandChatLink(commands.Cog):
                 else: #(e.g Admin messages)
                     if("RCon admin #" in message and "(Global)" in message):
                         msg = body.split(") ", 1)[1]
-                        author, msg = msg.split(": ", 1)
-                        await self.verifyMessage(author, msg)
-                        log.info("[ChatLink] {} {}".format(author, msg))
+                        if(":" in msg): #has author, else: automated msg
+                            author, msg = msg.split(": ", 1)
+                            await self.verifyMessage(author, msg)
+                            log.info("[ChatLink] {} {}".format(author, msg))
+                        else:
+                            pass
             else: #is join or disconnect, or similar 
                 pass 
         except Exception as e:
