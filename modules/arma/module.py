@@ -40,7 +40,7 @@ class CommandArma(commands.Cog):
         self.channel = None
         
         #read the Log files
-        self.readLog = readLog(self.cfg["log_path"], maxMisisons=self.cfg["buffer_maxMisisons"])
+        self.readLog = readLog(self.cfg["log_path"], maxMissions=self.cfg["buffer_maxMissions"])
         self.readLog.pre_scan()
         self.memoryRestart = False
         

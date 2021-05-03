@@ -11,8 +11,8 @@ from modules.core.Log import log
 #https://community.bistudio.com/wiki/server.cfg
 
 class readLog:
-    def __init__(self, log_path, maxMisisons=20):
-        self.maxMisisons = maxMisisons #max amount of Missions stored in the buffer 
+    def __init__(self, log_path, maxMissions=20):
+        self.maxMissions = maxMissions #max amount of Missions stored in the buffer 
                               #also contains datablock between the mission 
                               #(e.g 2 scenarios played --> 5 Missions blocks)        
         
@@ -26,7 +26,7 @@ class readLog:
             log.info("[WARNNING] No log files found in '{}'".format(self.log_path))
             
         #all data rows are stored in here, limited to prevent memory leaks
-        self.Missions=deque(maxlen=self.maxMisisons)
+        self.Missions=deque(maxlen=self.maxMissions)
         self.Missions.append({"dict": {}, "data": []})
         
         self.define_line_types()
@@ -196,26 +196,26 @@ File mpmissions\__cur_mp.Altis\Server\Functions\Server_SpawnTownResistance.sqf..
     #Limited by Mission count
     def pre_scan(self):
         try:
-            if(self.maxMisisons <= 0):
+            if(self.maxMissions <= 0):
                 return
             #disable Event handlers, so they dont trigger
             self.EH.disabled = True 
             
             logs = self.getLogs()
-            tempdataMissions = deque(maxlen=self.maxMisisons)
+            tempdataMissions = deque(maxlen=self.maxMissions)
             
             #scan most recent log. Until enough data is collected
             #go from newest to oldest log until the data buffer is filled
             for _log in reversed(logs):
                 log.info("Pre-scanning: "+_log)
                 self.scanfile(_log)
-                if(len(tempdataMissions)+len(self.Missions) <= self.maxMisisons):
+                if(len(tempdataMissions)+len(self.Missions) <= self.maxMissions):
                     tempdataMissions.extendleft(reversed(self.Missions))
-                    self.Missions = deque(maxlen=self.maxMisisons)
+                    self.Missions = deque(maxlen=self.maxMissions)
                     self.Missions.append({"dict": {}, "data": []})
                 else:
                     break
-                if(len(tempdataMissions)>=self.maxMisisons):
+                if(len(tempdataMissions)>=self.maxMissions):
                     break
             self.Missions = tempdataMissions
             self.EH.disabled = False    

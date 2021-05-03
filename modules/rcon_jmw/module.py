@@ -233,7 +233,50 @@ class CommandJMW(commands.Cog):
 
         except Exception as e:
             log.print_exc()
-            await channel.send("Unable to find game: "+str(e))
+            await channel.send("Unable to find game: "+str(e))   
+
+    async def processOldGame(self, channel, admin=False, gameindex=0, sendraw=False):
+        if(self.bot.is_closed()):
+            return False
+        if(gameindex<=0):
+            return self.processGame(channel, admin, 0, sendraw)
+        try:
+            #get list of old game files
+            path = self.cfg['image_path']
+            ignore = ["-CUR", "currentGame"] #log files that will be ignored
+            if(os.path.exists(path)):
+                files = []
+                for file in os.listdir(path):
+                    if ((file.endswith(".png") and "-ADV" in file) and not any(x in file for x in ignore)):
+                        files.append(file)
+                files = sorted(files, reverse=True)
+            else:
+                files = []
+            
+            if(gameindex > len(files)):
+                msg="Sorry, I could not find any games"
+                await channel.send(com_west)
+                return
+                
+           
+            picname = files[gameindex-1]
+            print(picname)
+            gamefile = picname.replace(".png", ".json")
+            timestamp = " ".join(picname.split("#")[:2])
+            gameduration = picname.split("#")[2]
+            lastwinner = picname.split("#")[3]
+            
+            if(sendraw == True):
+                filename = self.cfg['data_path']+gamefile
+            else:
+                filename = self.cfg['image_path']+picname
+            msg="["+timestamp+"] "+str(gameduration)+"min game. Winner:"+lastwinner
+            msg += "\n<http://www.jammywarfare.eu/replays/?file={}>".format(urllib.parse.quote(gamefile))
+            await channel.send(file=discord.File(filename), content=msg)
+
+        except Exception as e:
+            log.print_exc()
+            await channel.send("An error occurred: "+str(e))
 
     
 
@@ -245,7 +288,7 @@ class CommandJMW(commands.Cog):
         channel = self.bot.get_channel(int(self.cfg["post_channel"]))
         await self.dm_users_new_game()
         await self.processGame(channel)
-        self.processLog.readData(True, 1) #Generate advaced data as well, for later use.  
+        self.processLog.readData(True, 0) #Generate advaced data as well, for later use.  
         
     async def gameStart(self, *args):
         if(self.bot.is_closed()):
@@ -304,16 +347,16 @@ class CommandJMW(commands.Cog):
             admin = True
         else: 
             admin = False
-        await self.processGame(message.channel, admin, index)
+        await self.processOldGame(message.channel, admin, index)
 
-    @CommandChecker.command(  name='lastdata',
-                        brief="sends the slected game as raw .json",
-                        description="Takes up to 2 arguments, 1st: index of the game, 2nd: sending 'normal'",
-                        pass_context=True)
-    async def command_lastdata(self, ctx, index=0):
-        message = ctx.message
-        admin = True
-        await self.processGame(message.channel, admin, index, True)
+    # @CommandChecker.command(  name='lastdata',
+                        # brief="sends the slected game as raw .json",
+                        # description="Takes up to 2 arguments, 1st: index of the game, 2nd: sending 'normal'",
+                        # pass_context=True)
+    # async def command_lastdata(self, ctx, index=0):
+        # message = ctx.message
+        # admin = True
+        # await self.processGame(message.channel, admin, index, True)
         
     @CommandChecker.command(name='dump',
         brief="dumps array data into a dump.json file",

@@ -168,7 +168,7 @@ class ProcessLog:
         current_index = 0
         iterMission = iter(reversed(self.readLog.Missions))
         try:
-            for i in range(self.readLog.maxMisisons):
+            for i in range(self.readLog.maxMissions):
                 game = None
                 #Get a Valid game block
                 while game == None:
