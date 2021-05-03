@@ -278,6 +278,13 @@ class ProcessLog:
         loadedFromFile = False
         if(timestamp == None):
             timestamp = "00:00:00"
+        else:
+            t = ""
+            for block in timestamp.split(":"):
+                if len(block)==1:
+                    t += "0"+block
+                else:
+                    t += block
         fdate = meta["date"]
         
         

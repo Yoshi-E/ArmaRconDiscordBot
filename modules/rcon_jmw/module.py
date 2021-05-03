@@ -239,7 +239,7 @@ class CommandJMW(commands.Cog):
         if(self.bot.is_closed()):
             return False
         if(gameindex<=0):
-            return self.processGame(channel, admin, 0, sendraw)
+            return await self.processGame(channel, admin, 0, sendraw)
         try:
             #get list of old game files
             path = self.cfg['image_path']
