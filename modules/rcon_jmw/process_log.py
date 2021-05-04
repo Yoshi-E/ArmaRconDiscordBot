@@ -285,6 +285,7 @@ class ProcessLog:
                     t += "0"+block
                 else:
                     t += block
+            timestamp = t
         fdate = meta["date"]
         
         
