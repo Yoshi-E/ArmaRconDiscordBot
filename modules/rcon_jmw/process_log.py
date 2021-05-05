@@ -279,13 +279,13 @@ class ProcessLog:
         if(timestamp == None):
             timestamp = "00:00:00"
         else:
-            t = ""
+            t = []
             for block in timestamp.split(":"):
                 if len(block)==1:
-                    t += "0"+block
+                    t.append("0"+block)
                 else:
-                    t += block
-            timestamp = t
+                    t.append(block)
+            timestamp = ":".join(t)
         fdate = meta["date"]
         
         
