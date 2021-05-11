@@ -22,6 +22,7 @@ class readLog:
         self.current_log = None
         self.multiEventLock = None
         self.multiEventLockData = []
+        self.server_sessionID = 0
         if(len(self.getLogs()) == 0):
             log.info("[WARNNING] No log files found in '{}'".format(self.log_path))
             
