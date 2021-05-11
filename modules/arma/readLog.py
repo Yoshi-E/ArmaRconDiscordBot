@@ -282,10 +282,10 @@ File mpmissions\__cur_mp.Altis\Server\Functions\Server_SpawnTownResistance.sqf..
         ignore = ["mpStatistics", "netlog"] #log files that will be ignored
         if(os.path.exists(self.log_path)):
             files = []
-            for file in os.listdir(self.log_path):
+            for file in sorted(os.listdir(self.log_path), key = lambda thing: os.stat(os.path.join(self.log_path, thing)).st_ctime):
                 if ((file.endswith(".log") or file.endswith(".rpt")) and not any(x in file for x in ignore)):
                     files.append(file)
-            return sorted(files)
+            return files
         else:
             return []
 
