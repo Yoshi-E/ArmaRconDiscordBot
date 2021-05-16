@@ -25,6 +25,7 @@ class CommandJMW(commands.Cog):
         self.path = os.path.dirname(os.path.realpath(__file__))
         
         self.cfg = CoreConfig.modules["modules/rcon_jmw"]["general"]
+        self.maps = ["Altis", "Tanoa", "Enoch", "Malden", "Stratis"]
         
         self.user_data = {}
         if(os.path.isfile(self.path+"/userdata.json")):
@@ -379,6 +380,8 @@ class CommandJMW(commands.Cog):
         aliases=['heatMap'],
         pass_context=True)
     async def heatmap(self, ctx, map, *player_name):
+        if map not in self.maps:
+            raise Exception("Please enter only valid maps names: {}".format(self.maps))
         await sendLong(ctx,"Generating data...")
         
         player_name = " ".join(player_name)
@@ -400,6 +403,8 @@ class CommandJMW(commands.Cog):
         aliases=['heatmapa'],
         pass_context=True)
     async def heatmapA(self, ctx, map, *player_name):
+        if map not in self.maps:
+            raise Exception("Please enter only valid maps names: {}".format(self.maps))
         await sendLong(ctx,"Generating data...")
         
         player_name = " ".join(player_name)
