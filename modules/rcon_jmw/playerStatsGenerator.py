@@ -132,7 +132,6 @@ class PlayerStatsGenerator():
                             if(row["CTI_DataPacket"] == "Data"):
                                 self.processPlayers(row, file)
                         self.processGameEnd(file)
-                break
 
         
     def generateStats(self):
