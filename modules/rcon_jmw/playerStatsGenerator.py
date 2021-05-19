@@ -6,6 +6,7 @@ import numpy as np
 import numpy.random
 import sys
 from glob import glob
+from operator import itemgetter
 # Usage: img = generateMap(self, player_name="all", bins=50)
 
 class PlayerStatsGenerator():
@@ -141,13 +142,40 @@ class PlayerStatsGenerator():
                         except Exception as e:
                             print("processGameEnd:", e)
 
-        
+    def wr(self, key):
+        if(self.players[key]["game_victories"]+self.players[key]["game_defeats"] > 30):
+            return self.players[key]["game_victories"]/(self.players[key]["game_defeats"] + self.players[key]["game_victories"])
+        else:
+            return 0
+    
+    def cwr(self, key):
+        if(self.players[key]["total_command_defeats"]+self.players[key]["total_command_vicotries"] > 30):
+            return self.players[key]["total_command_vicotries"]/(self.players[key]["total_command_defeats"] + self.players[key]["total_command_vicotries"])
+        else:
+            return 0
+    
+    def getWinrate(self):
+        newlist = sorted(self.players, key=self.wr, reverse=True) 
+        for key in newlist[:50]:
+            print(key.ljust(30), round(self.players[key]["game_victories"]/(self.players[key]["game_defeats"] + self.players[key]["game_victories"])*100, 2))
+    
+    def getCMDWinrate(self):
+        newlist = sorted(self.players, key=self.cwr, reverse=True) 
+        for key in newlist[:50]:
+            print(key.ljust(30), round(self.players[key]["total_command_vicotries"]/(self.players[key]["total_command_defeats"] + self.players[key]["total_command_vicotries"])*100, 2))
+            
     def generateStats(self):
         self.generateData()
         with open(self.path+"/playerStats.json", 'w+') as outfile:
             json.dump(self.players, outfile, indent=4, sort_keys=True)
-        
+    
+    def total_playtime(self):
+        total = 0
+        for name, player in self.players.items():
+            total+= player["total_entries"]
+        print(total)
 if __name__ == "__main__":
     p = PlayerStatsGenerator(r"D:\Dokumente\_Git\_ArmaGit\ArmaRconDiscordBot\modules\rcon_jmw\data")
-    p.generateStats()
-    print(json.dumps(p.players, indent=4, sort_keys=True))
+    p.total_playtime()
+    #p.generateStats()
+    #print(json.dumps(p.players, indent=4, sort_keys=True))

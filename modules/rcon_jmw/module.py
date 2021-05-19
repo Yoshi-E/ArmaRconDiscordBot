@@ -444,7 +444,12 @@ class CommandJMW(commands.Cog):
             if data["total_deaths"]>0:
                 kd = str(round(total_kills/data["total_deaths"],3))
             else:
-                kd = "inf"
+                kd = "inf"            
+                
+            if data["total_deaths"]>0:
+                avrgL = str(round(data["total_entries"]/data["total_deaths"],2))+"min"
+            else:
+                avrgL = "inf"
             
             if total_games > 0:
                 wr = str(round(data["game_victories"]/total_games*100,2))+"%"
@@ -479,6 +484,7 @@ class CommandJMW(commands.Cog):
             embed.add_field(name="Kills per minute", value=kpm, inline=True)
             embed.add_field(name="Kills", value=total_kills, inline=True)
             embed.add_field(name="Deaths", value=data["total_deaths"], inline=True)
+            embed.add_field(name="Avrage life", value=avrgL, inline=True)
             embed.add_field(name="Infantry kills", value=data["total_infantry_kills"], inline=True)
             embed.add_field(name="Light Vehicle kills", value=data["total_soft_vehicle_kills"], inline=True)
             embed.add_field(name="Tank kills", value=data["total_armor_kills"], inline=True)
