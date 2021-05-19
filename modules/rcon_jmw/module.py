@@ -441,16 +441,42 @@ class CommandJMW(commands.Cog):
                 maps+= "{}: {} | ".format(map, time)
             maps = maps [:-2]
             
+            if data["total_deaths"]>0:
+                kd = str(round(total_kills/data["total_deaths"],3))
+            else:
+                kd = "inf"
+            
+            if total_games > 0:
+                wr = str(round(data["game_victories"]/total_games*100,2))+"%"
+            else:
+                wr = "inf"            
+                
+            if data["total_entries"] > 0:
+                spm = str(round(data["total_score"]/data["total_entries"],3))
+            else:
+                spm = "inf"          
+
+            if data["total_entries"] > 0:
+                kpm = str(round(total_kills/data["total_entries"],3))
+            else:
+                kpm = "inf"           
+
+            if total_cmd > 0:
+                cwr = str(round(data["total_command_vicotries"]/total_cmd*100,2))+"%"
+            else:
+                cwr = "inf"
+                
+                
             embed=discord.Embed(title="JMW Stats", description="Player Statistics", color=0x04ff00)
             embed.set_author(name=player_name)
             embed.add_field(name="Total playtime", value=str(data["total_entries"])+"min", inline=True)
             embed.add_field(name="Total games played", value=total_games, inline=True)
-            embed.add_field(name="Win rate", value=str(round(data["game_victories"]/total_games*100,2))+"%", inline=True)
-            embed.add_field(name="K/D", value=str(round(total_kills/data["total_deaths"],3)), inline=True)
+            embed.add_field(name="Win rate", value=wr, inline=True)
+            embed.add_field(name="K/D", value=kd, inline=True)
             embed.add_field(name="Opfor - Bluefor", value="{} - {}".format(data["side_opfor"], data["side_bluefor"]), inline=True)
             #embed.add_field(name="", value="---", inline=False)
-            embed.add_field(name="Score per minute", value=str(round(data["total_score"]/data["total_entries"],3)), inline=True)
-            embed.add_field(name="Kills per minute", value=str(round(total_kills/data["total_entries"],3)), inline=True)
+            embed.add_field(name="Score per minute", value=spm, inline=True)
+            embed.add_field(name="Kills per minute", value=kpm, inline=True)
             embed.add_field(name="Kills", value=total_kills, inline=True)
             embed.add_field(name="Deaths", value=data["total_deaths"], inline=True)
             embed.add_field(name="Infantry kills", value=data["total_infantry_kills"], inline=True)
@@ -460,7 +486,7 @@ class CommandJMW(commands.Cog):
             embed.add_field(name="Score", value=data["total_score"], inline=True)
             embed.add_field(name="Maps", value=maps, inline=True)
             #embed.add_field(name="undefined", value="---", inline=True)
-            embed.add_field(name="Commander win rate", value=str(round(data["total_command_vicotries"]/total_cmd*100,2))+"%", inline=True)
+            embed.add_field(name="Commander win rate", value=cwr, inline=True)
             embed.add_field(name="Total Commander time", value=data["total_command_time"], inline=True)
             await ctx.send(embed=embed)
         else:    
