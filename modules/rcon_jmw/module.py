@@ -17,6 +17,7 @@ import datetime
 
 from modules.core.utils import CommandChecker, sendLong, CoreConfig
 from modules.rcon_jmw.process_log import ProcessLog
+from modules.rcon_jmw.playerStatsGenerator import PlayerStatsGenerator
 from modules.core.Log import log
 
 class CommandJMW(commands.Cog):
@@ -26,6 +27,8 @@ class CommandJMW(commands.Cog):
         
         self.cfg = CoreConfig.modules["modules/rcon_jmw"]["general"]
         self.maps = ["Altis", "Tanoa", "Enoch", "Malden", "Stratis"]
+        
+        self.psg = PlayerStatsGenerator(self.cfg["data_path"])
         
         self.user_data = {}
         if(os.path.isfile(self.path+"/userdata.json")):
@@ -420,7 +423,51 @@ class CommandJMW(commands.Cog):
     async def setRestart(self, ctx):
         await ctx.send("Restarting...")
         sys.exit()     
-                  
+                     
+    @CommandChecker.command(name='stats',
+        brief="Get stats for a given player",
+        pass_context=True)
+    async def getStats(self, ctx, *player_name):
+        player_name = " ".join(player_name)
+        # TODO get closest matching name:
+        data = []
+        if(player_name in self.psg.players):
+            data = self.psg.players[player_name]
+            total_games = data["game_defeats"]+data["game_victories"]
+            total_kills = data["total_air_kills"] + data["total_armor_kills"] + data["total_infantry_kills"]+ data["total_soft_vehicle_kills"]
+            total_cmd = data["total_command_defeats"] + data["total_command_vicotries"]
+            embed=discord.Embed(title="JMW Stats", description="Player Statistics", color=0x04ff00)
+            embed.set_author(name=player_name)
+            embed.add_field(name="Total playtime", value=str(data["total_entries"])+"min", inline=True)
+            embed.add_field(name="Total games played", value=total_games, inline=True)
+            embed.add_field(name="Win rate", value=str(round(data["game_victories"]/total_games,4)*100)+"%", inline=True)
+            embed.add_field(name="K/D", value=str(round(total_kills/data["total_deaths"],3)), inline=True)
+            embed.add_field(name="Opfor - Bluefor", value="{} - {}".format(data["side_opfor"], data["side_bluefor"]), inline=True)
+            #embed.add_field(name="", value="---", inline=False)
+            embed.add_field(name="Score per minute", value=str(round(data["total_score"]/data["total_entries"],3)), inline=True)
+            embed.add_field(name="Kills per minute", value=str(round(total_kills/data["total_entries"],3)), inline=True)
+            embed.add_field(name="Kills", value=total_kills, inline=True)
+            embed.add_field(name="Deaths", value=data["total_deaths"], inline=True)
+            embed.add_field(name="Infantry kills", value=data["total_infantry_kills"], inline=True)
+            embed.add_field(name="Light Vehicle kills", value=data["total_soft_vehicle_kills"], inline=True)
+            embed.add_field(name="Tank kills", value=data["total_armor_kills"], inline=True)
+            embed.add_field(name="Air kills", value=data["total_air_kills"], inline=True)
+            embed.add_field(name="Score", value=data["total_score"], inline=True)
+            #embed.add_field(name="undefined", value="---", inline=True)
+            embed.add_field(name="Commander win rate", value=str(round(data["total_command_vicotries"]/total_cmd,4)*100)+"%", inline=True)
+            embed.add_field(name="Total Commander time", value=data["total_command_time"], inline=True)
+            await ctx.send(embed=embed)
+        else:    
+            await ctx.send("Player '{}' not found".format(player_name))   
+
+    @CommandChecker.command(name='genstats',
+        brief="Get stats for a given player",
+        pass_context=True)
+    async def genStats(self, ctx):
+        await ctx.send("Generating Player stats...")
+        self.psg.generateStats()
+        await ctx.send("Stats Generated")
+                 
                 
     @CommandChecker.command(name='eval',
         brief="Evluate a py expression",
