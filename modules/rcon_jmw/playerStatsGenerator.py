@@ -84,13 +84,15 @@ class PlayerStatsGenerator():
             self.players[name]["maps_played"][map] += 1
             
             #softstats:
-            self.players[name]["total_infantry_kills"] += player["last_entry"][2][0]
-            self.players[name]["total_soft_vehicle_kills"] += player["last_entry"][2][1]
-            self.players[name]["total_armor_kills"] += player["last_entry"][2][2]
-            self.players[name]["total_air_kills"] += player["last_entry"][2][3]
-            self.players[name]["total_deaths"] += player["last_entry"][2][4]
-            self.players[name]["total_score"] += player["last_entry"][2][5]
-
+            try:
+                self.players[name]["total_infantry_kills"] += player["last_entry"][2][0]
+                self.players[name]["total_soft_vehicle_kills"] += player["last_entry"][2][1]
+                self.players[name]["total_armor_kills"] += player["last_entry"][2][2]
+                self.players[name]["total_air_kills"] += player["last_entry"][2][3]
+                self.players[name]["total_deaths"] += player["last_entry"][2][4]
+                self.players[name]["total_score"] += player["last_entry"][2][5]
+            except Exception as e:
+                print("softstats:", e)
             
             
             if side == winner:
@@ -130,8 +132,14 @@ class PlayerStatsGenerator():
                     if(len(data) > 0):
                         for row in data:
                             if(row["CTI_DataPacket"] == "Data"):
-                                self.processPlayers(row, file)
-                        self.processGameEnd(file)
+                                try:
+                                    self.processPlayers(row, file)
+                                except Exception as e:
+                                    print("processPlayers:", e)
+                        try:
+                            self.processGameEnd(file)
+                        except Exception as e:
+                            print("processGameEnd:", e)
 
         
     def generateStats(self):
