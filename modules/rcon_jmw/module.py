@@ -436,6 +436,11 @@ class CommandJMW(commands.Cog):
             total_games = data["game_defeats"]+data["game_victories"]
             total_kills = data["total_air_kills"] + data["total_armor_kills"] + data["total_infantry_kills"]+ data["total_soft_vehicle_kills"]
             total_cmd = data["total_command_defeats"] + data["total_command_vicotries"]
+            maps = ""
+            for map, time in data["maps_played"].items():
+                maps+= "{}: {} | ".format(map, time)
+            maps = maps [:-2]
+            
             embed=discord.Embed(title="JMW Stats", description="Player Statistics", color=0x04ff00)
             embed.set_author(name=player_name)
             embed.add_field(name="Total playtime", value=str(data["total_entries"])+"min", inline=True)
@@ -453,6 +458,7 @@ class CommandJMW(commands.Cog):
             embed.add_field(name="Tank kills", value=data["total_armor_kills"], inline=True)
             embed.add_field(name="Air kills", value=data["total_air_kills"], inline=True)
             embed.add_field(name="Score", value=data["total_score"], inline=True)
+            embed.add_field(name="Maps", value=maps, inline=True)
             #embed.add_field(name="undefined", value="---", inline=True)
             embed.add_field(name="Commander win rate", value=str(round(data["total_command_vicotries"]/total_cmd*100,2))+"%", inline=True)
             embed.add_field(name="Total Commander time", value=data["total_command_time"], inline=True)
