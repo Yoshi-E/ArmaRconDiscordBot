@@ -440,7 +440,7 @@ class CommandJMW(commands.Cog):
             embed.set_author(name=player_name)
             embed.add_field(name="Total playtime", value=str(data["total_entries"])+"min", inline=True)
             embed.add_field(name="Total games played", value=total_games, inline=True)
-            embed.add_field(name="Win rate", value=str(round(data["game_victories"]/total_games,4)*100)+"%", inline=True)
+            embed.add_field(name="Win rate", value=str(round(data["game_victories"]/total_games*100,2))+"%", inline=True)
             embed.add_field(name="K/D", value=str(round(total_kills/data["total_deaths"],3)), inline=True)
             embed.add_field(name="Opfor - Bluefor", value="{} - {}".format(data["side_opfor"], data["side_bluefor"]), inline=True)
             #embed.add_field(name="", value="---", inline=False)
@@ -454,7 +454,7 @@ class CommandJMW(commands.Cog):
             embed.add_field(name="Air kills", value=data["total_air_kills"], inline=True)
             embed.add_field(name="Score", value=data["total_score"], inline=True)
             #embed.add_field(name="undefined", value="---", inline=True)
-            embed.add_field(name="Commander win rate", value=str(round(data["total_command_vicotries"]/total_cmd,4)*100)+"%", inline=True)
+            embed.add_field(name="Commander win rate", value=str(round(data["total_command_vicotries"]/total_cmd*100,2))+"%", inline=True)
             embed.add_field(name="Total Commander time", value=data["total_command_time"], inline=True)
             await ctx.send(embed=embed)
         else:    
