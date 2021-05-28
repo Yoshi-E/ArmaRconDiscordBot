@@ -27,19 +27,24 @@ class CommandErrorHandler(commands.Cog):
         ctx   : Context
         error : Exception"""
         
-        ignored = (commands.CommandNotFound, commands.UserInputError) #commands.errors.CheckFailure
+        #ignored = (commands.CommandNotFound, commands.UserInputError) #commands.errors.CheckFailure
         
         # Allows us to check for original exceptions raised and sent to CommandInvokeError.
         # If nothing is found. We keep the exception passed to on_command_error.
         error = getattr(error, 'original', error)
-        
+        try:
+            log.info("{}: '{}'. Error: '{}'".format(ctx.author.name, ctx.command.name, error))
+        except:
+            log.info("{} Error: '{}'".format(ctx, error))
+            
+            # return
         # Anything in ignored will return and prevent anything happening.
-        if isinstance(error, ignored):
-            try:
-                log.info("{}: '{}'. Ignored error: '{}'".format(ctx.author.name, ctx.command.name, error))
-            except:
-                log.info("{}: Ignored error: '{}'".format(ctx, error))
-            return
+        # if isinstance(error, ignored):
+            # try:
+                # log.info("{}: '{}'. Ignored error: '{}'".format(ctx.author.name, ctx.command.name, error))
+            # except:
+                # log.info("{}: Ignored error: '{}'".format(ctx, error))
+            # return
         
         if(isinstance(error, commands.errors.CheckFailure)):
             await self.sendLong(ctx, "{}, You do not have permission to use the command '{}'".format(ctx.author.name, ctx.command.name))
