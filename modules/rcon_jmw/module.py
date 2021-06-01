@@ -83,8 +83,8 @@ class CommandJMW(commands.Cog):
 ###################################################################################################
     async def task_setStatus(self):
         #while True:
+            await asyncio.sleep(60)
             try:
-                await asyncio.sleep(60)
                 await self.setStatus()
             except (KeyboardInterrupt, asyncio.CancelledError):
                 log.info("[asyncio] exiting", task_setStatus)
@@ -99,13 +99,12 @@ class CommandJMW(commands.Cog):
                 log.info("[JMW] Updating Player stats")
                 t = threading.Thread(target=self.psg.generateStats())
                 t.start()
-                await asyncio.sleep(60*60*24)
             except (KeyboardInterrupt, asyncio.CancelledError):
                 pass
             except Exception as e:
                 log.error("Failed to update player stats", e)
                 log.print_exc()
-
+            await asyncio.sleep(60*60*24)
                 
     async def setStatus(self):
         game = ""
