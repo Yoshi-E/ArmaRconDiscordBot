@@ -96,7 +96,7 @@ class PlayerStatsGenerator():
                 self.players[name]["total_deaths"] += player["last_entry"][2][4]
                 self.players[name]["total_score"] += player["last_entry"][2][5]
             except Exception as e:
-                print("softstats:", e)
+                pass #print("softstats:", e)
             
             
             if side == winner:
