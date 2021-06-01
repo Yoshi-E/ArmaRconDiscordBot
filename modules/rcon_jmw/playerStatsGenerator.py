@@ -68,7 +68,7 @@ class PlayerStatsGenerator():
             self.currentPlayers[name]["total_entries"] += 1
             if(data["commander_east"] == name or data["commander_west"] == name):
                 self.currentPlayers[name]["current_cmd_time"] += 1
-            if self.currentPlayers[name]["side"] not in ["EAST", "WEST"]:
+            if player[1] in ["EAST", "WEST"]:
                 self.currentPlayers[name]["side"] = player[1]
                 
     def processGameEnd(self, file):
@@ -104,9 +104,9 @@ class PlayerStatsGenerator():
             else:
                 self.players[name]["game_defeats"] += 1
                 
-            if player["last_entry"][1] == "EAST":
+            if side == "EAST":
                 self.players[name]["side_opfor"] += 1
-            elif player["last_entry"][1] == "WEST":
+            elif side == "WEST":
                 self.players[name]["side_bluefor"] += 1
             
             if(player["total_entries"] > 30):
