@@ -90,6 +90,20 @@ class CommandJMW(commands.Cog):
                 log.info("[asyncio] exiting", task_setStatus)
             except Exception as e:
                 log.error("setting status failed", e)
+                log.print_exc()    
+                
+    async def task_updatePlayerStats(self):
+        await asyncio.sleep(60*2)
+        while True:
+            try:
+                log.info("[JMW] Updating Player stats")
+                t = threading.Thread(target=self.psg.generateStats())
+                t.start()
+                await asyncio.sleep(60*60*24)
+            except (KeyboardInterrupt, asyncio.CancelledError):
+                pass
+            except Exception as e:
+                log.error("Failed to update player stats", e)
                 log.print_exc()
 
                 
@@ -530,5 +544,6 @@ class CommandJMW(commands.Cog):
 def setup(bot):
     module = CommandJMW(bot)
     bot.loop.create_task(module.task_setStatus())
+    bot.loop.create_task(module.task_updatePlayerStats())
     bot.add_cog(module)
     

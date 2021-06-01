@@ -18,6 +18,7 @@ class PlayerStatsGenerator():
                            #For calculating per game data
                            "total_entries": 0,
                            "current_cmd_time": 0, 
+                           "side": "NONE",
                            "last_entry": [] # Last entry for a given map
                             }
         
@@ -67,6 +68,8 @@ class PlayerStatsGenerator():
             self.currentPlayers[name]["total_entries"] += 1
             if(data["commander_east"] == name or data["commander_west"] == name):
                 self.currentPlayers[name]["current_cmd_time"] += 1
+            if self.currentPlayers[name]["side"] not in ["EAST", "WEST"]:
+                self.currentPlayers[name]["side"] = player[1]
                 
     def processGameEnd(self, file):
         if("EAST" in file):
@@ -76,7 +79,7 @@ class PlayerStatsGenerator():
         map = file.split("#")[-2]
         for name, player in self.currentPlayers.items():
             #print(name, player)
-            side = self.currentPlayers[name]["last_entry"][1] #side
+            side = self.currentPlayers[name]["side"] #side
             self.players.setdefault(name, self.getdefaultMap())
             
             self.players[name]["total_command_time"] += player["current_cmd_time"]
