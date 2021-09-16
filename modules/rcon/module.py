@@ -650,11 +650,11 @@ class CommandRcon(commands.Cog):
         message = " ".join(message)
         message = self.setEncoding(message)
         if(len(message)<2):
-            await self.arma_rcon.banPlayer(player=player, time=time)
+            await self.arma_rcon.banPlayer(player=player_id, time=time)
         else:
-            await self.arma_rcon.banPlayer(player, message, time)
+            await self.arma_rcon.banPlayer(player_id, message, time)
             
-        msg = "Banned player: ``"+str(player)+" - "+matches[0]+"`` with reason: "+message
+        msg = "Banned player: ``"+str(player_id)+" - "+matches[0]+"`` with reason: "+message
         await ctx.send(msg)    
         
     @CommandChecker.command(name='addBan',
