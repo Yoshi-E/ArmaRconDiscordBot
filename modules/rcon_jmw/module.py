@@ -29,6 +29,7 @@ class CommandJMW(commands.Cog):
         self.maps = ["Altis", "Tanoa", "Enoch", "Malden", "Stratis"]
         
         self.psg = PlayerStatsGenerator(self.cfg["data_path"])
+        self.psg_updated = None
         
         self.user_data = {}
         if(os.path.isfile(self.path+"/userdata.json")):
@@ -99,6 +100,7 @@ class CommandJMW(commands.Cog):
                 log.info("[JMW] Updating Player stats")
                 t = threading.Thread(target=self.psg.generateStats())
                 t.start()
+                self.psg_updated = datetime.datetime.now(datetime.timezone.utc)
             except (KeyboardInterrupt, asyncio.CancelledError):
                 pass
             except Exception as e:
@@ -484,6 +486,10 @@ class CommandJMW(commands.Cog):
             else:
                 cwr = "inf"
                 
+            if self.psg_updated:
+                footer = "Last updated - {}".format(self.psg_updated.strftime("%Y-%m-%d %H:%M:%S %Z"))
+            else:
+                footer = ""
                 
             embed=discord.Embed(title="JMW Stats", description="Player Statistics", color=0x04ff00)
             embed.set_author(name=player_name)
@@ -507,6 +513,7 @@ class CommandJMW(commands.Cog):
             #embed.add_field(name="undefined", value="---", inline=True)
             embed.add_field(name="Commander win rate", value=cwr, inline=True)
             embed.add_field(name="Total Commander time", value=data["total_command_time"], inline=True)
+            embed.set_footer(text=footer)
             await ctx.send(embed=embed)
         else:    
             await ctx.send("Player '{}' not found".format(player_name))   
@@ -516,8 +523,12 @@ class CommandJMW(commands.Cog):
         pass_context=True)
     async def genStats(self, ctx):
         await ctx.send("Generating Player stats...")
-        self.psg.generateStats()
-        await ctx.send("Stats Generated")
+        log.info("[JMW] Updating Player stats")
+        t = threading.Thread(target=self.psg.generateStats())
+        t.start()
+        self.psg_updated = datetime.datetime.now(datetime.timezone.utc)
+        t.join()
+        await ctx.send("Stats Updated")
                  
                 
     @CommandChecker.command(name='eval',
