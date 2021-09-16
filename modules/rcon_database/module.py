@@ -194,18 +194,14 @@ class CommandRconDatabase(commands.Cog):
                         beid = player[3]
                         ip = player[1].split(":")[0]
                         sql = """   UPDATE users
-                                    SET profileid = {player_profileID}
-                                    WHERE name = '{name}'
-                                          AND beid = '{beid}'
-                                          AND ip = '{ip}'
+                                    SET profileid = ?
+                                    WHERE name = ?
+                                          AND beid = ?
+                                          AND ip = ?
                                           AND stamp > date('now','-1 day')"""
                                                                                 
-                        sql = sql.format(player_profileID=player_profileID, 
-                                            name=name, 
-                                            beid=beid,
-                                            ip=ip)
                         log.debug(sql)
-                        self.c.execute(sql)
+                        self.c.execute(sql, (player_profileID, name, beid, ip))
                         self.con.commit()
                         break
                     await asyncio.sleep(60)
@@ -228,12 +224,13 @@ class CommandRconDatabase(commands.Cog):
 
     def update_insert(self, row):
         #update only if user if last seen > 1 day or diffrent ip/beid
-        self.c.execute("SELECT * FROM users WHERE name = '{name}' AND beid = '{beid}' AND ip = '{ip}' AND stamp > date('now','-1 day')".format(**row))
+        sql = "SELECT * FROM users WHERE name = ? AND beid = ? AND ip = ? AND stamp > date('now','-1 day')"
+        self.c.execute(sql, (row["name"], row["beid"], row["ip"]))
         r = self.c.fetchone()
         if r is None: 
             #TODO Handel stamp = Null
-            sql = 'INSERT INTO users (id, name, beid, ip, stamp) values({id}, "{name}", "{beid}", "{ip}", "{stamp}")'.format(**row)
-            self.c.execute(sql)
+            sql = 'INSERT INTO users (id, name, beid, ip, stamp) values(?, ?, ?, ?, ?)'
+            self.c.execute(sql, (row["id"], row["name"], row["beid"], row["ip"], row["stamp"]))
             self.con.commit()
 
     def find_by_linked(self, beid, beids = None, ips = None, names = None):
@@ -244,18 +241,18 @@ class CommandRconDatabase(commands.Cog):
                 ips = set()      
             if(names == None):
                 names = set()
-            self.c.execute("SELECT count(beid) FROM users WHERE beid='{}'".format(beid))
+            self.c.execute("SELECT count(beid) FROM users WHERE beid = ?", (beid, ))
             if self.c.fetchone()[0]==0: 
                 return {"beids": beids, "ips": ips, "names": names}
                 
-            entries = self.c.execute("SELECT * FROM users WHERE beid = '{}'".format(beid))
+            entries = self.c.execute("SELECT * FROM users WHERE beid = ?", (beid, ))
             entries = entries.fetchall()
             for data in entries:
                 beids.add(data[2])
                 ips.add(data[3])
                 names.add(data[1])
 
-                ip_list = self.c.execute("SELECT * FROM users WHERE ip = '{}'".format(data[3]))
+                ip_list = self.c.execute("SELECT * FROM users WHERE ip = ?", (data[3], ))
                 ip_list = ip_list.fetchall()
                 for row in ip_list:
                     ips.add(row[3]) 
@@ -294,7 +291,7 @@ class CommandRconDatabase(commands.Cog):
         if field not in valid:
             raise Exception("Invalid field '{}', must be one of these values: {}".format(field, valid))
 
-        result = self.c.execute("SELECT * FROM users WHERE {} LIKE '{}' GROUP BY beid ORDER BY stamp DESC".format(field, data))
+        result = self.c.execute("SELECT * FROM users WHERE {} LIKE ? GROUP BY beid ORDER BY stamp DESC".format(field), (data, ))
         
         if(result):
             msg = ""
@@ -345,13 +342,13 @@ class CommandRconDatabase(commands.Cog):
         msg  = ""
         for player in players:
             if(i <= limit):
-                first_seen = self.c.execute("SELECT * FROM users WHERE beid = '{}' AND stamp IS NOT NULL ORDER BY stamp ASC LIMIT 1".format(player[3]))
+                first_seen = self.c.execute("SELECT * FROM users WHERE beid = ? AND stamp IS NOT NULL ORDER BY stamp ASC LIMIT 1", (player[3], ))
                 first_seen = list(first_seen)
                 if(len(first_seen) > 0):
                     first_seen = first_seen[0][4].split(" ")[0]
                 else:
                     first_seen = ""
-                visits = self.c.execute("SELECT COUNT(*) FROM users WHERE beid = '{}'".format(player[3]))
+                visits = self.c.execute("SELECT COUNT(*) FROM users WHERE beid = ?", (player[3], ))
                 visits = list(visits)
                 if(len(visits) > 0):
                     visits = visits[0][0]
