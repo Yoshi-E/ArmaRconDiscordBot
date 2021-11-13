@@ -52,7 +52,7 @@ class CommandArma(commands.Cog):
         self.mission_error_suppressed = 0
         
         try:
-            with open(self.path+"/logs/script_errors.log") as json_file:
+            with open(self.path+"/logs/script_errors.log", errors="replace") as json_file:
                 self.script_errors = json.load(json_file)
         except:
             self.script_errors = {}
@@ -279,7 +279,7 @@ class CommandArma(commands.Cog):
             raise Exception("File must be a .log or .rpt file")
         path = self.readLog.log_path+logfile
         logAccumulated = ""
-        sfile = open(path, "r")
+        sfile = open(path, "r", errors="replace")
         rowlimit = 30
         rows = 0
         linesCounter = 1
