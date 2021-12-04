@@ -336,7 +336,7 @@ File mpmissions\__cur_mp.Altis\Server\Functions\Server_SpawnTownResistance.sqf..
                     #file.seek(0, 2) #jump to the end of the file
                     try:
                         while (True):
-                            #where = file.tell()
+                            
                             try:
                                 line = file.readline()
                                 update_counter+= 1
@@ -354,6 +354,17 @@ File mpmissions\__cur_mp.Altis\Server\Functions\Server_SpawnTownResistance.sqf..
                                         file = open(self.log_path+self.current_log, "r")
                                         log.info("current log: "+self.current_log)
                                         self.EH.check_Event("Log new", old_log, self.current_log)
+                                    else: 
+                                        # failed to read line at current pos. Verify if the file cursor is still valid.
+                                        activeLogCursor = file.tell()
+                                        file.seek(0, os.SEEK_END)
+                                        if activeLogCursor > file.tell(): # check if file lenghts do not match
+                                            log.info(f"Invalid cursor position in log file. Rescanning '{self.current_log}'")
+                                            self.currentLinePos = 0
+                                            file.seek(0)
+                                        else:
+                                            # restore cursor position
+                                            file.seek(activeLogCursor)
                             else:
                                 self.currentLinePos += 1
                                 self.line = line #access to last read line (debugging)
