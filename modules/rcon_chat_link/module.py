@@ -83,7 +83,7 @@ class CommandChatLink(commands.Cog):
         
         for msg in messages:
             if msg.author.name==author and msg.content==message:
-                await msg.add_reaction('\U00002714')
+                await msg.add_reaction('\U00002705')
                 return
                
         await msg.add_reaction('\U0000274C')

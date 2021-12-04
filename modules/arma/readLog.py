@@ -329,7 +329,7 @@ File mpmissions\__cur_mp.Altis\Server\Functions\Server_SpawnTownResistance.sqf..
                     self.current_log = logs[-1]
                     log.info("current log: "+self.current_log)
                     self.currentLinePos = 0
-                    file = open(self.log_path+self.current_log, "r")
+                    file = open(self.log_path+self.current_log, "r", errors="replace")
                     for i, l in enumerate(file):
                         pass
                     self.currentLinePos = i+1
@@ -351,7 +351,7 @@ File mpmissions\__cur_mp.Altis\Server\Functions\Server_SpawnTownResistance.sqf..
                                         old_log = self.current_log
                                         self.current_log = self.getLogs()[-1] #update to new recent log
                                         self.currentLinePos = 0
-                                        file = open(self.log_path+self.current_log, "r")
+                                        file = open(self.log_path+self.current_log, "r", errors="replace")
                                         log.info("current log: "+self.current_log)
                                         self.EH.check_Event("Log new", old_log, self.current_log)
                                     else: 
