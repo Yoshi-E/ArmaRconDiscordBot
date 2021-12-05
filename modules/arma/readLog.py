@@ -362,6 +362,7 @@ File mpmissions\__cur_mp.Altis\Server\Functions\Server_SpawnTownResistance.sqf..
                                             log.info(f"Invalid cursor position in log file. Rescanning '{self.current_log}'")
                                             self.currentLinePos = 0
                                             file.seek(0)
+                                            self.EH.check_Event("Log new", self.current_log, self.current_log)
                                         else:
                                             # restore cursor position
                                             file.seek(activeLogCursor)
