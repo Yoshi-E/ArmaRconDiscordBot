@@ -330,6 +330,7 @@ File mpmissions\__cur_mp.Altis\Server\Functions\Server_SpawnTownResistance.sqf..
                     log.info("current log: "+self.current_log)
                     self.currentLinePos = 0
                     file = open(self.log_path+self.current_log, "r", errors="replace")
+                    file_descriptor = os.fstat(file.fileno())
                     for i, l in enumerate(file):
                         pass
                     self.currentLinePos = i+1
@@ -347,25 +348,30 @@ File mpmissions\__cur_mp.Altis\Server\Functions\Server_SpawnTownResistance.sqf..
                                 #file.seek(where)
                                 if(update_counter >= 60): #only check for new log files every 60s, to reduce IOPS
                                     update_counter = 0
-                                    if(self.current_log != self.getLogs()[-1]):
-                                        old_log = self.current_log
-                                        self.current_log = self.getLogs()[-1] #update to new recent log
-                                        self.currentLinePos = 0
-                                        file = open(self.log_path+self.current_log, "r", errors="replace")
-                                        log.info("current log: "+self.current_log)
-                                        self.EH.check_Event("Log new", old_log, self.current_log)
-                                    else: 
-                                        # failed to read line at current pos. Verify if the file cursor is still valid.
-                                        activeLogCursor = file.tell()
-                                        file.seek(0, os.SEEK_END)
-                                        if activeLogCursor > file.tell(): # check if file lenghts do not match
-                                            log.info(f"Invalid cursor position in log file. Rescanning '{self.current_log}'")
+                                    with open(self.log_path+self.getLogs()[-1], "r") as newlog:
+                                        newlog_descriptor = os.fstat(newlog.fileno())
+                                        # instead of just comparing file names, we compare the unique inode ID on the disk
+                                        if(file_descriptor.st_ino == newlog_descriptor.st_ino and file_descriptor.st_dev == newlog_descriptor.st_dev):
+                                            # only called if parts of the log are deleted
+                                            # failed to read line at current pos. Verify if the file cursor is still valid.
+                                            activeLogCursor = file.tell()
+                                            file.seek(0, os.SEEK_END)
+                                            if activeLogCursor > file.tell(): # check if file lenghts do not match
+                                                log.info(f"Invalid cursor position in log file. Rescanning '{self.current_log}'")
+                                                self.currentLinePos = 0
+                                                file.seek(0)
+                                                self.EH.check_Event("Log new", self.current_log, self.current_log)
+                                            else:
+                                                # restore cursor position
+                                                file.seek(activeLogCursor)                                           
+                                        else: # file identity changed
+                                            old_log = self.current_log
+                                            self.current_log = self.getLogs()[-1] #update to new recent log
                                             self.currentLinePos = 0
-                                            file.seek(0)
-                                            self.EH.check_Event("Log new", self.current_log, self.current_log)
-                                        else:
-                                            # restore cursor position
-                                            file.seek(activeLogCursor)
+                                            file = open(self.log_path+self.current_log, "r", errors="replace")
+                                            file_descriptor = os.fstat(file.fileno())
+                                            log.info("current log: "+self.current_log)
+                                            self.EH.check_Event("Log new", old_log, self.current_log)
                             else:
                                 self.currentLinePos += 1
                                 self.line = line #access to last read line (debugging)
