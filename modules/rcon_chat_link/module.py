@@ -97,7 +97,7 @@ class CommandChatLink(commands.Cog):
                 header, body = message.split(": ", 1)
                 if(self.CommandRcon.isChannel(header)): #was written in a channel
                     channel, player_name = header.split(") ", 1)
-                    if(self.cfg["arma_channel_all"] or "Global" in channel):
+                    if(self.cfg["arma_channel_all"] or ("Global" in channel and "ᐅ" != body[0])):
                         if(self.cfg["display_channel_name"]):
                             await self.linkedChannel.send("({}) {}: {}".format(channel[1:], player_name, body))    
                         else:
@@ -125,21 +125,7 @@ class CommandChatLink(commands.Cog):
     async def rcon_on_connect(self):
         await self.linkedChannel.send(":white_check_mark: ``Connected ChatLink``")
 
-     
-    ###################################################################################################
-    #####                                   Bot commands                                           ####
-    ###################################################################################################
-
-    # @CommandChecker.command(  name='ping',
-                        # pass_context=True)
-    # async def command_ping(self, ctx, *args):
-        # msg = 'Pong!'
-        # await ctx.send(msg)
-    
-                  
-    
 def setup(bot):
     module = CommandChatLink(bot)
-    #bot.loop.create_task(module.task_setStatus())
     bot.add_cog(module)
     
