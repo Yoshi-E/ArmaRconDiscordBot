@@ -57,7 +57,7 @@ class RconCommandEngine(object):
         async def say(self, msg):
             if(int(self.user_beid) >= 0):
                 if(RconCommandEngine.logging==True):
-                    RconCommandEngine.log.info(msg)
+                    RconCommandEngine.logR.info(msg)
                 await RconCommandEngine.cogs["CommandRcon"].arma_rcon.sayPlayer(self.user_beid, msg)
             else:
                 self.error = "Invalid BEID"
@@ -87,10 +87,10 @@ class RconCommandEngine(object):
     _my_handler.setFormatter(_log_formatter)
     _my_handler.setLevel(logging.INFO)
 
-    log = logging.getLogger(__name__)
-    log.setLevel(logging.INFO)
-    log.addHandler(_my_handler)
-    log.addHandler(_stdout_handler)
+    logR = logging.getLogger(__name__)
+    logR.setLevel(logging.INFO)
+    logR.addHandler(_my_handler)
+    logR.addHandler(_stdout_handler)
 
     @staticmethod
     async def getPlayerBEID(player: str):
@@ -131,8 +131,8 @@ class RconCommandEngine(object):
                         ctx.command = ctx.command[len(RconCommandEngine.command_prefix):]
                         return await RconCommandEngine.processCommand(ctx)
         except Exception as e:
-            RconCommandEngine.log.error(traceback.format_exc())
-            RconCommandEngine.log.error(e)
+            RconCommandEngine.logR.error(traceback.format_exc())
+            RconCommandEngine.logR.error(e)
     
     @staticmethod
     async def checkPermission(ctx, func_name):
@@ -179,29 +179,29 @@ class RconCommandEngine(object):
                          RconCommandEngine.users[ctx.user].update()
                          
                     ctx.executed = True
-                    RconCommandEngine.log.info(ctx)
+                    RconCommandEngine.logR.info(ctx)
                     return ctx
             except TypeError as e:
                 ctx.error = "Invalid arguments: Given {}, expected {}".format(len(ctx.args), len(Command["kwargs"])-2)
                 ctx.executed = False
                 await ctx.say(ctx.error)
-                RconCommandEngine.log.error(traceback.format_exc())
-                RconCommandEngine.log.error("Error in: {}".format(ctx))
+                RconCommandEngine.logR.error(traceback.format_exc())
+                RconCommandEngine.logR.error("Error in: {}".format(ctx))
                 return ctx
             except Exception as e:
                 if(ctx.command == "afk"):
                     RconCommandEngine.cogs["CommandRconIngameComs"].afkLock = False #set Rconcommand engine 
-                RconCommandEngine.log.error(traceback.format_exc())
+                RconCommandEngine.logR.error(traceback.format_exc())
                 ctx.error = "Error: '{}'".format(e)
                 ctx.executed = False
                 await ctx.say("Error '{}'".format(ctx.error))
-                RconCommandEngine.log.error("Error in: {}".format(ctx))
+                RconCommandEngine.logR.error("Error in: {}".format(ctx))
                 return ctx
         #Command not found
         if(len(ctx.command) > len(RconCommandEngine.command_prefix) and ctx.command[:len(RconCommandEngine.command_prefix)] != RconCommandEngine.command_prefix and ctx.command != "" and ctx.command != None):
             ctx.error = "Command '{}' not found".format(ctx.command)
             ctx.executed = False
-            RconCommandEngine.log.warning(ctx)
+            RconCommandEngine.logR.warning(ctx)
             return ctx
         return None
         

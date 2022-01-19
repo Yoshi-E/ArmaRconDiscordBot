@@ -395,11 +395,11 @@ class CommandRcon(commands.Cog):
         for player in players:
             if(int(player[0]) == player_id):
                 player_name = player[4]
-        if(player_name.endswith(" (Lobby)")): #Strip lobby from name
-            player_name = player_name[:-8]
         if(player_name == None):
             await ctx.send("Player not found")
             return
+        if(player_name.endswith(" (Lobby)")): #Strip lobby from name
+            player_name = player_name[:-8]
         msg= "Starting AFK check for: ``"+str(player_name)+"``"
         await ctx.send(msg)  
         already_active = False
@@ -454,10 +454,10 @@ class CommandRcon(commands.Cog):
         msg = self.generateChat(limit)
         await utils.sendLong(ctx, msg)
 
-    @CommandChecker.command(name='players+',
+    @CommandChecker.command(name='players',
         brief="Lists current players on the server",
         pass_context=True)
-    async def playersPlus(self, ctx):
+    async def playersFancy(self, ctx):
         players = await self.arma_rcon.getPlayersArray()
 
         limit = 100
@@ -477,7 +477,7 @@ class CommandRcon(commands.Cog):
                     response = self.ipReader.country(ip.split(":")[0])
                     region = str(response.country.iso_code).lower()
                 except:
-                    region = ":question:"
+                    region = "none"
                     
                 if(region == "none"):
                     flag = ":question:" #symbol if no country was found
@@ -507,7 +507,7 @@ class CommandRcon(commands.Cog):
 
     @CommandChecker.command(name='kickPlayer',
         brief="Kicks a player who is currently on the server",
-        aliases=['kickplayer'],
+        aliases=['kickplayer', 'kpl'],
         pass_context=True)
     async def kickPlayer(self, ctx, player_id: int, *message): 
         message = " ".join(message)
@@ -588,43 +588,6 @@ class CommandRcon(commands.Cog):
         msg = "Loaded Bans!"
         await ctx.send(msg)    
 
-
-    @CommandChecker.command(name='players',
-        brief="Lists current players on the server",
-        pass_context=True)
-    async def players(self, ctx):
-        players = await self.arma_rcon.getPlayersArray()
-        msgtable = prettytable.PrettyTable()
-        msgtable.field_names = ["ID", "Name", "IP", "GUID"]
-        msgtable.align["ID"] = "r"
-        msgtable.align["Name"] = "l"
-        msgtable.align["IP"] = "l"
-        msgtable.align["GUID"] = "l"
-
-        limit = 100
-        i = 1
-        new = False
-        msg  = ""
-        for player in players:
-            if(i <= limit):
-                msgtable.add_row([player[0], discord.utils.escape_markdown(player[4], as_needed=True), player[1],player[3]])
-                if(len(str(msgtable)) < 1800):
-                    i += 1
-                    new = False
-                else:
-                    msg += "```"
-                    msg += str(msgtable)
-                    msg += "```"
-                    await ctx.send(msg)
-                    msgtable.clear_rows()
-                    msg = ""
-                    new = True
-        if(new==False):
-            msg += "```"
-            msg += str(msgtable)
-            msg += "```"
-            await ctx.send(msg)    
-
     @CommandChecker.command(name='admins',
         brief="Lists current admins on the server",
         pass_context=True)
@@ -681,17 +644,17 @@ class CommandRcon(commands.Cog):
     @CommandChecker.command(name='banPlayer',
         brief="Ban a player with his player id from the server.",
         help="Kicks and Bans a player with the specifed BE player id (usually 0-100)",
-        aliases=['banplayer'],
+        aliases=['banplayer', 'bpl'],
         pass_context=True)
     async def banPlayer(self, ctx, player_id, time=0, *message): 
         message = " ".join(message)
         message = self.setEncoding(message)
         if(len(message)<2):
-            await self.arma_rcon.banPlayer(player=player, time=time)
+            await self.arma_rcon.banPlayer(player=player_id, time=time)
         else:
-            await self.arma_rcon.banPlayer(player, message, time)
+            await self.arma_rcon.banPlayer(player_id, message, time)
             
-        msg = "Banned player: ``"+str(player)+" - "+matches[0]+"`` with reason: "+message
+        msg = "Banned player: ``"+str(player_id)+" - "+matches[0]+"`` with reason: "+message
         await ctx.send(msg)    
         
     @CommandChecker.command(name='addBan',
@@ -711,6 +674,7 @@ class CommandRcon(commands.Cog):
             await self.arma_rcon.addBan(GUID, message, time)
             
         msg = "Banned player: ``"+str(GUID)+" - "+matches[0]+"`` with reason: "+message
+        await ctx.send(msg)
 
     @CommandChecker.command(name='removeBan',
         brief="Removes a ban",
@@ -723,7 +687,7 @@ class CommandRcon(commands.Cog):
         await ctx.send(msg)    
         
     @CommandChecker.command(name='getBans',
-        brief="Removes a ban",
+        brief="Lists the most recent bans",
         aliases=['getbans'],
         pass_context=True)
     async def getBans(self, ctx): 
@@ -838,18 +802,19 @@ class CommandRcon(commands.Cog):
     @CommandChecker.command(name='monitords',
         brief="Shows performance information in the dedicated server console. Tracks the performance for 10s",
         pass_context=True)
-    async def monitords(self, ctx,): 
+    async def monitords(self, ctx): 
         if(not self.readLog):
             raise Exception("Arma module required, but not loaded!")
     
-        async def sendLoad(event, timestamp, msg, event_match):
-            await ctx.send(msg)
+        async def sendLoad(event, payload):
+            await ctx.send(payload["msg"])
  
         self.readLog.EH.add_Event("Server load", sendLoad)
         await self.arma_rcon.monitords(1)
         await asyncio.sleep(5)
         await self.arma_rcon.monitords(0)
         self.readLog.EH.remove_Event("Server load", sendLoad)
+        await ctx.send("Done")
         
     @CommandChecker.command(name='goVote',
         brief="Users can vote for the mission selection.",

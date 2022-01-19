@@ -11,6 +11,8 @@ import datetime
 import discord
 from discord.ext import commands
 from discord.ext.commands import has_permissions, CheckFailure
+import prettytable
+import requests
 
 import csv
 from modules.core.utils import CommandChecker, RateBucket, sendLong, CoreConfig, Tools
@@ -27,17 +29,14 @@ class CommandRconDatabase(commands.Cog):
 
         
         self.upgrade_database()
+        self.alter_database()
         #self.player_db = CoreConfig.cfg.new(self.path+"/player_db.json")
 
         self.cfg = CoreConfig.modules["modules/rcon_database"]["general"]
         
         asyncio.ensure_future(self.on_ready())
         self.players = None
-        #Import an EPM rcon database
-        #First convert the EPM export (.sdf) to csv:
-        #Convert SDF with https://www.rebasedata.com/convert-sdf-to-csv-online
-        #then just import it:
-        #self.import_epm_csv('Players.csv')
+
 
     async def on_ready(self):
         await self.bot.wait_until_ready()
@@ -45,7 +44,13 @@ class CommandRconDatabase(commands.Cog):
             log.error("[module] 'CommandRcon' required, but not found in '{}'. Module unloaded".format(type(self).__name__))
             del self
             return
+        try:
+            self.CommandArma = self.bot.cogs["CommandArma"]
+            self.CommandArma.readLog.EH.add_Event("Player connected", self.playerConnected)
+        except KeyError:
+            self.CommandArma = None
         self.CommandRcon = self.bot.cogs["CommandRcon"]
+        
         asyncio.ensure_future(self.fetch_player_data_loop())
         #self.check_all_users()
         
@@ -53,7 +58,6 @@ class CommandRconDatabase(commands.Cog):
         try:
             json_f = self.path+"/player_db.json"
             if(not os.path.isfile(json_f)):
-                
                 return
             
             #get the count of tables with the name
@@ -90,7 +94,8 @@ class CommandRconDatabase(commands.Cog):
                         name  TEXT,
                         beid TEXT,
                         ip TEXT,
-                        stamp DATETIME
+                        stamp DATETIME,
+                        profileid INTEGER
                     );
                 """)
                 
@@ -104,25 +109,38 @@ class CommandRconDatabase(commands.Cog):
         except Exception as e:
             log.print_exc()
             log.error(e)
+    
+    def alter_database(self):
+        try:
+            ## Alter table (upgrade by adding the profileid column)
+            self.c.execute("SELECT COUNT(*) AS CNTREC FROM pragma_table_info('users') WHERE name='profileid'")
+            if self.c.fetchone()[0]==0: 
+                
+                sql = """   ALTER TABLE users
+                            ADD COLUMN profileid INTEGER;"""
+                self.c.execute(sql)
+                self.con.commit()
+                log.info("Altered DB Table: 'Added COLUMN profileid'")
+        except Exception as e:
+            log.print_exc()
+            log.error(e)  
             
     async def fetch_player_data_loop(self):
         while True: 
-            await asyncio.sleep(60)
             try:
                 if(self.CommandRcon.arma_rcon.disconnected==True):
+                    await asyncio.sleep(60)
                     continue
                 try:
                     self.players = await self.CommandRcon.arma_rcon.getPlayersArray()
                 except Exception as e:
+                    await asyncio.sleep(60)
                     continue
                 #self.player_db.save = False 
                 
                 
                 c_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") 
-                #Set status
-                if(self.cfg["set_custom_status"]==True):
-                    await self.set_status(self.players)                
-                    
+
                 if(self.cfg["setTopicPlayerList_channel"]>0):
                     await self.setTopicPlayerList(self.players)
                 
@@ -147,15 +165,8 @@ class CommandRconDatabase(commands.Cog):
             except Exception as e:
                 log.print_exc()
                 log.error(e)
+            await asyncio.sleep(60)
             
-    async def set_status(self, players):
-        game_name = "{} Players".format(len(players))
-        status = discord.Status.do_not_disturb #discord.Status.online
-        if(self.CommandRcon.arma_rcon.disconnected==False):
-            status = discord.Status.online
-        
-        await self.bot.change_presence(activity=discord.Game(name=game_name), status=status)
-    
     async def setTopicPlayerList(self, players):
         #log.info("[DEBUG] {}".format(players))#
         channel = self.bot.get_channel(self.cfg["setTopicPlayerList_channel"])
@@ -165,6 +176,38 @@ class CommandRconDatabase(commands.Cog):
         for player in players:
             playerlist += player[4]+", "
         await channel.edit(topic=playerlist[:-2])
+    
+    
+    # fetches players profile ID from the log file, 
+    # and adds it to the database if it can be matched to a user.
+    async def playerConnected(self, event, data):
+        try:
+            player_name = data["event_match"].group(2)
+            player_profileID = int(data["event_match"].group(3))
+            for i in range(2):
+                for player in self.players:
+                    name = player[4]
+                    if(name.endswith(" (Lobby)")): #Strip lobby from name
+                        name = name[:-8]
+                        
+                    if name == player_name:
+                        beid = player[3]
+                        ip = player[1].split(":")[0]
+                        sql = """   UPDATE users
+                                    SET profileid = ?
+                                    WHERE name = ?
+                                          AND beid = ?
+                                          AND ip = ?
+                                          AND stamp > date('now','-1 day')"""
+                                                                                
+                        log.debug(sql)
+                        self.c.execute(sql, (player_profileID, name, beid, ip))
+                        self.con.commit()
+                        break
+                    await asyncio.sleep(60)
+        except Exception as e:
+            log.print_exc()
+            log.error(e)
         
 ###################################################################################################
 #####                                   General functions                                      ####
@@ -181,42 +224,15 @@ class CommandRconDatabase(commands.Cog):
 
     def update_insert(self, row):
         #update only if user if last seen > 1 day or diffrent ip/beid
-        self.c.execute("SELECT * FROM users WHERE name = '{name}' AND beid = '{beid}' AND ip = '{ip}' AND stamp < date('now','-1 day')".format(**row))
+        sql = "SELECT * FROM users WHERE name = ? AND beid = ? AND ip = ? AND stamp > date('now','-1 day')"
+        self.c.execute(sql, (row["name"], row["beid"], row["ip"]))
         r = self.c.fetchone()
         if r is None: 
-            sql = 'INSERT INTO users (id, name, beid, ip, stamp) values({id}, "{name}", "{beid}", "{ip}", "{stamp}")'.format(**row)
-            self.c.execute(sql)
+            #TODO Handel stamp = Null
+            sql = 'INSERT INTO users (id, name, beid, ip, stamp) values(?, ?, ?, ?, ?)'
+            self.c.execute(sql, (row["id"], row["name"], row["beid"], row["ip"], row["stamp"]))
             self.con.commit()
 
-                
-    # def import_epm_csv(self, file='Players.csv'):
-        #disable auto saving, so the files is not written for every data entry
-        # self.player_db.save = False 
-    
-        # with open(file, newline='',encoding='utf8') as csvfile:
-            # spamreader = csv.reader(csvfile, delimiter=',', quotechar='"')
-            # head = None
-            # for row in spamreader:
-                # if(head):
-                    # d_row = {
-                        # "ID": row[0],
-                        # "name": row[1],
-                        # "beid": row[2],
-                        # "ip": row[3],
-                        # "note": row[4]
-                    # }
-                    # if(row[2] not in self.player_db):
-                        # self.player_db[row[2]] = []
-                    # self.player_db[row[2]].append(d_row)
-                # else:
-                    # head = row
-        
-        #Save the data
-        # self.player_db.save = True
-        # self.player_db.json_save()
-        # log.info("Databse Import sucessfull")
-        
-        
     def find_by_linked(self, beid, beids = None, ips = None, names = None):
         try:
             if(beids == None):
@@ -225,18 +241,18 @@ class CommandRconDatabase(commands.Cog):
                 ips = set()      
             if(names == None):
                 names = set()
-            self.c.execute("SELECT count(beid) FROM users WHERE beid='{}'".format(beid))
+            self.c.execute("SELECT count(beid) FROM users WHERE beid = ?", (beid, ))
             if self.c.fetchone()[0]==0: 
                 return {"beids": beids, "ips": ips, "names": names}
                 
-            entries = self.c.execute("SELECT * FROM users WHERE beid = '{}'".format(beid))
+            entries = self.c.execute("SELECT * FROM users WHERE beid = ?", (beid, ))
             entries = entries.fetchall()
             for data in entries:
                 beids.add(data[2])
                 ips.add(data[3])
                 names.add(data[1])
 
-                ip_list = self.c.execute("SELECT * FROM users WHERE ip = '{}'".format(data[3]))
+                ip_list = self.c.execute("SELECT * FROM users WHERE ip = ?", (data[3], ))
                 ip_list = ip_list.fetchall()
                 for row in ip_list:
                     ips.add(row[3]) 
@@ -275,7 +291,7 @@ class CommandRconDatabase(commands.Cog):
         if field not in valid:
             raise Exception("Invalid field '{}', must be one of these values: {}".format(field, valid))
 
-        result = self.c.execute("SELECT * FROM users WHERE {} = '{}' GROUP BY beid ORDER BY stamp DESC".format(field, data))
+        result = self.c.execute("SELECT * FROM users WHERE {} LIKE ? GROUP BY beid ORDER BY stamp DESC".format(field), (data, ))
         
         if(result):
             msg = ""
@@ -306,7 +322,143 @@ class CommandRconDatabase(commands.Cog):
         else:
             await sendLong(ctx, "Sorry, I could not find anything")  
 
-    
-    
+    @CommandChecker.command(name='players+',
+        brief="Lists players on the server and checks if they are regulars",
+        pass_context=True)
+    async def players(self, ctx):
+        players = await self.CommandRcon.arma_rcon.getPlayersArray()
+        msgtable = prettytable.PrettyTable()
+        msgtable.field_names = ["ID", "Name", "IP", "GUID", "First Seen", "Visits"]
+        msgtable.align["ID"] = "r"
+        msgtable.align["Name"] = "l"
+        msgtable.align["IP"] = "l"
+        msgtable.align["GUID"] = "l"
+        msgtable.align["First Seen"] = "l"
+        msgtable.align["Visits"] = "r"
+
+        limit = 100
+        i = 1
+        new = False
+        msg  = ""
+        for player in players:
+            if(i <= limit):
+                first_seen = self.c.execute("SELECT * FROM users WHERE beid = ? AND stamp IS NOT NULL ORDER BY stamp ASC LIMIT 1", (player[3], ))
+                first_seen = list(first_seen)
+                if(len(first_seen) > 0):
+                    first_seen = first_seen[0][4].split(" ")[0]
+                else:
+                    first_seen = ""
+                visits = self.c.execute("SELECT COUNT(*) FROM users WHERE beid = ?", (player[3], ))
+                visits = list(visits)
+                if(len(visits) > 0):
+                    visits = visits[0][0]
+                else:
+                    visits = 0
+                msgtable.add_row([player[0], discord.utils.escape_markdown(player[4], as_needed=True), player[1],player[3], first_seen, visits])
+                if(len(str(msgtable)) < 1800):
+                    i += 1
+                    new = False
+                else:
+                    msg += "```"
+                    msg += str(msgtable)
+                    msg += "```"
+                    await ctx.send(msg)
+                    msgtable.clear_rows()
+                    msg = ""
+                    new = True
+        if(new==False):
+            msg += "```"
+            msg += str(msgtable)
+            msg += "```"
+            await ctx.send(msg)      
+            
+    @CommandChecker.command(name='regulars',
+        brief="Lists the most seen players",
+        pass_context=True)
+    async def regulars(self, ctx):
+        sql = """   SELECT name,COUNT(beid) AS cnt FROM users
+                    GROUP BY beid
+                    ORDER BY cnt DESC;
+        """
+        players = self.c.execute(sql)
+        players = (list(players)[:10])
+        
+        msgtable = prettytable.PrettyTable()
+        msgtable.field_names = ["Name", "Visits"]
+        msgtable.align["Name"] = "l"
+        msgtable.align["Visits"] = "r"
+
+        limit = 100
+        i = 1
+        new = False
+        msg  = ""
+        for player in players:
+            if(i <= limit):
+                msgtable.add_row([discord.utils.escape_markdown(player[0], as_needed=True), player[1]])
+                if(len(str(msgtable)) < 1800):
+                    i += 1
+                    new = False
+                else:
+                    msg += "```"
+                    msg += str(msgtable)
+                    msg += "```"
+                    await ctx.send(msg)
+                    msgtable.clear_rows()
+                    msg = ""
+                    new = True
+        if(new==False):
+            msg += "```"
+            msg += str(msgtable)
+            msg += "```"
+            await ctx.send(msg)      
+            
+    @CommandChecker.command(name='query',
+        brief="Runs and commits an SQL command",
+        help="""table: 'users'
+        columns: 
+        id INTEGER NOT NULL,
+        name  TEXT,
+        beid TEXT,
+        ip TEXT,
+        stamp DATETIME
+        
+        returns at most 15 rows
+        """,
+        pass_context=True)
+    async def query(self, ctx, *query):
+        try:
+            query = " ".join(query)
+            log.info(query)
+            result = self.c.execute(query)
+            result = list(result)
+            self.con.commit()
+            
+            msg = ""
+            for row in result[:15]:
+                msg += "{}\n".format(row)
+            if(msg == ""):
+                msg = "Query returned nothing"
+        except Exception as e:
+            msg = str(e)
+        await ctx.send(msg)    
+        
+    @CommandChecker.command(name='convertID',
+        brief="Convert a players ID. Can be Steam ID, BattlEye ID or Bohemia ID",
+        aliases=["convertid"],
+        pass_context=True)
+    async def convertid(self, ctx, id):
+        url = '	https://api.devt0ols.net/converter/'
+
+        params = dict(id=id)
+        resp = requests.get(url=url, params=params, verify=False)
+        data = resp.json() # Check the JSON Response Content documentation below
+        msg=""
+        for key, val in data["result"].items():
+            if(key == "steam_url"):
+                msg += "{} {}\n".format(key, val)
+            else:
+                msg += "{} ``{}``\n".format(key, val)
+        await ctx.send(msg)
+        
 def setup(bot):
     bot.add_cog(CommandRconDatabase(bot))

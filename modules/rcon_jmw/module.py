@@ -13,9 +13,11 @@ import sys
 import traceback
 import urllib.parse
 import threading
+import datetime
 
 from modules.core.utils import CommandChecker, sendLong, CoreConfig
 from modules.rcon_jmw.process_log import ProcessLog
+from modules.rcon_jmw.playerStatsGenerator import PlayerStatsGenerator
 from modules.core.Log import log
 
 class CommandJMW(commands.Cog):
@@ -24,6 +26,10 @@ class CommandJMW(commands.Cog):
         self.path = os.path.dirname(os.path.realpath(__file__))
         
         self.cfg = CoreConfig.modules["modules/rcon_jmw"]["general"]
+        self.maps = ["Altis", "Tanoa", "Enoch", "Malden", "Stratis"]
+        
+        self.psg = PlayerStatsGenerator(self.cfg["data_path"])
+        self.psg_updated = None
         
         self.user_data = {}
         if(os.path.isfile(self.path+"/userdata.json")):
@@ -77,23 +83,32 @@ class CommandJMW(commands.Cog):
 #####                                  common functions                                        ####
 ###################################################################################################
     async def task_setStatus(self):
-        while True:
+        #while True:
+            await asyncio.sleep(60)
             try:
-                await asyncio.sleep(60)
                 await self.setStatus()
             except (KeyboardInterrupt, asyncio.CancelledError):
                 log.info("[asyncio] exiting", task_setStatus)
             except Exception as e:
                 log.error("setting status failed", e)
+                log.print_exc()    
+                
+    async def task_updatePlayerStats(self):
+        await asyncio.sleep(60*2)
+        while True:
+            try:
+                log.info("[JMW] Updating Player stats")
+                t = threading.Thread(target=self.psg.generateStats())
+                t.start()
+                self.psg_updated = datetime.datetime.now(datetime.timezone.utc)
+            except (KeyboardInterrupt, asyncio.CancelledError):
+                pass
+            except Exception as e:
+                log.error("Failed to update player stats", e)
                 log.print_exc()
-
+            await asyncio.sleep(60*60*24)
                 
     async def setStatus(self):
-        if(self.cfg["set_custom_status"]==False):
-            return
-        if(self.bot.is_closed()):
-            return
-            
         game = ""
         status = discord.Status.do_not_disturb #discord.Status.online
         
@@ -104,7 +119,7 @@ class CommandJMW(commands.Cog):
             meta, game, dict = self.processLog.generateGame()
         except EOFError:
             return #No valid logs found, just return
-            
+
         last_packet = None
         for packet in reversed(game):
             if(packet["CTI_DataPacket"]=="Data"):
@@ -114,7 +129,10 @@ class CommandJMW(commands.Cog):
         #fetch data
         time_running = 0
         if(last_packet != None and "time" in last_packet and packet["time"] > 0):
-            time_running = round(packet["time"]/60)    
+            time_running = round(packet["time"]/60)  
+            if "mission start time" not in self.CommandArma.serverStateInfo:
+                self.CommandArma.serverStateInfo["mission start time"] = datetime.datetime.now() - datetime.timedelta(minutes=time_running)            
+                self.CommandArma.serverStateInfo["mission state"] = "playing"    
         winner = "currentGame"
         if("winner" in meta):
             winner = meta["winner"]   
@@ -129,11 +147,20 @@ class CommandJMW(commands.Cog):
         starting_time = None
         if("map" in meta):
             map = meta["map"]
+
         elif("Mission world" in dict):
             map = dict["Mission world"][2].group(2)
-        
             #Get Starting time
             starting_time = dict["Mission world"][0]
+            
+            
+        if( map!="unknown" 
+            and ("world" in self.CommandArma.serverStateInfo
+            and self.CommandArma.serverStateInfo["world"][1] == 0) 
+            or "world" not in self.CommandArma.serverStateInfo):
+            self.CommandArma.serverStateInfo["world"] = (map, 0)
+        
+        
         
         #set checkRcon status
         game_name = "..."
@@ -154,6 +181,9 @@ class CommandJMW(commands.Cog):
         else:
             status = discord.Status.online
             game_name = "Online"
+ 
+        if(self.cfg["set_custom_status"]==False):
+            return
         if(self.bot.is_closed()):
             return False
         await self.bot.change_presence(activity=discord.Game(name=game_name), status=status)
@@ -222,7 +252,50 @@ class CommandJMW(commands.Cog):
 
         except Exception as e:
             log.print_exc()
-            await channel.send("Unable to find game: "+str(e))
+            await channel.send("Unable to find game: "+str(e))   
+
+    async def processOldGame(self, channel, admin=False, gameindex=0, sendraw=False):
+        if(self.bot.is_closed()):
+            return False
+        if(gameindex<=0):
+            return await self.processGame(channel, admin, 0, sendraw)
+        try:
+            #get list of old game files
+            path = self.cfg['image_path']
+            ignore = ["-CUR", "currentGame"] #log files that will be ignored
+            if(os.path.exists(path)):
+                files = []
+                for file in os.listdir(path):
+                    if ((file.endswith(".png") and "-ADV" in file) and not any(x in file for x in ignore)):
+                        files.append(file)
+                files = sorted(files, reverse=True)
+            else:
+                files = []
+            
+            if(gameindex > len(files)):
+                msg="Sorry, I could not find any games"
+                await channel.send(com_west)
+                return
+                
+           
+            picname = files[gameindex-1]
+            print(picname)
+            gamefile = picname.replace(".png", ".json")
+            timestamp = " ".join(picname.split("#")[:2])
+            gameduration = picname.split("#")[2]
+            lastwinner = picname.split("#")[3]
+            
+            if(sendraw == True):
+                filename = self.cfg['data_path']+gamefile
+            else:
+                filename = self.cfg['image_path']+picname
+            msg="["+timestamp+"] "+str(gameduration)+"min game. Winner:"+lastwinner
+            msg += "\n<http://www.jammywarfare.eu/replays/?file={}>".format(urllib.parse.quote(gamefile))
+            await channel.send(file=discord.File(filename), content=msg)
+
+        except Exception as e:
+            log.print_exc()
+            await channel.send("An error occurred: "+str(e))
 
     
 
@@ -234,7 +307,7 @@ class CommandJMW(commands.Cog):
         channel = self.bot.get_channel(int(self.cfg["post_channel"]))
         await self.dm_users_new_game()
         await self.processGame(channel)
-        self.processLog.readData(True, 1) #Generate advaced data as well, for later use.  
+        self.processLog.readData(True, 0) #Generate advaced data as well, for later use.  
         
     async def gameStart(self, *args):
         if(self.bot.is_closed()):
@@ -293,16 +366,16 @@ class CommandJMW(commands.Cog):
             admin = True
         else: 
             admin = False
-        await self.processGame(message.channel, admin, index)
+        await self.processOldGame(message.channel, admin, index)
 
-    @CommandChecker.command(  name='lastdata',
-                        brief="sends the slected game as raw .json",
-                        description="Takes up to 2 arguments, 1st: index of the game, 2nd: sending 'normal'",
-                        pass_context=True)
-    async def command_lastdata(self, ctx, index=0):
-        message = ctx.message
-        admin = True
-        await self.processGame(message.channel, admin, index, True)
+    # @CommandChecker.command(  name='lastdata',
+                        # brief="sends the slected game as raw .json",
+                        # description="Takes up to 2 arguments, 1st: index of the game, 2nd: sending 'normal'",
+                        # pass_context=True)
+    # async def command_lastdata(self, ctx, index=0):
+        # message = ctx.message
+        # admin = True
+        # await self.processGame(message.channel, admin, index, True)
         
     @CommandChecker.command(name='dump',
         brief="dumps array data into a dump.json file",
@@ -324,18 +397,20 @@ class CommandJMW(commands.Cog):
         brief="generates a heatmap of a select player",
         aliases=['heatMap'],
         pass_context=True)
-    async def heatmap(self, ctx, *player_name):
+    async def heatmap(self, ctx, map, *player_name):
+        if map not in self.maps:
+            raise Exception("Please enter only valid maps names: {}".format(self.maps))
         await sendLong(ctx,"Generating data...")
         
         player_name = " ".join(player_name)
         if(len(player_name)==0):
             player_name = "all"
         
-        t = threading.Thread(target=self.heatmap_helper, args=[ctx, player_name, 16])
+        t = threading.Thread(target=self.heatmap_helper, args=[ctx, player_name, map, 16])
         t.start()
         
-    def heatmap_helper(self, ctx, player_name, sigma=16):
-        virtualFile = self.playerMapGenerator.generateMap(player_name, sigma=16)
+    def heatmap_helper(self, ctx, player_name, map="Altis", sigma=16):
+        virtualFile = self.playerMapGenerator.generateMap(player_name, map=map, sigma=16)
         if(virtualFile == False):
             asyncio.run_coroutine_threadsafe(sendLong(ctx,"No data found"), self.bot.loop)
         else:
@@ -345,14 +420,16 @@ class CommandJMW(commands.Cog):
         brief="generates a heatmap of a select player",
         aliases=['heatmapa'],
         pass_context=True)
-    async def heatmapA(self, ctx, *player_name):
+    async def heatmapA(self, ctx, map, *player_name):
+        if map not in self.maps:
+            raise Exception("Please enter only valid maps names: {}".format(self.maps))
         await sendLong(ctx,"Generating data...")
         
         player_name = " ".join(player_name)
         if(len(player_name)==0):
             player_name = "all"
         
-        t = threading.Thread(target=self.heatmap_helper, args=[ctx, player_name, 8])
+        t = threading.Thread(target=self.heatmap_helper, args=[ctx, player_name, map, 8])
         t.start()
             
     @CommandChecker.command(name='r',
@@ -361,7 +438,98 @@ class CommandJMW(commands.Cog):
     async def setRestart(self, ctx):
         await ctx.send("Restarting...")
         sys.exit()     
-                  
+                     
+    @CommandChecker.command(name='stats',
+        brief="Get stats for a given player",
+        pass_context=True)
+    async def getStats(self, ctx, *player_name):
+        player_name = " ".join(player_name)
+        # TODO get closest matching name:
+        data = []
+        if(player_name in self.psg.players):
+            data = self.psg.players[player_name]
+            total_games = data["game_defeats"]+data["game_victories"]
+            total_kills = data["total_air_kills"] + data["total_armor_kills"] + data["total_infantry_kills"]+ data["total_soft_vehicle_kills"]
+            total_cmd = data["total_command_defeats"] + data["total_command_vicotries"]
+            maps = ""
+            for map, time in data["maps_played"].items():
+                maps+= "{}: {} | ".format(map, time)
+            maps = maps [:-2]
+            
+            if data["total_deaths"]>0:
+                kd = str(round(total_kills/data["total_deaths"],3))
+            else:
+                kd = "inf"            
+                
+            if data["total_deaths"]>0:
+                avrgL = str(round(data["total_entries"]/data["total_deaths"],2))+"min"
+            else:
+                avrgL = "inf"
+            
+            if total_games > 0:
+                wr = str(round(data["game_victories"]/total_games*100,2))+"%"
+            else:
+                wr = "inf"            
+                
+            if data["total_entries"] > 0:
+                spm = str(round(data["total_score"]/data["total_entries"],3))
+            else:
+                spm = "inf"          
+
+            if data["total_entries"] > 0:
+                kpm = str(round(total_kills/data["total_entries"],3))
+            else:
+                kpm = "inf"           
+
+            if total_cmd > 0:
+                cwr = str(round(data["total_command_vicotries"]/total_cmd*100,2))+"%"
+            else:
+                cwr = "inf"
+                
+            if self.psg_updated:
+                footer = "Last updated - {}".format(self.psg_updated.strftime("%Y-%m-%d %H:%M:%S %Z"))
+            else:
+                footer = ""
+                
+            embed=discord.Embed(title="JMW Stats", description="Player Statistics", color=0x04ff00)
+            embed.set_author(name=player_name)
+            embed.add_field(name="Total playtime", value=str(data["total_entries"])+"min", inline=True)
+            embed.add_field(name="Total games played", value=total_games, inline=True)
+            embed.add_field(name="Win rate", value=wr, inline=True)
+            embed.add_field(name="K/D", value=kd, inline=True)
+            embed.add_field(name="Opfor - Bluefor", value="{} - {}".format(data["side_opfor"], data["side_bluefor"]), inline=True)
+            #embed.add_field(name="", value="---", inline=False)
+            embed.add_field(name="Score per minute", value=spm, inline=True)
+            embed.add_field(name="Kills per minute", value=kpm, inline=True)
+            embed.add_field(name="Kills", value=total_kills, inline=True)
+            embed.add_field(name="Deaths", value=data["total_deaths"], inline=True)
+            embed.add_field(name="Avrage life", value=avrgL, inline=True)
+            embed.add_field(name="Infantry kills", value=data["total_infantry_kills"], inline=True)
+            embed.add_field(name="Light Vehicle kills", value=data["total_soft_vehicle_kills"], inline=True)
+            embed.add_field(name="Tank kills", value=data["total_armor_kills"], inline=True)
+            embed.add_field(name="Air kills", value=data["total_air_kills"], inline=True)
+            embed.add_field(name="Score", value=data["total_score"], inline=True)
+            embed.add_field(name="Maps", value=maps, inline=True)
+            #embed.add_field(name="undefined", value="---", inline=True)
+            embed.add_field(name="Commander win rate", value=cwr, inline=True)
+            embed.add_field(name="Total Commander time", value=data["total_command_time"], inline=True)
+            embed.set_footer(text=footer)
+            await ctx.send(embed=embed)
+        else:    
+            await ctx.send("Player '{}' not found".format(player_name))   
+
+    @CommandChecker.command(name='genstats',
+        brief="Get stats for a given player",
+        pass_context=True)
+    async def genStats(self, ctx):
+        await ctx.send("Generating Player stats...")
+        log.info("[JMW] Updating Player stats")
+        t = threading.Thread(target=self.psg.generateStats())
+        t.start()
+        self.psg_updated = datetime.datetime.now(datetime.timezone.utc)
+        t.join()
+        await ctx.send("Stats Updated")
+                 
                 
     @CommandChecker.command(name='eval',
         brief="Evluate a py expression",
@@ -386,5 +554,6 @@ class CommandJMW(commands.Cog):
 def setup(bot):
     module = CommandJMW(bot)
     bot.loop.create_task(module.task_setStatus())
+    bot.loop.create_task(module.task_updatePlayerStats())
     bot.add_cog(module)
     

@@ -131,6 +131,17 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
             
             response = BytesIO()
             response.write(WebServer.get_module_settings())
+            self.wfile.write(response.getvalue())        
+        elif self.path == '/get_discord_channels.json':
+            #Default response
+            content_length = int(self.headers['Content-Length'])
+            body = self.rfile.read(content_length)
+            self.send_response(200)
+            self.send_header('Content-type', 'text/json')
+            self.end_headers()
+            
+            response = BytesIO()
+            response.write(WebServer.getChannels())
             self.wfile.write(response.getvalue())
         else:
             #Default response
@@ -189,17 +200,39 @@ class WebServer():
         self.httpd = HTTPServer(('localhost', port), SimpleHTTPRequestHandler)
         self.httpd.serve_forever()
     
+    def getChannels():
+        text_channel_list = {}
+        for guild in WebServer.bot.guilds:
+            for channel in guild.text_channels:
+                text_channel_list[channel.id] = channel.name
+        
+        json_dump = json.dumps(text_channel_list)
+        return json_dump.encode()          
+    
+    def getModuleFromCMD(name):
+        for key, item in WebServer.bot.cogs.items():
+            for cmd in item.__cog_commands__:
+                if(name == cmd.name):
+                    return key
+                
     def generate_permissionList():
-        if(WebServer.CommandChecker):
-            WebServer.bot.CoreConfig.load_role_permissions() #Load permissions from file
 
+                
+        if(WebServer.CommandChecker):
+            modules = []
+            for cog in WebServer.bot.cogs:
+                modules.append(cog)
+            
+            WebServer.bot.CoreConfig.load_role_permissions() #Load permissions from file
             settings = {}
             roles = WebServer.bot.CoreConfig.cfgPermissions_Roles.keys()
             for command in WebServer.bot.CoreConfig.bot.commands:
                 settings[str(command)] = {}
+                settings[str(command)]["__module__"] = WebServer.getModuleFromCMD(str(command))
                 for role in roles:
                     settings[str(command)][role] = WebServer.bot.CoreConfig.cfgPermissions_Roles[role]["command_"+str(command)]
             settings["head"] = list(roles)
+            settings["head_modules"] = modules
             settings["registered"] = WebServer.CommandChecker.registered
             json_dump = json.dumps(settings)
             return json_dump.encode()          

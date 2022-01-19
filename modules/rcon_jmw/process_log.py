@@ -18,6 +18,8 @@ from modules.core.utils import Event_Handler
 from modules.core.Log import log
 import psutil
 
+from func_timeout import func_timeout, FunctionTimedOut
+
 class ProcessLog:
     def __init__(self, readLog, cfg_jmw):
         self.readLog = readLog
@@ -118,18 +120,24 @@ class ProcessLog:
     #uses recent data entries to create a full game
     def readData(self, admin, gameindex):
         meta, game, dict = self.generateGame(gameindex)
-        return self.dataToGraph(meta, game, admin)
+        return self.dataToGraph(meta, game, admin, gameindex)
 
+    # helper function
+    def generateGame(self, gameindex=None):
+        return func_timeout(10, self._generateGame, args=[gameindex])
+            
     #generates a game from recent entries    
     # index: 0 = current game
-    def generateGame(self, gameindex=None):
+    def _generateGame(self, gameindex=None):
         if(gameindex == None):
             gameindex = 0
-
+        log.info("Generating Game, index: '{}'".format(gameindex))
         game = self.buildGameBlock(gameindex)
         dict, game = self.processGameBlock(game)
         meta, pdata = self.processGameData(game)
         return [meta, pdata, dict]
+
+        
 
     def updateDicArray(self, parent, data):
         if("players" in parent and "players" in data):
@@ -156,21 +164,11 @@ class ProcessLog:
         #log.info(data)
         return dict(data)
 
-    # Deprecated
-    def checkforEnd(self, timestamp, line):
-        m = re.match('^(\[\["CTI_DataPacket","(.*?)"],.*])', line)
-        if(m):
-            type = m.group(2)
-            if(type == "GameOver"):
-                #Start generating game
-                #log.info("END FOUND")
-                self.buildGameBlock()
-
     def buildGameBlock(self, index=0):
         current_index = 0
         iterMission = iter(reversed(self.readLog.Missions))
         try:
-            for i in range(self.readLog.maxMisisons):
+            for i in range(self.readLog.maxMissions):
                 game = None
                 #Get a Valid game block
                 while game == None:
@@ -271,16 +269,58 @@ class ProcessLog:
         return list[:-1]
    
         
-    def dataToGraph(self, meta, data, admin):
+    def dataToGraph(self, meta, data, admin, index=0):
+        system_res = self.system_res
         lastwinner = meta["winner"]
         lastmap = meta["map"]
         timestamp = meta["timestamp"]
         e = len(data)
-
+        loadedFromFile = False
         if(timestamp == None):
             timestamp = "00:00:00"
+        else:
+            t = []
+            for block in timestamp.split(":"):
+                if len(block)==1:
+                    t.append("0"+block)
+                else:
+                    t.append(block)
+            timestamp = ":".join(t)
         fdate = meta["date"]
         
+        
+        #Calculate time in min
+        time = self.featchValues(data, "time")
+        for i in range(len(time)):
+            if(time[i] > 0):
+                time[i] = time[i]/60 #seconds->min
+        
+        if (len(time) > 0):
+            if(round(time[-1]) == 0):
+                gameduration = round(time[-2])
+            else:
+                gameduration = round(time[-1])
+        else:
+            gameduration = 0
+        log.info("{} {} {}".format(timestamp, lastwinner, gameduration))
+        
+        
+        
+        t=""
+        if(lastwinner=="currentGame"):
+            t = "-CUR"
+        if(admin==True):
+            t +="-ADV"
+        #path / date # time # duration # winner # addtional_tags
+        filename_pic =(self.cfg_jmw['image_path']+fdate+"#"+timestamp.replace(":","-")+"#"+str(gameduration)+"#"+lastwinner+"#"+lastmap+"#"+t+'.png').replace("\\","/")
+        filename =    (self.cfg_jmw['data_path']+ fdate+"#"+timestamp.replace(":","-")+"#"+str(gameduration)+"#"+lastwinner+"#"+lastmap+"#"+t+'.json').replace("\\","/")
+        
+        
+        if(os.path.isfile(filename)):
+            with open(filename) as json_file:
+                data = json.load(json_file)
+                #system_res = data["sys"] --> Doesnt work due to matched format
+                loadedFromFile = True
         #register plots
         plots = []
         v1 = self.featchValues(data, "score_east")
@@ -370,8 +410,8 @@ class ProcessLog:
                     "ylabel": "Objects",
                     "title": "Total Objects count"
                     })  
-        if(admin == True):       
-            v1 = self.featchValuesDeque(self.system_res, "cpu", e)
+        if(admin == True and (loadedFromFile == True or index==0)):       
+            v1 = self.featchValuesDeque(system_res, "cpu", e)
             if(len(v1) > 0):
                 v1[0] = 100
                 v1[1] = 0
@@ -383,8 +423,8 @@ class ProcessLog:
                     "autoscaley_on": False,
                     "ylim": (0, 100)
                     })  
-        if(admin == True):       
-            v1 = self.featchValuesDeque(self.system_res, "ram", e)
+        if(admin == True and (loadedFromFile == True or index==0)):       
+            v1 = self.featchValuesDeque(system_res, "ram", e)
             if(len(v1) > 0):
                 v1[0] = 100
                 v1[1] = 0
@@ -396,8 +436,8 @@ class ProcessLog:
                     "autoscaley_on": False,
                     "ylim": (0, 100)
                     })       
-        if(admin == True):       
-            v1 = self.featchValuesDeque(self.system_res, "swap", e)
+        if(admin == True and (loadedFromFile == True or index==0)):       
+            v1 = self.featchValuesDeque(system_res, "swap", e)
             if(len(v1) > 0):
                 v1[0] = 100
                 v1[1] = 0
@@ -410,20 +450,6 @@ class ProcessLog:
                     "ylim": (0, 100)
                     })  
 
-        #Calculate time in min
-        time = self.featchValues(data, "time")
-        for i in range(len(time)):
-            if(time[i] > 0):
-                time[i] = time[i]/60 #seconds->min
-        
-        if (len(time) > 0):
-            if(round(time[-1]) == 0):
-                gameduration = round(time[-2])
-            else:
-                gameduration = round(time[-1])
-        else:
-            gameduration = 0
-        log.info("{} {} {}".format(timestamp, lastwinner, gameduration))
         
         #maps plot count to image size
         #plot_count: image_size
@@ -466,22 +492,24 @@ class ProcessLog:
         if not os.path.exists(self.cfg_jmw['image_path']):
             os.makedirs(self.cfg_jmw['image_path'])
         
-        t=""
-        if(lastwinner=="currentGame"):
-            t = "-CUR"
-        if(admin==True):
-            t +="-ADV"
-                        #path / date # time # duration # winner # addtional_tags
-        filename_pic =(self.cfg_jmw['image_path']+fdate+"#"+timestamp.replace(":","-")+"#"+str(gameduration)+"#"+lastwinner+"#"+lastmap+"#"+t+'.png').replace("\\","/")
-        filename =    (self.cfg_jmw['data_path']+ fdate+"#"+timestamp.replace(":","-")+"#"+str(gameduration)+"#"+lastwinner+"#"+lastmap+"#"+t+'.json').replace("\\","/")
-        
+        # match sys res to mission data:
+        # if is game just finished:
+        try:
+            if(lastwinner!="currentGame" and index==0):
+                for i in range(1, len(data)):
+                    data[-i]["sys"] = self.system_res[-i]
+        except IndexError:
+            pass
+            
         #save image
-        fig.savefig(filename_pic, dpi=100, pad_inches=3)
+        if(not os.path.isfile(filename_pic)):
+            fig.savefig(filename_pic, dpi=100, pad_inches=3)
         #fig.gcf()
         plt.close('all')
         #save rawdata
-        with open(filename, 'w') as outfile:
-            json.dump(data, outfile)
+        if(not os.path.isfile(filename)):
+            with open(filename, 'w') as outfile:
+                json.dump(data, outfile)
         
         return {"date": fdate, "time": timestamp, "lastwinner": lastwinner, "gameduration": gameduration, "picname": filename_pic, "dataname": filename, "data": data}
 

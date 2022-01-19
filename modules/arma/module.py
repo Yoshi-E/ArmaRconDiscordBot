@@ -40,19 +40,41 @@ class CommandArma(commands.Cog):
         self.channel = None
         
         #read the Log files
-        self.readLog = readLog(self.cfg["log_path"], maxMisisons=self.cfg["buffer_maxMisisons"])
+        self.readLog = readLog(self.cfg["log_path"], maxMissions=self.cfg["buffer_maxMissions"])
         self.readLog.pre_scan()
         self.memoryRestart = False
         
+        self.serverStateInfo = {}
+        
+        if not os.path.exists(self.path+"/logs/"):
+            os.makedirs(self.path+"/logs/")
         self.mission_error_last = 0
         self.mission_error_suppressed = 0
-        self.script_errors = deque(maxlen=10000)
+        
+        try:
+            with open(self.path+"/logs/script_errors.log", errors="replace") as json_file:
+                self.script_errors = json.load(json_file)
+        except:
+            self.script_errors = {}
         
         self.server_pid = None
         asyncio.ensure_future(self.on_ready())
        
-        
-        
+    def test(self, msg):
+        try:
+            print(log)
+            print(log.info)
+            log.info(msg)
+            log.warning(msg)
+            log.error(msg)
+            print(log.handlers)
+            return "Sucess"
+        except Exception as e:
+            print(e)
+    
+    def testException(self):
+        raise Exception("TEST")
+    
     async def on_ready(self):
         try:
             await self.bot.wait_until_ready()
@@ -60,56 +82,133 @@ class CommandArma(commands.Cog):
             self.channel = self.bot.get_channel(int(self.cfg["post_channel"]))
             if(self.cfg["report_script_errors"] and self.channel):
                 self.readLog.EH.add_Event("Mission script error", self.mission_script_error)
-                self.readLog.EH.add_Event("Log new", self.newLog)
+                self.readLog.EH.add_Event("Server sessionID", self.serverRestarted)
+                self.readLog.EH.add_Event("Mission world", self.MissionWorld)
+                self.readLog.EH.add_Event("Mission started", self.MissionStarted)
+                self.readLog.EH.add_Event("Mission finished", self.MissionFinished)
+                self.readLog.EH.add_Event("Mission restarted", self.MissionFinished)
             asyncio.ensure_future(self.readLog.watch_log())
             asyncio.ensure_future(self.memory_guard())
+            asyncio.ensure_future(self.saveErrors())
+            asyncio.ensure_future(self.statusSetter())
         except Exception as e:
             log.print_exc()
             log.error(e)
     
-    async def newLog(self, oldLog, newLog):
+    
+###################################################################################################
+#####                                    Mission Events                                        ####
+###################################################################################################   
+
+
+    def MissionFinished(self, event, payload):
+        self.serverStateInfo["mission state"] = ("finished", time())        
+        
+    def MissionStarted(self, event, payload):
+        self.serverStateInfo["mission state"] = ("started", time())    
+        self.serverStateInfo["mission start time"] = datetime.datetime.now()
+        
+    def MissionWorld(self, event, payload):
+        self.serverStateInfo["world"] = (payload["event_match"].group(2), time())    
+    
+    async def serverRestarted(self, event, payload):
         if(self.memoryRestart == True):
-            await self.channel.send("Server restarted.")
+            log.info("Server Restarted")
+            await self.channel.send(":ballot_box_with_check: Server restarted.")
             self.memoryRestart = False
     
-    async def mission_script_error(self, event, stime, text, regxm, line):
-        try:
-            if(time() - self.mission_error_last < 60*10):
-                self.mission_error_suppressed += 1
-                return
+    async def mission_script_error(self, event, payload):
+        try:    
+            text = payload["msg"]
+            line = payload["currentLinePos"]
+            stime = datetime.datetime.now().strftime("%Y-%m-%d %H-%M-%S")
+            if text in self.script_errors: 
+                self.script_errors[text]["log"] = self.readLog.current_log
+                self.script_errors[text]["line"] = line
+                self.script_errors[text]["count"] += 1
+                self.script_errors[text]["last"] = payload["timestamp"]
+                self.script_errors[text]["positions"].append({"log": self.readLog.current_log, "line": line, "time": stime})
+            else:
+                self.script_errors[text] = {"log": self.readLog.current_log, "line": line, "count": 1, "last": stime, "positions": [{"log": self.readLog.current_log, "line": line, "time": stime}]}
+                await self.channel.send(":warning: ``{}`` ``{}`` line ``{}``".format(text, self.readLog.current_log, line))
+            
+
             self.mission_error_last = time()
-            if(self.mission_error_suppressed > 0):
-                await self.channel.send(":warning: {} Errors were suppressed\n``{}`` ``{}`` line ``{}``\nAdditional Errors will be suppressed for 10min.".format(self.mission_error_suppressed, text, self.readLog.current_log, line))
-            else:    
-                await self.channel.send(":warning: ``{}`` line ``{}`` ``{}``\nAdditional Errors will be suppressed for 10min.".format(text, line, self.readLog.current_log))
-            self.mission_error_suppressed = 0
-            
-            
-            #regex = "Error in expression <(?P<expression>.*?)>.*?Error position: <(?P<position>.*?)>.*?Error Undefined variable in expression: (?P<err_cause>.*?)File (?P<file>.*?)\.\.\., line (?P<line>[0-9]*)"
-            #m = re.match(regex, error, flags=re.S)
-            # if m: 
-                # await self.channel.send("{}... line {}\nAdditional Errors will be suppressed for 10min.".format(text, line)
-            # else:
-                # await self.channel.send("```sqf\n{}```".format(error))
-            
         except Exception as e:
             log.print_exc()
             log.error(e)
+
+###################################################################################################
+#####                                         Other                                            ####
+###################################################################################################   
+    async def statusSetter(self):
+        while True:
+            try:
+                if(self.cfg["set_custom_status"]):
+                    await self.set_status()
+            except Exception as e:
+                log.print_exc()
+                log.error(e)
+            await asyncio.sleep(60)  
+            
+    async def set_status(self):
+        players = None
+        if("CommandRconDatabase" in self.bot.cogs):
+            players = self.bot.cogs["CommandRconDatabase"].players
     
-    #triggers server restarts on high memory usage
+        game_name = ""
+        if(players):
+            game_name += "{} Players".format(len(players))
+        
+        if("mission state" in self.serverStateInfo and self.serverStateInfo["mission state"][0] == "finished"):
+            game_name += " Lobby"
+        else:
+            if("world" in self.serverStateInfo):
+                game_name += " {}".format(self.serverStateInfo["world"][0])
+            
+            if("mission start time" in self.serverStateInfo 
+                and "mission state" in self.serverStateInfo 
+                and self.serverStateInfo["mission state"][0] != "finished"):
+                timedelta = datetime.datetime.now()-self.serverStateInfo["mission start time"]
+                game_name += " {}min".format(round(timedelta.total_seconds()/60))
+        
+        if(game_name == ""):
+            game_name = "Waiting..."
+
+        status = discord.Status.do_not_disturb #discord.Status.online
+        if(self.CommandRcon.arma_rcon.disconnected==False):
+            status = discord.Status.online
+        
+        await self.bot.change_presence(activity=discord.Game(name=game_name), status=status)
+    
+    
+    #triggers server shutdown on high memory usage
+    async def saveErrors(self):
+        while True:
+            try:
+                if((self.mission_error_last+60) < time()):
+                    with open(self.path+"/logs/script_errors.log", 'w+') as outfile:
+                        json.dump(self.script_errors, outfile, indent=4)
+            except Exception as e:
+                log.print_exc()
+                log.error(e)
+            await asyncio.sleep(60)    
+            
+    #triggers server shutdown on high memory usage
     async def memory_guard(self):
         while True:
             try:
                 if(self.cfg["server_memory_protection"]):
-                    if(psutil.virtual_memory().percent > 85):
-                        await self.CommandRcon.arma_rcon.restartserveraftermission()
-                        await self.CommandRcon.arma_rcon.sayGlobal("A Server restart has been scheduled at the end of this mission.")
+                    if(psutil.virtual_memory().percent > 70):
+                        await self.CommandRcon.arma_rcon.command("#shutdownaftermission")
+                        await self.CommandRcon.arma_rcon.sayGlobal("A Server shutdown has been scheduled at the end of this mission.")
                         if(self.memoryRestart == False):
-                            await self.channel.send("Memory usage exceeded! Server restart scheduled after mission end")
+                            await self.channel.send(":warning: Memory usage exceeded! Server shutdown scheduled after mission end")
                             self.memoryRestart = True
-                        log.warning("Memory usage exceeded! Server restart scheduled after mission end")
-                    #elif(psutil.virtual_memory().percent > 95): #might be too agressive should short memory spikes occour
-                    #    await self.CommandRcon.arma_rcon.restartServer()
+                        log.warning(":warning: Memory usage exceeded! Server shutdown scheduled after mission end")
+                    elif(psutil.virtual_memory().percent > 95): #might be too aggressive should short memory spikes occur
+                        await self.CommandRcon.arma_rcon.shutdown()
+                        log.warning(":warning: Memory usage exceeded! Server was forced shutdown")
             except Exception as e:
                 log.print_exc()
                 log.error(e)
@@ -180,14 +279,14 @@ class CommandArma(commands.Cog):
             raise Exception("File must be a .log or .rpt file")
         path = self.readLog.log_path+logfile
         logAccumulated = ""
-        sfile = open(path, "r")
+        sfile = open(path, "r", errors="replace")
         rowlimit = 30
         rows = 0
         linesCounter = 1
          
         for row in sfile:
             #discord limit = 2000
-            if linesCounter >= line and len(logAccumulated) < 1000 and rows < rowlimit:
+            if linesCounter >= line-1 and len(logAccumulated) < 1000 and rows < rowlimit:
                 logAccumulated += row
                 rows += 1
             linesCounter += 1
@@ -219,6 +318,29 @@ class CommandArma(commands.Cog):
         msg += "\n".join(mlist)
         await utils.sendLong(ctx, msg)  
   
+    @CommandChecker.command(name='viewErrors',
+            brief="View recent script errors",
+            aliases=['viewerrors'], 
+            pass_context=True)
+    async def viewErrors(self, ctx):
+        msg = ""
+        list = reversed(sorted(self.script_errors.items(), key=lambda item: item[1]["last"]))
+        for key, item in list:
+            msg += "``{}`` ``{}`` ``{}`` ({}) [{}]\n".format(key, item["log"], item["line"], item["count"], item["last"])
+            if(len(msg)>1000):
+                break
+        await ctx.send(msg)     
+
+    @CommandChecker.command(name='resetErrors',
+            brief="Reset the error tracker",
+            aliases=['reseterrors'], 
+            pass_context=True)
+    async def resetErrors(self, ctx):
+        stime = datetime.datetime.now().strftime("%Y-%m-%d %H-%M-%S")
+        if os.path.exists(self.path+"/logs/script_errors.log"):
+            os.rename(self.path+"/logs/script_errors.log", self.path+"/logs/script_errors_{}.log".format(stime))
+        self.script_errors = {}
+        await ctx.send("Done!")  
 
 def setup(bot):
     bot.add_cog(CommandArma(bot))

@@ -11,8 +11,8 @@ from modules.core.Log import log
 #https://community.bistudio.com/wiki/server.cfg
 
 class readLog:
-    def __init__(self, log_path, maxMisisons=20):
-        self.maxMisisons = maxMisisons #max amount of Missions stored in the buffer 
+    def __init__(self, log_path, maxMissions=20):
+        self.maxMissions = maxMissions #max amount of Missions stored in the buffer 
                               #also contains datablock between the mission 
                               #(e.g 2 scenarios played --> 5 Missions blocks)        
         
@@ -22,11 +22,12 @@ class readLog:
         self.current_log = None
         self.multiEventLock = None
         self.multiEventLockData = []
+        self.server_sessionID = 0
         if(len(self.getLogs()) == 0):
             log.info("[WARNNING] No log files found in '{}'".format(self.log_path))
             
         #all data rows are stored in here, limited to prevent memory leaks
-        self.Missions=deque(maxlen=self.maxMisisons)
+        self.Missions=deque(maxlen=self.maxMissions)
         self.Missions.append({"dict": {}, "data": []})
         
         self.define_line_types()
@@ -83,6 +84,7 @@ class readLog:
             ["Mission roles assigned",  "^(Roles assigned\.)"], #Roles assigned.
             ["Mission reading",         "^(Reading mission \.\.\.)"], #Reading mission ...
             ["Mission starting",        "^(Starting mission:)"], #Starting mission:
+            ["Mission restarted",        "^(Game restarted)"], #Game restarted:
             ["Mission file",            "^\s(Mission file: (.*) \((.*)\))"], # Mission file: becti_current (__cur_mp)
             ["Mission world",           "^\s(Mission world: (.*))"], # Mission world: Altis
             ["Mission directory",       "^\s(Mission directory: (.*))"], # Mission directory: mpmissions\__cur_mp.Altis\
@@ -195,26 +197,26 @@ File mpmissions\__cur_mp.Altis\Server\Functions\Server_SpawnTownResistance.sqf..
     #Limited by Mission count
     def pre_scan(self):
         try:
-            if(self.maxMisisons <= 0):
+            if(self.maxMissions <= 0):
                 return
             #disable Event handlers, so they dont trigger
             self.EH.disabled = True 
             
             logs = self.getLogs()
-            tempdataMissions = deque(maxlen=self.maxMisisons)
+            tempdataMissions = deque(maxlen=self.maxMissions)
             
             #scan most recent log. Until enough data is collected
             #go from newest to oldest log until the data buffer is filled
             for _log in reversed(logs):
                 log.info("Pre-scanning: "+_log)
                 self.scanfile(_log)
-                if(len(tempdataMissions)+len(self.Missions) <= self.maxMisisons):
+                if(len(tempdataMissions)+len(self.Missions) <= self.maxMissions):
                     tempdataMissions.extendleft(reversed(self.Missions))
-                    self.Missions = deque(maxlen=self.maxMisisons)
+                    self.Missions = deque(maxlen=self.maxMissions)
                     self.Missions.append({"dict": {}, "data": []})
                 else:
                     break
-                if(len(tempdataMissions)>=self.maxMisisons):
+                if(len(tempdataMissions)>=self.maxMissions):
                     break
             self.Missions = tempdataMissions
             self.EH.disabled = False    
@@ -223,22 +225,27 @@ File mpmissions\__cur_mp.Altis\Server\Functions\Server_SpawnTownResistance.sqf..
             log.error(e)
     
     def processLogLine(self, line):
+        payload = {}
         try:
             timestamp, msg = self.splitTimestamp(line)
-            self.EH.check_Event("Log line", timestamp, msg, None, self.currentLinePos)
+            payload["timestamp"] = timestamp
+            payload["msg"] = msg
+            payload["currentLinePos"] = self.currentLinePos
+            self.EH.check_Event("Log line", payload)
             event, event_match = self.check_log_events(msg, self.events)
             # if(self.EH.disabled==False):
                 # log.info("{} {} {}".format(line, event, event_match))      
             #log.info(event, msg, self.multiEventLockData)
             if(event_match):
-                self.EH.check_Event(event, timestamp, msg, event_match, self.currentLinePos)
+                payload["event_match"] = event_match
+                self.EH.check_Event(event, payload)
                 if("clutter" not in event):
                     #log.info("{} {}".format(event, event_match))
                     self.processMission(event, (timestamp, msg, event_match))
-                    self.EH.check_Event("Log line filtered", timestamp, msg, event_match, self.currentLinePos)
+                    self.EH.check_Event("Log line filtered", payload)
             else:
                 self.processMission("", (timestamp, msg))
-                self.EH.check_Event("Log line filtered", timestamp, msg, None, self.currentLinePos)
+                self.EH.check_Event("Log line filtered", payload)
         except Exception as e:
             log.print_exc()
             log.error(e)
@@ -253,7 +260,7 @@ File mpmissions\__cur_mp.Altis\Server\Functions\Server_SpawnTownResistance.sqf..
                 self.server_sessionID = data[2].group(2)
             
             #mission is complete, switching to between mission block
-            elif(event == "Mission finished"): 
+            elif(event == "Mission finished" or event == "Mission restarted"): 
                 log.info("{} {}".format(self.Missions[-1]["dict"]["Mission id"][0], self.Missions[-1]["dict"]["Mission id"][1]))
                 self.Missions[-1]["dict"][event] = data
                 self.Missions.append({"dict": {"Server sessionID": self.server_sessionID}, "data": []})
@@ -275,10 +282,10 @@ File mpmissions\__cur_mp.Altis\Server\Functions\Server_SpawnTownResistance.sqf..
         ignore = ["mpStatistics", "netlog"] #log files that will be ignored
         if(os.path.exists(self.log_path)):
             files = []
-            for file in os.listdir(self.log_path):
+            for file in sorted(os.listdir(self.log_path), key = lambda thing: os.stat(os.path.join(self.log_path, thing)).st_ctime):
                 if ((file.endswith(".log") or file.endswith(".rpt")) and not any(x in file for x in ignore)):
                     files.append(file)
-            return sorted(files)
+            return files
         else:
             return []
 
@@ -322,14 +329,15 @@ File mpmissions\__cur_mp.Altis\Server\Functions\Server_SpawnTownResistance.sqf..
                     self.current_log = logs[-1]
                     log.info("current log: "+self.current_log)
                     self.currentLinePos = 0
-                    file = open(self.log_path+self.current_log, "r")
+                    file = open(self.log_path+self.current_log, "r", errors="replace")
+                    file_descriptor = os.fstat(file.fileno())
                     for i, l in enumerate(file):
                         pass
                     self.currentLinePos = i+1
                     #file.seek(0, 2) #jump to the end of the file
                     try:
                         while (True):
-                            #where = file.tell()
+                            
                             try:
                                 line = file.readline()
                                 update_counter+= 1
@@ -340,13 +348,30 @@ File mpmissions\__cur_mp.Altis\Server\Functions\Server_SpawnTownResistance.sqf..
                                 #file.seek(where)
                                 if(update_counter >= 60): #only check for new log files every 60s, to reduce IOPS
                                     update_counter = 0
-                                    if(self.current_log != self.getLogs()[-1]):
-                                        old_log = self.current_log
-                                        self.current_log = self.getLogs()[-1] #update to new recent log
-                                        self.currentLinePos = 0
-                                        file = open(self.log_path+self.current_log, "r")
-                                        log.info("current log: "+self.current_log)
-                                        self.EH.check_Event("Log new", old_log, self.current_log)
+                                    with open(self.log_path+self.getLogs()[-1], "r") as newlog:
+                                        newlog_descriptor = os.fstat(newlog.fileno())
+                                        # instead of just comparing file names, we compare the unique inode ID on the disk
+                                        if(file_descriptor.st_ino == newlog_descriptor.st_ino and file_descriptor.st_dev == newlog_descriptor.st_dev):
+                                            # only called if parts of the log are deleted
+                                            # failed to read line at current pos. Verify if the file cursor is still valid.
+                                            activeLogCursor = file.tell()
+                                            file.seek(0, os.SEEK_END)
+                                            if activeLogCursor > file.tell(): # check if file lenghts do not match
+                                                log.info(f"Invalid cursor position in log file. Rescanning '{self.current_log}'")
+                                                self.currentLinePos = 0
+                                                file.seek(0)
+                                                self.EH.check_Event("Log new", self.current_log, self.current_log)
+                                            else:
+                                                # restore cursor position
+                                                file.seek(activeLogCursor)                                           
+                                        else: # file identity changed
+                                            old_log = self.current_log
+                                            self.current_log = self.getLogs()[-1] #update to new recent log
+                                            self.currentLinePos = 0
+                                            file = open(self.log_path+self.current_log, "r", errors="replace")
+                                            file_descriptor = os.fstat(file.fileno())
+                                            log.info("current log: "+self.current_log)
+                                            self.EH.check_Event("Log new", old_log, self.current_log)
                             else:
                                 self.currentLinePos += 1
                                 self.line = line #access to last read line (debugging)
