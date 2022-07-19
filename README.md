@@ -5,7 +5,7 @@ Make sure to enable "Privileged Gateway Intents" for the discord bot:
 https://discord.com/developers/applications/
 -> SERVER MEMBERS INTENT
 
-1. Install Python3.5-3.6 (3.7, 3.8, 3.9 currently not suppored) 
+1. Install Python3.10 or higher (Other versions might work with some changes to asyncio)
 2. Clone the git `https://github.com/Yoshi-E/ArmaRconDiscordBot.git`
 3. Run `pip install -r requirements.txt` to install required modules
 4. Run the `bot.py` once.
