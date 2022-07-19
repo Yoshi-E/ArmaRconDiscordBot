@@ -96,10 +96,11 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
         elif self.path == '/terminate_bot.json':
             self.data_redirect()
             
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            asyncio.ensure_future(WebServer.terminate())
-            loop.run_forever()      
+            WebServer.terminate()
+            # loop = asyncio.new_event_loop()
+            # asyncio.set_event_loop(loop)
+            # asyncio.ensure_future(WebServer.terminate())
+            # loop.run_forever()      
         elif self.path == '/restart_bot.json':
             self.data_redirect("/restart.html")
             _thread.start_new_thread(WebServer.restart, ())
@@ -171,6 +172,7 @@ class WebServer():
     bot = None
     CommandChecker = None
     CoreConfig = None
+    httpd = None
     def __init__(self, bot, CommandChecker, CoreConfig):
         self.bot = bot
         WebServer.bot = bot
@@ -197,8 +199,8 @@ class WebServer():
         if(s_port != port):
             log.info("[WARNING] Port '{}' already in use, using '{}' instead.".format(s_port, port))
         log.info("Settings page online on: http://localhost:{}/".format(port))
-        self.httpd = HTTPServer(('localhost', port), SimpleHTTPRequestHandler)
-        self.httpd.serve_forever()
+        WebServer.httpd = HTTPServer(('localhost', port), SimpleHTTPRequestHandler)
+        WebServer.httpd.serve_forever()
     
     def getChannels():
         text_channel_list = {}
@@ -307,10 +309,18 @@ class WebServer():
         else: 
             raise Exception("Invalid data structure for '{}'".format(data))     
 
-    
-    async def terminate():
+    # Broken atm
+    def terminate():
         WebServer.bot.terminated = True
-        await WebServer.bot.logout()
+        # Cleanup tasks
+        for task in asyncio.all_tasks(loop=WebServer.bot.loop):
+            # cancel all tasks other than this signal_handler
+            task.cancel()
+        asyncio.set_event_loop(WebServer.bot.loop)
+        asyncio.ensure_future(WebServer.bot.close())
+        #WebServer.bot.loop.close()
+        print("[Press Enter to exit]")
+        WebServer.httpd.shutdown()
         sys.exit("Terminated by web interface")
     
     def restart():
@@ -322,7 +332,7 @@ class WebServer():
     
     async def _restart():
         await asyncio.sleep(2)
-        await WebServer.bot.logout()
+        await WebServer.bot.close()
     
    
     #Auslagern into the module

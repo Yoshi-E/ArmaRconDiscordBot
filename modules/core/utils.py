@@ -1,4 +1,3 @@
-import traceback
 import sys
 import os
 import discord
@@ -12,7 +11,7 @@ import inspect
 import asyncio
 import glob
 
-assert version.parse(discord.__version__) >= version.parse("1.2.2"), "Module 'Discord' required to be >= 1.2.5"
+assert version.parse(discord.__version__) >= version.parse("1.2.5"), "Module 'Discord' required to be >= 1.2.5"
 
 from modules.core.httpServer import server
 from modules.core.config import Config
@@ -101,9 +100,9 @@ class Modules(object):
                         bot.load_extension(module.replace("/", ".")+".module")
                 else:
                     log.info("[Modules] Skipped Cogs in '{}'".format(module))
-            except (discord.ClientException, ModuleNotFoundError):
-                log.info('Failed to load extension: '+extension)
-                traceback.log.info_exc()   
+            except (discord.ClientException, ModuleNotFoundError) as e:
+                log.print_exc()
+                log.error(f'Failed to load extension: {module} ({e})') 
         Modules.fix_wrappers()
 
     def loadCfg(module):

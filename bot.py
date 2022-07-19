@@ -3,10 +3,10 @@ import sys
 import os
 import time
 
-if(sys.version_info[0] != 3 or (sys.version_info[1] > 6 or sys.version_info[1] < 5)):
-    print("This bot requires Python >= 3.5 and <= 3.6. You are currently running version {}.{}".format(*sys.version_info[:2]))
-    time.sleep(5)
-    sys.exit("Terminated")
+if(sys.version_info[0] != 3 or sys.version_info[1] < 10):
+    print("[WARNING] Some functions of this bot require Python >= 3.10. You are currently running version {}.{}".format(*sys.version_info[:2]))
+#    time.sleep(5)
+#    sys.exit("Terminated")
 
 import discord
 from discord.ext import commands
@@ -44,24 +44,23 @@ async def on_ready():
         roles += await guild.fetch_roles()
     bot.CoreConfig.load_role_permissions(roles)
 
-async def main():
+def main():
     
     utils.Modules.loadCogs(bot)
     
     try:
-        await bot.login(cfg["TOKEN"])
-        await bot.connect()
+        bot.run(cfg["TOKEN"])
     except (KeyboardInterrupt, asyncio.CancelledError):
         sys.exit("Bot Terminated (KeyboardInterrupt)")
-    except (KeyError, discord.errors.LoginFailure):
+    except (KeyError, discord.errors.LoginFailure) as e:
+        log.info(e)
         log.info("PROMPT: Please configure the bot")
         input("\nPlease configure the bot on the settings page. [ENTER to terminte the bot]\n")
 
 
 if __name__ == '__main__':
     try:
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete(main())
+        asyncio.run(main())
     except (KeyboardInterrupt, asyncio.CancelledError):
         log.info("[DiscordBot] Interrupted")
         

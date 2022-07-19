@@ -378,14 +378,14 @@ File mpmissions\__cur_mp.Altis\Server\Functions\Server_SpawnTownResistance.sqf..
                                 self.processLogLine(line)
                     
                     except (KeyboardInterrupt, asyncio.CancelledError):
-                        log.info("[asyncio] exiting {}".format(watch_log))
+                        log.info("[asyncio] exiting {}".format(self.watch_log))
                     except Exception as e:
                         log.error(e)
                         log.print_exc()
                 else:
                     await asyncio.sleep(10*60)
         except (KeyboardInterrupt, asyncio.CancelledError):
-            log.info("[asyncio] exiting {}".format(watch_log))
+            log.info("[asyncio] exiting {}".format(self.watch_log))
         except Exception as e:
             log.print_exc()
             log.error(e)
