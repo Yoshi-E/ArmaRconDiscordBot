@@ -8,9 +8,7 @@ from .playerMapGenerator import playerMapGenerator
 import discord
 from discord.ext import commands
 from discord.ext.commands import has_permissions, CheckFailure
-import ast
 import sys
-import traceback
 import urllib.parse
 import threading
 import datetime
