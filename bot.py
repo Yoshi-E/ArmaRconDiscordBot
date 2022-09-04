@@ -24,7 +24,7 @@ import asyncio
 #cfg = utils.CoreConfig.modules["modules/core"]["discord"]
 cfg = utils.CoreConfig.cfgDiscord
 
-intents = discord.Intents.default()
+intents = discord.Intents.all()
 intents.members = True  # Subscribe to the privileged members 
 
 bot = commands.Bot(command_prefix=cfg["BOT_PREFIX"], pm_help=True, intents=intents)
@@ -36,6 +36,7 @@ bot.CoreConfig = utils.CoreConfig(bot)
 
 @bot.event
 async def on_ready():
+    utils.Modules.loadCogs(bot)
     log.info('Logged in as {} [{}]'.format(bot.user.name, bot.user.id))
     log.info(bot.guilds)
     log.info('------------')
@@ -43,11 +44,16 @@ async def on_ready():
     for guild in list(bot.guilds):
         roles += await guild.fetch_roles()
     bot.CoreConfig.load_role_permissions(roles)
+    print("Exiting...")
+    for task in asyncio.tasks.all_tasks():
+        task.cancel()
+    print("Exiting... A")    
+    await bot.close()
+    print("Exiting... B")    
+    bot.loop.close()
+    print("Exiting... C")    
 
 def main():
-    
-    utils.Modules.loadCogs(bot)
-    
     try:
         bot.run(cfg["TOKEN"])
     except (KeyboardInterrupt, asyncio.CancelledError):
@@ -60,12 +66,12 @@ def main():
 
 if __name__ == '__main__':
     try:
-        asyncio.run(main())
+        main()
     except (KeyboardInterrupt, asyncio.CancelledError):
         log.info("[DiscordBot] Interrupted")
         
-    if(hasattr(bot, "restarting") and bot.restarting == True):
-        log.info("Restarting")
+    # if(hasattr(bot, "restarting") and bot.restarting == True):
+    #     log.info("Restarting")
         
-        time.sleep(1)
-        subprocess.Popen("python" + " bot.py", shell=True) #TODO: Will not work on all system
+    #     time.sleep(1)
+    #     subprocess.Popen("python" + " bot.py", shell=True) #TODO: Will not work on all system

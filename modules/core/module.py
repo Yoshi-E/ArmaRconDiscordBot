@@ -3,9 +3,7 @@ from discord.ext.commands import has_permissions, CheckFailure
 import discord
 import os
 
-
-
-import psutil
+import psutil, asyncio
 import datetime
 from modules.core import CoreConfig, CommandChecker
 import modules.core.utils as utils
@@ -63,5 +61,5 @@ class Commandconfig(commands.Cog):
         msg += "```"
         await ctx.send(msg)    
         
-def setup(bot):
-    bot.add_cog(Commandconfig(bot))
+async def setup(bot):
+    await bot.add_cog(Commandconfig(bot))

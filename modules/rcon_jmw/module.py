@@ -549,9 +549,9 @@ class CommandJMW(commands.Cog):
         await ctx.send("Saved System data to '{}' ({} entries)".format(filename, len(self.processLog.system_res))) 
                   
     
-def setup(bot):
+async def setup(bot):
     module = CommandJMW(bot)
     bot.loop.create_task(module.task_setStatus())
     bot.loop.create_task(module.task_updatePlayerStats())
-    bot.add_cog(module)
+    await bot.add_cog(module)
     

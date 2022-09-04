@@ -3,6 +3,7 @@ import os
 import discord
 from discord.ext import commands
 from discord.ext.commands import GroupMixin
+from discord.ext.commands.core import get_signature_parameters
 
 
 from packaging import version
@@ -97,12 +98,16 @@ class Modules(object):
                 if(cfg):
                     CoreConfig.modules[module] = {Modules.general_settings_file: cfg}
                     if(cfg["load_module"] == True):
-                        bot.load_extension(module.replace("/", ".")+".module")
+                        if inspect.iscoroutinefunction(bot.load_extension):
+                            asyncio.ensure_future(bot.load_extension(module.replace("/", ".")+".module"))
+                        else:
+                            bot.load_extension(module.replace("/", ".")+".module")
                 else:
                     log.info("[Modules] Skipped Cogs in '{}'".format(module))
             except (discord.ClientException, ModuleNotFoundError) as e:
                 log.print_exc()
                 log.error(f'Failed to load extension: {module} ({e})') 
+                raise
         Modules.fix_wrappers()
 
     def loadCfg(module):
@@ -262,12 +267,12 @@ class CommandChecker():
             @commands.check(CommandChecker.checkPermission)
             async def wrapper(*args,**kwargs):
                 return await func(*args,**kwargs)
-            signature = inspect.signature(func)
-            wrapper.params = signature.parameters.copy() 
-            func.name = wrapper.name
+            #signature = inspect.signature(func)
+            wrapper.params = get_signature_parameters(func, {})
+            func.name = wrapper.name            
             #log.info(dir(wrapper))
             #log.info(wrapper.cog) #__cog_commands__
-            #log.info("####",func.__name__)
+            #log.info(func.__name__)
             # sys.exit()
             # for cmd in CoreConfig.bot.commands:
                 # for func in CommandChecker.registered_func:

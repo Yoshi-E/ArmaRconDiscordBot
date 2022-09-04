@@ -342,5 +342,5 @@ class CommandArma(commands.Cog):
         self.script_errors = {}
         await ctx.send("Done!")  
 
-def setup(bot):
-    bot.add_cog(CommandArma(bot))
+async def setup(bot):
+    await bot.add_cog(CommandArma(bot))

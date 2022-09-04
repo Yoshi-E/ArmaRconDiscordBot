@@ -827,6 +827,6 @@ class CommandRcon(commands.Cog):
 
 
 
-def setup(bot):
-    bot.add_cog(CommandRcon(bot))
-    bot.add_cog(CommandRconSettings(bot))
+async def setup(bot):
+    await bot.add_cog(CommandRcon(bot))
+    await bot.add_cog(CommandRconSettings(bot))

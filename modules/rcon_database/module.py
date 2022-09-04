@@ -29,7 +29,7 @@ class CommandRconDatabase(commands.Cog):
 
         
         self.upgrade_database()
-        self.alter_database()
+        #self.alter_database() only needed to upgrade from old db
         #self.player_db = CoreConfig.cfg.new(self.path+"/player_db.json")
 
         self.cfg = CoreConfig.modules["modules/rcon_database"]["general"]
@@ -110,6 +110,7 @@ class CommandRconDatabase(commands.Cog):
             log.print_exc()
             log.error(e)
     
+
     def alter_database(self):
         try:
             ## Alter table (upgrade by adding the profileid column)
@@ -124,6 +125,7 @@ class CommandRconDatabase(commands.Cog):
         except Exception as e:
             log.print_exc()
             log.error(e)  
+            log.info("If you are not upgrading an old database, you can ignore the error above.")  
             
     async def fetch_player_data_loop(self):
         while True: 
@@ -460,5 +462,5 @@ class CommandRconDatabase(commands.Cog):
                 msg += "{} ``{}``\n".format(key, val)
         await ctx.send(msg)
         
-def setup(bot):
-    bot.add_cog(CommandRconDatabase(bot))
+async def setup(bot):
+    await bot.add_cog(CommandRconDatabase(bot))

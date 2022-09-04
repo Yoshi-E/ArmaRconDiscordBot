@@ -377,6 +377,6 @@ class CommandRconTaskScheduler(commands.Cog):
         self.CommandRcon = self.bot.cogs["CommandRcon"]
 
         
-def setup(bot):
-    #bot.add_cog(CommandRconTaskScheduler(bot))
-    bot.add_cog(CommandRconIngameComs(bot))
+async def setup(bot):
+    #await bot.add_cog(CommandRconTaskScheduler(bot))
+    await bot.add_cog(CommandRconIngameComs(bot))
