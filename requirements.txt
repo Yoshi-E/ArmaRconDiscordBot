@@ -1,6 +1,6 @@
-git+https://github.com/Yoshi-E/Python-BEC-RCon@master#bec_rcon>=0.1.7
-discord>=1.7.3
-discord.py>=1.7.3
+bec_rcon @ git+https://github.com/Yoshi-E/Python-BEC-RCon@master#bec_rcon>=0.1.7
+discord>=2.0.0
+discord.py>=2.0.0
 geoip2>=4.6.0
 packaging>=19.0
 prettytable>=0.7.2
@@ -9,3 +9,7 @@ psutil>=5.9.1
 scipy
 numpy
 func-timeout
+pytest
+pytest-timeout
+Pillow
+matplotlib

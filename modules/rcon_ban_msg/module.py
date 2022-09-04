@@ -132,5 +132,5 @@ class CommandRcon_Custom(commands.Cog):
         name, guid = self.name_from_guid(data[1])
         await self.post_channel.send("``{}`` has been **unbanned**!: \nGUID: {}\nTime: {}\nReason: {}".format(name, data[1], data[2], data[3])) 
 
-def setup(bot):
-    bot.add_cog(CommandRcon_Custom(bot))
+async def setup(bot):
+    await bot.add_cog(CommandRcon_Custom(bot))

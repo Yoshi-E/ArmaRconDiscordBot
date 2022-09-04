@@ -125,7 +125,7 @@ class CommandChatLink(commands.Cog):
     async def rcon_on_connect(self):
         await self.linkedChannel.send(":white_check_mark: ``Connected ChatLink``")
 
-def setup(bot):
+async def setup(bot):
     module = CommandChatLink(bot)
-    bot.add_cog(module)
+    await bot.add_cog(module)
     

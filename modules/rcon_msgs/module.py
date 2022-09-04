@@ -68,6 +68,6 @@ class CommandJoinMSG(commands.Cog):
 #####                                  common functions                                        ####
 ###################################################################################################
  
-def setup(bot):
-    bot.add_cog(CommandJoinMSG(bot))
+async def setup(bot):
+    await bot.add_cog(CommandJoinMSG(bot))
     
