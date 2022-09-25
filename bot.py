@@ -44,14 +44,6 @@ async def on_ready():
     for guild in list(bot.guilds):
         roles += await guild.fetch_roles()
     bot.CoreConfig.load_role_permissions(roles)
-    print("Exiting...")
-    for task in asyncio.tasks.all_tasks():
-        task.cancel()
-    print("Exiting... A")    
-    await bot.close()
-    print("Exiting... B")    
-    bot.loop.close()
-    print("Exiting... C")    
 
 def main():
     try:
