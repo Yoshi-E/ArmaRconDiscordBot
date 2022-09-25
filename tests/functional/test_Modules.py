@@ -16,7 +16,6 @@ bot.CoreConfig = utils.CoreConfig(bot)
 
 @bot.event
 async def on_ready():
-    utils.Modules.loadCogs(bot)
     log.info('Logged in as {} [{}]'.format(bot.user.name, bot.user.id))
     log.info(bot.guilds)
     log.info('------------')
@@ -24,8 +23,13 @@ async def on_ready():
     for guild in list(bot.guilds):
         roles += await guild.fetch_roles()
     bot.CoreConfig.load_role_permissions(roles)
-    bot.close()
+    await bot.close()
 
+#load the modules before the bot is on_ready
+async def setup_hook():
+    utils.Modules.loadCogs(bot)
+
+bot.setup_hook = setup_hook
 
 @pytest.mark.timeout(30)
 def test_Optimizer():

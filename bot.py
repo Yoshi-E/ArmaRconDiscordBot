@@ -36,7 +36,6 @@ bot.CoreConfig = utils.CoreConfig(bot)
 
 @bot.event
 async def on_ready():
-    utils.Modules.loadCogs(bot)
     log.info('Logged in as {} [{}]'.format(bot.user.name, bot.user.id))
     log.info(bot.guilds)
     log.info('------------')
@@ -44,16 +43,15 @@ async def on_ready():
     for guild in list(bot.guilds):
         roles += await guild.fetch_roles()
     bot.CoreConfig.load_role_permissions(roles)
-    print("Exiting...")
-    for task in asyncio.tasks.all_tasks():
-        task.cancel()
-    print("Exiting... A")    
-    await bot.close()
-    print("Exiting... B")    
-    bot.loop.close()
-    print("Exiting... C")    
+
+#load the modules before the bot is on_ready
+async def setup_hook():
+    utils.Modules.loadCogs(bot)
+
+bot.setup_hook = setup_hook
 
 def main():
+    
     try:
         bot.run(cfg["TOKEN"])
     except (KeyboardInterrupt, asyncio.CancelledError):
