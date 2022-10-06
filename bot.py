@@ -59,6 +59,8 @@ def main():
     except (KeyError, discord.errors.LoginFailure) as e:
         log.info(e)
         log.info("PROMPT: Please configure the bot")
+        asyncio.set_event_loop(asyncio.new_event_loop())
+        asyncio.run(setup_hook())
         input("\nPlease configure the bot on the settings page. [ENTER to terminte the bot]\n")
 
 
