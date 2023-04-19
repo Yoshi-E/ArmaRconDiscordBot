@@ -6,7 +6,9 @@ https://discord.com/developers/applications/
 -> SERVER MEMBERS INTENT
 
 1. Install Python3.10 (Other versions might work with some changes to asyncio)
-Warning: Currently Python 3.11 or higher is not supported
+
+⚠️ Warning: Currently Python 3.11 or higher is not supported
+
 2. Clone the git `https://github.com/Yoshi-E/ArmaRconDiscordBot.git`
 3. Run `pip install -r requirements.txt` to install required modules
 4. Run the `bot.py` once.
