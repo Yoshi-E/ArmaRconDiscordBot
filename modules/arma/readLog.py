@@ -253,6 +253,8 @@ File mpmissions\__cur_mp.Altis\Server\Functions\Server_SpawnTownResistance.sqf..
     #builds mission blocks    
     def processMission(self, event, data): 
         try:
+            if self.maxMissions <= 0:
+                return
             #new mission is being started
             if(event == "Mission readname"):
                 self.Missions.append({"dict": {"Server sessionID": self.server_sessionID, event: data}, "data": []})
