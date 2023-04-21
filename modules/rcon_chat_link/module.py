@@ -94,6 +94,7 @@ class CommandChatLink(commands.Cog):
         try:
             #example: getting player name
             if(": " in message):
+                message = discord.utils.escape_mentions(message)
                 header, body = message.split(": ", 1)
                 if(self.CommandRcon.isChannel(header)): #was written in a channel
                     channel, player_name = header.split(") ", 1)
