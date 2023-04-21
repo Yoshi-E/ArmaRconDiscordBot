@@ -116,3 +116,4 @@ error.log
 *.png
 *.rpt
 *.db
+.venv311/

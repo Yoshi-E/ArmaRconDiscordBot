@@ -196,25 +196,32 @@ class CommandRcon(commands.Cog):
             self.streamChat = None
         
         self.setupRcon()
-            
+
+    def login_fail(self, err): 
+        log.warning(f"RCON login failed: {err}")
+
     def setupRcon(self, serverMessage=None):
         try:
             Events = None
             if self.arma_rcon:
-                Events = self.arma_rcon.Events.copy()
+                Events = self.arma_rcon.eventHandlers.copy()
             del self.arma_rcon 
-            self.arma_rcon = bec_rcon.ARC(self.rcon_settings["ip"], 
-                                     self.rcon_settings["password"], 
-                                     self.rcon_settings["port"], 
-                                     {'timeoutSec' : self.rcon_settings["timeoutSec"]}
-                                    )
+            self.arma_rcon = bec_rcon.RCON_ARMA(
+                serverIP = self.rcon_settings["ip"], 
+                RConPassword = self.rcon_settings["password"], 
+                serverPort = self.rcon_settings["port"],  
+                logger = None, 
+                options = {'timeoutSec' : self.rcon_settings["timeoutSec"]}
+            )
+
             if Events:
                 #restore Event Handlers
-                self.arma_rcon.Events = Events
+                self.arma_rcon.eventHandlers = Events
             else:
                 #Add Event Handlers
                 self.arma_rcon.add_Event("received_ServerMessage", self.rcon_on_msg_received)
                 self.arma_rcon.add_Event("on_disconnect", self.rcon_on_disconnect)
+                self.arma_rcon.add_Event("login_fail", self.login_fail)
                 
             if(serverMessage):
                 self.arma_rcon.serverMessage = serverMessage
