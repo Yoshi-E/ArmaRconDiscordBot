@@ -1,4 +1,4 @@
-bec_rcon @ git+https://github.com/Yoshi-E/Python-BEC-RCon@master#bec_rcon=0.1.7
+bec_rcon @ git+https://github.com/Yoshi-E/Python-BEC-RCon@0.1.7
 discord>=2.0.0
 discord.py>=2.0.0
 geoip2>=4.6.0
