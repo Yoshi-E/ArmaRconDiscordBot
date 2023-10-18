@@ -10,13 +10,14 @@ https://discord.com/developers/applications/
 ⚠️ Warning: Currently Python 3.11 or higher is not supported
 
 2. Clone the git `https://github.com/Yoshi-E/ArmaRconDiscordBot.git`
-3. Run `pip install -r requirements.txt` to install required modules
-4. Run the `bot.py` once.
-5. Now configure the bot inside a web browser of your choice. Simply open the site: localhost:8000
-6. Now enter all essential details (Discord token, etc.)
-7. Restart the bot
-8. The bot should now be functional. However the permission have to be configured first, otherwise you wont be able to use any commands. Open the settings again, and set up the permissions.
-9. Now you are done.
+3. You will need <a href="https://git-scm.com/download/win">Git</a> to install all modules. 
+4. Run `pip install -r requirements.txt` to install required modules
+5. Run the `bot.py` once.
+6. Now configure the bot inside a web browser of your choice. Simply open the site: localhost:8000
+7. Now enter all essential details (Discord token, etc.)
+8. Restart the bot
+9. The bot should now be functional. However the permission have to be configured first, otherwise you wont be able to use any commands. Open the settings again, and set up the permissions.
+10. Now you are done.
 
 ## Troubleshooting:
  * "The system cannot find the file specified while executing the command git clone ..."
