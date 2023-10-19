@@ -333,8 +333,11 @@ File mpmissions\__cur_mp.Altis\Server\Functions\Server_SpawnTownResistance.sqf..
                     self.currentLinePos = 0
                     file = open(self.log_path+self.current_log, "r", errors="replace")
                     file_descriptor = os.fstat(file.fileno())
+                    
                     for i, l in enumerate(file):
                         pass
+                    if not i: #if file is empty
+                        i = 0
                     self.currentLinePos = i+1
                     #file.seek(0, 2) #jump to the end of the file
                     try:
