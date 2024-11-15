@@ -265,8 +265,8 @@ class CommandChecker():
             CommandChecker.registered.append(d_kwargs["name"])
             @commands.command(*d_args,**d_kwargs)
             @commands.check(CommandChecker.checkPermission)
-            async def wrapper(*args,**kwargs):
-                return await func(*args,**kwargs)
+            async def wrapper(ctx, *args,**kwargs):
+                return await func(ctx, *args,**kwargs)
             #signature = inspect.signature(func)
             wrapper.params = get_signature_parameters(func, {})
             func.name = wrapper.name            
